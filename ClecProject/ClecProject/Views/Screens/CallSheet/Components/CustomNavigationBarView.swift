@@ -44,15 +44,15 @@ struct CustomNavigationBarView: View {
                         HStack{
                             Text(title)
                                 .fontWeight(.bold)
-                                .font(.title2)
+                                .font(.title)
                                 .multilineTextAlignment(.center)
                             if(!centerTitle){
                                 Spacer()
                             }
                         }
                     }
-                    .padding(.horizontal, 32)
-                    .padding(.top, 32)
+                    .padding(.horizontal, 16)
+                    .padding(.top, 24)
                     .padding(.bottom, 16)
                     .foregroundColor(.black)
                     

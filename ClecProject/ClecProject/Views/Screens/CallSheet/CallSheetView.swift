@@ -8,17 +8,20 @@
 import SwiftUI
 
 struct CallSheetView: View {
+    let project: ProjectModel
     var body: some View {
+        @Environment(\.dismiss) var dismiss
+    
         VStack{
-            
+            CustomNavigationBarView(message: "", title: "Ordem do dia", returnText: project.name, onReturn: {dismiss()}, centerTitle: false)
+            Spacer()
         }
-        .navigationTitle("Ordem do dia")
         .font(.subheadline)
     }
 }
 
 #Preview {
     NavigationStack{
-        CallSheetView()
+        CallSheetView(project: DeveloperHelper.project)
     }
 }

@@ -8,11 +8,12 @@
 import SwiftUI
 
 struct CreateProjectView: View {
+    @Environment(\.dismiss) var dismiss
     var body: some View {
         VStack{
-            
+            CustomNavigationBarView(message: "", title: "Insira as informações do projeto", returnText: "Voltar", onReturn: {dismiss()}, centerTitle: true)
+            Spacer()
         }
-        .navigationTitle(Text("Insira as informações do seu projeto"))
     }
 }
 

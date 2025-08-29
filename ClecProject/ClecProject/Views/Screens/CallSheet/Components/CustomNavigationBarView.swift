@@ -7,19 +7,13 @@
 
 import SwiftUI
 
-struct CustomNavigationBarView<Content: View>: View {
+struct CustomNavigationBarView: View {
+    let message: String?
+    let title: String
     let returnText: String
     let onReturn: () -> Void
-    let backgroundColor: Color?
-    
-    let content: Content
-    
-    init(returnText: String, onReturn: @escaping () -> Void, backgroundColor: Color?, @ViewBuilder content: () -> Content) {
-        self.returnText = returnText
-        self.onReturn = onReturn
-        self.backgroundColor = backgroundColor
-        self.content = content()
-    }
+    let centerTitle: Bool
+    //let backgroundColor: Color?
     
     var body: some View {
         ZStack{
@@ -37,30 +31,48 @@ struct CustomNavigationBarView<Content: View>: View {
                     Spacer()
                 }
                 .padding(.horizontal, 36)
-                content
-            }
-        }
-        .background(backgroundColor ?? Color.corCustomTabBar)
-        
-        
-    }
-    
-}
-
-#Preview {
-    VStack{
-        CustomNavigationBarView(returnText: "Meus Projetos",onReturn: {}, backgroundColor: nil) {
-            HStack{
-                Text("Ordem do dia")
+                HStack{
+                    VStack{
+                        if (message != nil) {
+                            HStack{
+                                Text(message ?? "")
+                                    .fontWeight(.bold)
+                                    .foregroundStyle(.secondary)
+                                Spacer()
+                            }
+                        }
+                        HStack{
+                            Text(title)
+                                .fontWeight(.bold)
+                                .font(.title2)
+                                .multilineTextAlignment(.center)
+                            if(!centerTitle){
+                                Spacer()
+                            }
+                        }
+                    }
                     .padding(.horizontal, 32)
                     .padding(.top, 32)
                     .padding(.bottom, 16)
                     .foregroundColor(.black)
-                    .fontWeight(.bold)
-                    .font(.title2)
-                Spacer()
+                    
+                    Spacer()
+                }
             }
+            .background( Color.corCustomTabBar)
+            
+            
         }
+        
+    }
+}
+    
+#Preview {
+    VStack{
+        //            CustomNavigationBarView(message: "Boa tarde", title: DeveloperHelper.project.name, returnText: "Meus Projetos", onReturn: {}, backgroundColor: nil)
+        //            CustomNavigationBarView(message: "", title: "Ordem do dia", returnText: DeveloperHelper.project.name, onReturn: {}, centerTitle: false)
+        //        }
+        CustomNavigationBarView(message: "", title: "Insira as informações do projeto", returnText: "Voltar", onReturn: {}, centerTitle: true)
         Spacer()
     }
 }

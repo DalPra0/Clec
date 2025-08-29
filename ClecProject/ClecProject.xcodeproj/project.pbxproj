@@ -14,7 +14,6 @@
 		B85916D12E621AFD001F4029 /* Exceptions for "ClecProject" folder in "ClecProject" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Views/Screens/CallSheet/Components/ArquivoTeste.swift,
 				"Views/Tela Inicial/Components/ArquivoTeste.swift",
 			);
 			target = 154933692E5CEF6A00C5012F /* ClecProject */;

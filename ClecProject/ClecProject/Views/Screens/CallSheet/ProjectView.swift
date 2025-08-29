@@ -9,13 +9,16 @@ import SwiftUI
 
 struct ProjectView: View {
     let project: ProjectModel
+    @Environment(\.dismiss) var dismiss
+
 
     var body: some View {
         VStack{
+            CustomNavigationBarView(message: "Boa tarde,", title: project.name, returnText: "Meus Projetos", onReturn: {dismiss()}, centerTitle: false)
             
+            Spacer()
         }
-        .navigationTitle(Text(project.name))
-    }
+}
 }
 
 #Preview {

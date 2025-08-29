@@ -8,13 +8,17 @@
 import SwiftUI
 
 struct CallSheetView: View {
-    let readerMode:Bool
-    
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        VStack{
+            
+        }
+        .navigationTitle("Ordem do dia")
+        .font(.subheadline)
     }
 }
 
 #Preview {
-    CallSheetView(readerMode: false)
+    NavigationStack{
+        CallSheetView()
+    }
 }

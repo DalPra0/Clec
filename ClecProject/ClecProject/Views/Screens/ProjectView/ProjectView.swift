@@ -15,7 +15,9 @@ struct ProjectView: View {
     var body: some View {
         VStack{
             CustomToolbarView(message: "Boa tarde,", title: project.name, returnText: "Meus Projetos", onReturn: {dismiss()}, centerTitle: false)
-            
+            VStack{
+                HStack{}
+            }
             Spacer()
         }
 }

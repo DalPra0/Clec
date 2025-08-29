@@ -10,10 +10,9 @@ import Foundation
 struct CallSheetModel: Codable, Identifiable {
     let id: UUID
     var day: Date
-    var schedule: Dictionary<ScheduleActivity, Date>
-    
+    var schedule: [SchedulePair]
     var sceneTable: [CallSheetLineInfo]
-    
+
     
     enum ScheduleActivity: String, Codable {
         case Begginning = "Início"

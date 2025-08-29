@@ -11,7 +11,7 @@ struct CreateProjectView: View {
     @Environment(\.dismiss) var dismiss
     var body: some View {
         VStack{
-            CustomNavigationBarView(message: "", title: "Insira as informações do projeto", returnText: "Voltar", onReturn: {dismiss()}, centerTitle: true)
+            CustomToolbarView(message: "", title: "Insira as informações do projeto", returnText: "Voltar", onReturn: {dismiss()}, centerTitle: true)
             Spacer()
         }
     }

@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct CustomNavigationBarView: View {
+struct CustomToolbarView: View {
     let message: String?
     let title: String
     let returnText: String
@@ -59,7 +59,7 @@ struct CustomNavigationBarView: View {
                     Spacer()
                 }
             }
-            .background( Color.corCustomTabBar)
+            .background(Color.toolbarBackground)
             
             
         }
@@ -69,10 +69,10 @@ struct CustomNavigationBarView: View {
     
 #Preview {
     VStack{
-        //            CustomNavigationBarView(message: "Boa tarde", title: DeveloperHelper.project.name, returnText: "Meus Projetos", onReturn: {}, backgroundColor: nil)
-        //            CustomNavigationBarView(message: "", title: "Ordem do dia", returnText: DeveloperHelper.project.name, onReturn: {}, centerTitle: false)
+        //            CustomToolbarView(message: "Boa tarde", title: DeveloperHelper.project.name, returnText: "Meus Projetos", onReturn: {}, backgroundColor: nil)
+        //            CustomToolbarView(message: "", title: "Ordem do dia", returnText: DeveloperHelper.project.name, onReturn: {}, centerTitle: false)
         //        }
-        CustomNavigationBarView(message: "", title: "Insira as informações do projeto", returnText: "Voltar", onReturn: {}, centerTitle: true)
+        CustomToolbarView(message: "", title: "Insira as informações do projeto", returnText: "Voltar", onReturn: {}, centerTitle: true)
         Spacer()
     }
 }

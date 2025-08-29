@@ -14,7 +14,7 @@ struct ProjectView: View {
 
     var body: some View {
         VStack{
-            CustomNavigationBarView(message: "Boa tarde,", title: project.name, returnText: "Meus Projetos", onReturn: {dismiss()}, centerTitle: false)
+            CustomToolbarView(message: "Boa tarde,", title: project.name, returnText: "Meus Projetos", onReturn: {dismiss()}, centerTitle: false)
             
             Spacer()
         }

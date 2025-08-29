@@ -13,7 +13,7 @@ struct CallSheetView: View {
         @Environment(\.dismiss) var dismiss
     
         VStack{
-            CustomNavigationBarView(message: "", title: "Ordem do dia", returnText: project.name, onReturn: {dismiss()}, centerTitle: false)
+            CustomToolbarView(message: "", title: "Ordem do dia", returnText: project.name, onReturn: {dismiss()}, centerTitle: false)
             Spacer()
         }
         .font(.subheadline)

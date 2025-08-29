@@ -179,7 +179,7 @@ struct DocumentPicker: UIViewControllerRepresentable {
 }
 
 #Preview {
-    @State var fileName: String? = nil
+    @Previewable @State var fileName: String? = nil
     
     return CustomFilePicker(
         title: "Roteiro",

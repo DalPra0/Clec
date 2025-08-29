@@ -102,7 +102,7 @@ struct CustomDatePicker: View {
 }
 
 #Preview {
-    @State var sampleDate: Date? = nil
+    @Previewable @State var sampleDate: Date? = nil
     
     return CustomDatePicker(
         title: "Data Final",

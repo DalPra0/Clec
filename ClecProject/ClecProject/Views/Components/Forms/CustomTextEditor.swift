@@ -39,7 +39,7 @@ struct CustomTextEditor: View {
 }
 
 #Preview {
-    @State var sampleText = ""
+    @Previewable @State var sampleText = ""
     
     return CustomTextEditor(
         title: "Roteiro",

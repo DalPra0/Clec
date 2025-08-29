@@ -26,7 +26,7 @@ struct CustomTextField: View {
 }
 
 #Preview {
-    @State var sampleText = ""
+    @Previewable @State var sampleText = ""
     
     return CustomTextField(
         title: "Nome do Projeto",

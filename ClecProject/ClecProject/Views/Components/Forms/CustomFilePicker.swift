@@ -24,7 +24,6 @@ struct CustomFilePicker: View {
             }) {
                 HStack {
                     if let fileName = selectedFileName {
-                        // Arquivo selecionado
                         HStack {
                             Image(systemName: fileIcon)
                                 .foregroundColor(.blue)
@@ -41,7 +40,6 @@ struct CustomFilePicker: View {
                             }
                         }
                     } else {
-                        // Nenhum arquivo selecionado
                         HStack {
                             Image(systemName: "doc.badge.plus")
                                 .foregroundColor(.secondary)
@@ -63,7 +61,6 @@ struct CustomFilePicker: View {
             }
             .buttonStyle(PlainButtonStyle())
             
-            // Botão para remover arquivo
             if selectedFileName != nil {
                 HStack {
                     Button(action: {
@@ -83,7 +80,6 @@ struct CustomFilePicker: View {
                 .padding(.top, 4)
             }
             
-            // Tipos de arquivo aceitos
             Text("Formatos aceitos: PDF, DOC, DOCX")
                 .font(.caption)
                 .foregroundColor(.secondary)
@@ -93,7 +89,6 @@ struct CustomFilePicker: View {
         }
     }
     
-    // MARK: - Helper Properties
     private var fileIcon: String {
         guard let fileName = selectedFileName else { return "doc" }
         
@@ -116,7 +111,6 @@ struct CustomFilePicker: View {
     }
 }
 
-// MARK: - Document Picker
 struct DocumentPicker: UIViewControllerRepresentable {
     @Binding var selectedFileName: String?
     @Environment(\.presentationMode) var presentationMode
@@ -153,10 +147,8 @@ struct DocumentPicker: UIViewControllerRepresentable {
         func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
             guard let url = urls.first else { return }
             
-            // Pegar apenas o nome do arquivo
             let fileName = url.lastPathComponent
             
-            // Validar tipo de arquivo
             let fileExtension = url.pathExtension.lowercased()
             let allowedExtensions = ["pdf", "doc", "docx"]
             

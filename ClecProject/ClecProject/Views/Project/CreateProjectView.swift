@@ -11,27 +11,22 @@ struct CreateProjectView: View {
     @EnvironmentObject var projectManager: ProjectManager
     @Environment(\.presentationMode) var presentationMode
     
-    // Form States
     @State private var projectName = ""
     @State private var director = ""
     @State private var description = ""
-    @State private var selectedScriptFile: String? = nil // Changed from screenPlay to selectedScriptFile
+    @State private var selectedScriptFile: String? = nil
     @State private var deadline: Date? = nil
     
-    // Validation & Loading
     @State private var isFormValid = false
     @State private var isLoading = false
     
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
-                // Header
                 headerSection
                 
-                // Form Fields
                 formSection
                 
-                // Generated Code Display
                 codeSection
                 
                 Spacer(minLength: 40)
@@ -54,7 +49,6 @@ struct CreateProjectView: View {
         }
     }
     
-    // MARK: - Header Section
     private var headerSection: some View {
         VStack(spacing: 12) {
             Text("Insira as informações")
@@ -70,7 +64,6 @@ struct CreateProjectView: View {
         .padding(.top, 20)
     }
     
-    // MARK: - Form Section
     private var formSection: some View {
         VStack(spacing: 20) {
             CustomTextField(
@@ -103,7 +96,6 @@ struct CreateProjectView: View {
         }
     }
     
-    // MARK: - Code Section
     private var codeSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Código")
@@ -131,7 +123,6 @@ struct CreateProjectView: View {
         }
     }
     
-    // MARK: - Navigation Buttons
     private var backButton: some View {
         Button("Voltar") {
             presentationMode.wrappedValue.dismiss()
@@ -147,14 +138,12 @@ struct CreateProjectView: View {
         .disabled(!isFormValid || isLoading)
     }
     
-    // MARK: - Helper Functions
     private func validateForm() {
         isFormValid = !projectName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
                      !director.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
     
     private func generateProjectCode() -> String {
-        // Generate a 4-digit code based on project name or random
         let code = String(format: "%04d", Int.random(in: 1000...9999))
         return code
     }
@@ -175,10 +164,8 @@ struct CreateProjectView: View {
             callSheet: []
         )
         
-        // Add to project manager
         projectManager.addProject(newProject)
         
-        // Simulate short delay for better UX
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             isLoading = false
             presentationMode.wrappedValue.dismiss()

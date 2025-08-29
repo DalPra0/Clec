@@ -14,21 +14,17 @@ struct InitialView: View {
         VStack(spacing: 40) {
             Spacer(minLength: 80)
             
-            // Logo e título
             VStack(spacing: 16) {
-                // Logo
                 Text("CLÉQUI!")
                     .font(.largeTitle)
                     .fontWeight(.bold)
                     .foregroundColor(.primary)
                 
-                // Título de boas-vindas
                 Text("Bem vindo!")
                     .font(.title2)
                     .fontWeight(.medium)
                     .foregroundColor(.primary)
                 
-                // Descrição
                 Text("Você pode escolher criar um projeto\nou entrar em um com código")
                     .font(.body)
                     .foregroundColor(.secondary)
@@ -38,10 +34,8 @@ struct InitialView: View {
             
             Spacer(minLength: 60)
             
-            // Cards de ação
             VStack(spacing: 16) {
-                // Card Criar Projeto - NavigationLink
-                NavigationLink(destination: 
+                NavigationLink(destination:
                     CreateProjectView()
                         .environmentObject(projectManager)
                 ) {
@@ -52,7 +46,6 @@ struct InitialView: View {
                 }
                 .buttonStyle(PlainButtonStyle())
                 
-                // Card Inserir Código - NavigationLink
                 NavigationLink(destination:
                     JoinProjectView()
                         .environmentObject(projectManager)

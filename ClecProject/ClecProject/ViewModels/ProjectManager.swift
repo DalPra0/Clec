@@ -14,7 +14,6 @@ class ProjectManager: ObservableObject {
     private let userDefaults = UserDefaults.standard
     private let projectsKey = "SavedProjects"
     
-    // Computed property para verificar se há projetos
     var hasProjects: Bool {
         return !projects.isEmpty
     }
@@ -23,7 +22,6 @@ class ProjectManager: ObservableObject {
         loadProjects()
     }
     
-    // MARK: - Project Management
     func addProject(_ project: ProjectModel) {
         projects.append(project)
         saveProjects()
@@ -51,7 +49,6 @@ class ProjectManager: ObservableObject {
         return projects.first { $0.id == id }
     }
     
-    // MARK: - Persistence
     private func loadProjects() {
         // Por agora, vamos usar uma implementação simples
         // Futuramente implementaremos com Codable + UserDefaults ou Core Data

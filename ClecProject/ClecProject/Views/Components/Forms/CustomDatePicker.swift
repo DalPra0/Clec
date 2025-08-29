@@ -50,7 +50,6 @@ struct CustomDatePicker: View {
         }
         .sheet(isPresented: $showingPicker) {
             VStack(spacing: 20) {
-                // Header
                 HStack {
                     Button("Cancelar") {
                         showingPicker = false
@@ -70,7 +69,6 @@ struct CustomDatePicker: View {
                 }
                 .padding()
                 
-                // DatePicker
                 DatePicker(
                     "Selecione a data",
                     selection: $tempDate,

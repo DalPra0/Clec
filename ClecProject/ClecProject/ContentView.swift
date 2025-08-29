@@ -8,14 +8,20 @@
 import SwiftUI
 
 struct ContentView: View {
+    @StateObject private var projectManager = ProjectManager()
+    
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        NavigationView {
+            Group {
+                if projectManager.hasProjects {
+                    DashboardView()
+                } else {
+                    InitialView()
+                }
+            }
+            .environmentObject(projectManager)
         }
-        .padding()
+        .preferredColorScheme(.light)
     }
 }
 

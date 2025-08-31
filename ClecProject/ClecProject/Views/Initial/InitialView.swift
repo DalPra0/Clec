@@ -29,11 +29,9 @@ struct InitialView: View {
                         impactFeedback.impactOccurred()
                     }
                     .onTapGesture(count: 5) {
-                        // Secret: Clear all data with 5 taps
                         projectManager.clearAllProjects()
                         userManager.resetToDefault()
                         
-                        // Strong haptic feedback
                         let notificationFeedback = UINotificationFeedbackGenerator()
                         notificationFeedback.notificationOccurred(.warning)
                         

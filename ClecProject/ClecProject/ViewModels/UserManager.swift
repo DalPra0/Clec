@@ -9,7 +9,7 @@ import Foundation
 import SwiftUI
 
 class UserManager: ObservableObject {
-    @Published var userName: String = "Mia"
+    @Published var userName: String = "Nome padrao"
     
     private let userDefaults = UserDefaults.standard
     private let userNameKey = "UserName"
@@ -24,13 +24,12 @@ class UserManager: ObservableObject {
         print("👤 Nome do usuário atualizado para: \(userName)")
     }
     
-    // MARK: - Persistence
     private func loadUserName() {
         if let savedName = userDefaults.string(forKey: userNameKey), !savedName.isEmpty {
             userName = savedName
             print("👤 Nome carregado: \(userName)")
         } else {
-            userName = "Mia" // Default name
+            userName = "Nome Padrao" // Default name
             print("👤 Usando nome padrão: \(userName)")
         }
     }
@@ -40,7 +39,6 @@ class UserManager: ObservableObject {
         print("💾 Nome salvo: \(userName)")
     }
     
-    // MARK: - Utility
     var greeting: String {
         return "Hello, \(userName)!"
     }

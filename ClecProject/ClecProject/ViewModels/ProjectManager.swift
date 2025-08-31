@@ -129,7 +129,7 @@ class ProjectManager: ObservableObject {
             }
         }
         
-        saveProjects() // Save all mock projects at once
+        saveProjects()
         
         print("📚 Adicionados \(mockProjects.count) projetos mock e salvos com persistência")
         print("🔑 Códigos de teste: AB12, XY9Z, P7Q8")

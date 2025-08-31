@@ -14,7 +14,6 @@ class PersistenceService {
     
     private init() {}
     
-    // MARK: - Generic Save/Load Methods
     func save<T: Codable>(_ object: T, forKey key: String) {
         do {
             let data = try JSONEncoder().encode(object)
@@ -50,7 +49,6 @@ class PersistenceService {
         return userDefaults.object(forKey: key) != nil
     }
     
-    // MARK: - Convenience Methods
     func saveString(_ string: String, forKey key: String) {
         userDefaults.set(string, forKey: key)
         print("💾 [\(key)] String salva: \(string)")
@@ -66,7 +64,6 @@ class PersistenceService {
         return string
     }
     
-    // MARK: - Debug Methods
     func clearAll() {
         let keys = ["SavedProjects", "UserName"]
         for key in keys {

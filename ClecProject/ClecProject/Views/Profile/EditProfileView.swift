@@ -41,7 +41,6 @@ struct EditProfileView: View {
                 }
                 .padding(.top, 40)
                 
-                // Form
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Nome")
                         .font(.headline)
@@ -74,7 +73,6 @@ struct EditProfileView: View {
         }
     }
     
-    // MARK: - Navigation Buttons
     private var cancelButton: some View {
         Button("Cancelar") {
             presentationMode.wrappedValue.dismiss()
@@ -91,7 +89,6 @@ struct EditProfileView: View {
         .disabled(!isFormValid)
     }
     
-    // MARK: - Helper Functions
     private func validateForm() {
         let trimmedName = newUserName.trimmingCharacters(in: .whitespacesAndNewlines)
         isFormValid = !trimmedName.isEmpty && trimmedName != userManager.userName
@@ -103,7 +100,6 @@ struct EditProfileView: View {
         let trimmedName = newUserName.trimmingCharacters(in: .whitespacesAndNewlines)
         userManager.updateUserName(trimmedName)
         
-        // Haptic feedback
         let notificationFeedback = UINotificationFeedbackGenerator()
         notificationFeedback.notificationOccurred(.success)
         

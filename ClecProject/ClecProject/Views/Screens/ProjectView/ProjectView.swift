@@ -15,11 +15,20 @@ struct ProjectView: View {
     var body: some View {
         VStack{
             CustomToolbarView(message: "Boa tarde,", title: project.name, returnText: "Meus Projetos", onReturn: {dismiss()}, centerTitle: false)
-            VStack{
-                HStack{}
+            Grid{
+                GridRow{
+                    ProjectViewButton(icon: "archivebox.fill", title: "Arquivos", onClick: {})
+                        .gridCellColumns(2)
+                    ProjectViewButton(icon: "person.2.fill", title: "Membros", onClick: {})
+                        .gridCellColumns(2)
+                }
+                ProjectViewButton(icon: "", title: "Ordem do dia", onClick: {})
             }
+            .padding(.vertical, 68)
+            .padding(.horizontal, 24)
             Spacer()
         }
+        
 }
 }
 

@@ -17,7 +17,7 @@ struct ProjectViewButton: View {
                 RoundedRectangle(cornerRadius: 16)
                     .foregroundStyle(Color.projectViewButtonBackground)
                 HStack{
-                    Image(systemName: "")
+                    Image(systemName: icon)
                     Text(title)
                 }
                 .foregroundStyle(.black)
@@ -27,5 +27,5 @@ struct ProjectViewButton: View {
 }
 
 #Preview {
-    ProjectViewButton(icon: "", title: "title", onClick: {})
+    ProjectViewButton(icon: "tray.fill", title: "title", onClick: {})
 }

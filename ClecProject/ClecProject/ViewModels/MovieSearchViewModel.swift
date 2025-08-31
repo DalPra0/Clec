@@ -25,7 +25,6 @@ class MovieSearchViewModel: ObservableObject {
         checkAPIStatus()
     }
     
-    // MARK: - API Status Check
     private func checkAPIStatus() {
         if tmdbService.isUsingRealAPI {
             apiStatus = "🔄 Testando API..."
@@ -40,7 +39,6 @@ class MovieSearchViewModel: ObservableObject {
         }
     }
     
-    // MARK: - Search Setup
     private func setupSearchDebounce() {
         $searchText
             .debounce(for: .milliseconds(500), scheduler: RunLoop.main)
@@ -56,7 +54,6 @@ class MovieSearchViewModel: ObservableObject {
             .store(in: &cancellables)
     }
     
-    // MARK: - Search Movies (AGORA USA API REAL!)
     private func searchMovies(query: String) {
         isLoading = true
         errorMessage = nil
@@ -87,7 +84,6 @@ class MovieSearchViewModel: ObservableObject {
             .store(in: &cancellables)
     }
     
-    // MARK: - Load Popular Movies
     func loadPopularMovies() {
         isLoading = true
         errorMessage = nil
@@ -107,7 +103,7 @@ class MovieSearchViewModel: ObservableObject {
                 receiveValue: { [weak self] movies in
                     DispatchQueue.main.async {
                         self?.searchResults = movies
-                        self?.searchText = "" // Clear search to show popular results
+                        self?.searchText = ""
                         print("✅ Filmes populares carregados: \(movies.count)")
                     }
                 }
@@ -115,7 +111,6 @@ class MovieSearchViewModel: ObservableObject {
             .store(in: &cancellables)
     }
     
-    // MARK: - Clear Search
     func clearSearch() {
         searchText = ""
         searchResults = []
@@ -123,11 +118,10 @@ class MovieSearchViewModel: ObservableObject {
         isLoading = false
     }
     
-    // MARK: - Show/Hide Search
     func showMovieSearch() {
         showingMovieSearch = true
         clearSearch()
-        checkAPIStatus() // Refresh API status when opening
+        checkAPIStatus()
     }
     
     func hideMovieSearch() {
@@ -135,7 +129,6 @@ class MovieSearchViewModel: ObservableObject {
         clearSearch()
     }
     
-    // MARK: - Refresh API Status
     func refreshAPIStatus() {
         checkAPIStatus()
     }

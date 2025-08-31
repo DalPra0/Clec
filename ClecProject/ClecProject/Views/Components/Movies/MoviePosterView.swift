@@ -43,7 +43,6 @@ struct MoviePosterView: View {
                         )
                 }
             } else {
-                // Empty slot
                 Rectangle()
                     .fill(Color.gray.opacity(0.2))
                     .overlay(

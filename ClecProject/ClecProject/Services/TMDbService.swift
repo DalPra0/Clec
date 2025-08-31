@@ -18,20 +18,17 @@ class TMDbService: ObservableObject {
     // 3. Clique "Create" e preencha o formulário
     // 4. Copie a API Key gerada (32 caracteres)
     // 5. SUBSTITUA "SEU_API_KEY_AQUI" pela sua key real abaixo:
-    // 
-    // Exemplo: private let apiKey = "1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d"
+     
     private let apiKey = "224a7d2a8fb337415c793280d3dfa12a"  // ⚠️ COLE SUA API KEY AQUI!
     
     private let baseURL = "https://api.themoviedb.org/3"
     private var cancellables = Set<AnyCancellable>()
     
-    // Flag para saber se está em modo demo
     var isUsingRealAPI: Bool {
         return apiKey != "SEU_API_KEY_AQUI" && apiKey != "demo_key" && !apiKey.isEmpty
     }
     
     private init() {
-        // Log do status inicial
         if isUsingRealAPI {
             print("🔑 API TMDb CONFIGURADA - Usando API key real")
         } else {
@@ -40,7 +37,6 @@ class TMDbService: ObservableObject {
         }
     }
     
-    // MARK: - Search Movies
     func searchMovies(query: String) -> AnyPublisher<[Movie], Error> {
         guard !query.isEmpty else {
             return Just([])
@@ -48,7 +44,6 @@ class TMDbService: ObservableObject {
                 .eraseToAnyPublisher()
         }
         
-        // Se não tiver API key válida, usa mock data
         guard isUsingRealAPI else {
             return searchMockMovies(query: query)
         }
@@ -65,7 +60,6 @@ class TMDbService: ObservableObject {
         
         return URLSession.shared.dataTaskPublisher(for: url)
             .tryMap { data, response -> Data in
-                // Debug da resposta
                 if let httpResponse = response as? HTTPURLResponse {
                     print("📡 Status Code: \(httpResponse.statusCode)")
                     
@@ -76,7 +70,6 @@ class TMDbService: ObservableObject {
                     }
                 }
                 
-                // Debug dos dados recebidos
                 if let jsonString = String(data: data, encoding: .utf8) {
                     print("📥 Resposta recebida: \(jsonString.prefix(200))...")
                 }
@@ -91,14 +84,12 @@ class TMDbService: ObservableObject {
             .catch { error -> AnyPublisher<[Movie], Error> in
                 print("❌ Erro na API: \(error.localizedDescription)")
                 
-                // Em caso de erro, tenta buscar nos dados mock como fallback
                 return self.searchMockMovies(query: query)
             }
             .receive(on: DispatchQueue.main)
             .eraseToAnyPublisher()
     }
     
-    // MARK: - Search Mock Movies (Fallback)
     private func searchMockMovies(query: String) -> AnyPublisher<[Movie], Error> {
         let filteredMovies = getMockMovies().filter { movie in
             movie.title.lowercased().contains(query.lowercased())
@@ -107,14 +98,12 @@ class TMDbService: ObservableObject {
         print("🎭 Usando dados mock, encontrados: \(filteredMovies.count) filmes para '\(query)'")
         
         return Just(filteredMovies)
-            .delay(for: 0.3, scheduler: DispatchQueue.main) // Simula delay de API
+            .delay(for: 0.3, scheduler: DispatchQueue.main)
             .setFailureType(to: Error.self)
             .eraseToAnyPublisher()
     }
     
-    // MARK: - Get Popular Movies
     func getPopularMovies() -> AnyPublisher<[Movie], Error> {
-        // Se não tiver API key válida, usa mock data
         guard isUsingRealAPI else {
             print("🎭 Usando filmes populares mock")
             return Just(Array(getMockMovies().prefix(10)))
@@ -147,7 +136,6 @@ class TMDbService: ObservableObject {
             .map(\.results)
             .catch { error -> AnyPublisher<[Movie], Error> in
                 print("❌ Erro ao buscar filmes populares: \(error)")
-                // Fallback para mock data
                 return Just(Array(self.getMockMovies().prefix(10)))
                     .setFailureType(to: Error.self)
                     .eraseToAnyPublisher()
@@ -156,7 +144,6 @@ class TMDbService: ObservableObject {
             .eraseToAnyPublisher()
     }
     
-    // MARK: - Test API Key
     func testAPIKey() -> AnyPublisher<Bool, Never> {
         guard isUsingRealAPI else {
             return Just(false)
@@ -187,7 +174,6 @@ class TMDbService: ObservableObject {
             .eraseToAnyPublisher()
     }
     
-    // MARK: - Mock Data for Development (Expandido)
     func getMockMovies() -> [Movie] {
         return [
             Movie(
@@ -294,7 +280,6 @@ class TMDbService: ObservableObject {
     }
 }
 
-// MARK: - TMDb Errors
 enum TMDbError: Error, LocalizedError {
     case invalidURL
     case noData

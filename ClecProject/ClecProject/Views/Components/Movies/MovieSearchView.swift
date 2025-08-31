@@ -15,10 +15,8 @@ struct MovieSearchView: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
-                // Search Header
                 searchHeader
                 
-                // Content
                 if viewModel.isLoading {
                     loadingView
                 } else if viewModel.searchResults.isEmpty && !viewModel.searchText.isEmpty {
@@ -39,10 +37,8 @@ struct MovieSearchView: View {
         }
     }
     
-    // MARK: - Search Header
     private var searchHeader: some View {
         VStack(spacing: 16) {
-            // API Status
             HStack {
                 Text(viewModel.apiStatus)
                     .font(.caption)
@@ -108,7 +104,6 @@ struct MovieSearchView: View {
         .padding(.bottom, 10)
     }
     
-    // MARK: - Cancel Button
     private var cancelButton: some View {
         Button("Cancelar") {
             presentationMode.wrappedValue.dismiss()
@@ -116,7 +111,6 @@ struct MovieSearchView: View {
         .foregroundColor(.primary)
     }
     
-    // MARK: - Loading View
     private var loadingView: some View {
         VStack(spacing: 16) {
             ProgressView()
@@ -128,7 +122,6 @@ struct MovieSearchView: View {
         .frame(maxHeight: .infinity)
     }
     
-    // MARK: - Empty State
     private var emptyStateView: some View {
         VStack(spacing: 16) {
             Image(systemName: "film.fill")
@@ -148,7 +141,6 @@ struct MovieSearchView: View {
         .padding(.horizontal, 40)
     }
     
-    // MARK: - Initial State
     private var initialStateView: some View {
         VStack(spacing: 20) {
             Image(systemName: "popcorn.fill")
@@ -167,7 +159,6 @@ struct MovieSearchView: View {
                     .multilineTextAlignment(.center)
             }
             
-            // Popular suggestions
             VStack(alignment: .leading, spacing: 12) {
                 Text("Sugestões populares:")
                     .font(.headline)
@@ -195,7 +186,6 @@ struct MovieSearchView: View {
         .padding(.horizontal, 30)
     }
     
-    // MARK: - Search Results
     private var searchResultsView: some View {
         ScrollView {
             LazyVStack(spacing: 16) {
@@ -214,11 +204,9 @@ struct MovieSearchView: View {
         }
     }
     
-    // MARK: - Actions
     private func addMovie(_ movie: Movie) {
         userManager.addFavoriteMovie(movie)
         
-        // Auto-close if we've filled all slots
         if userManager.hasAllFavoriteSlots {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 presentationMode.wrappedValue.dismiss()
@@ -235,7 +223,6 @@ struct MovieSearchView: View {
         
         alert.addAction(UIAlertAction(title: "OK", style: .default))
         
-        // Present alert
         if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
            let rootViewController = windowScene.windows.first?.rootViewController {
             rootViewController.present(alert, animated: true)
@@ -243,7 +230,6 @@ struct MovieSearchView: View {
     }
 }
 
-// MARK: - Movie Search Row
 struct MovieSearchRow: View {
     let movie: Movie
     let canAdd: Bool
@@ -252,7 +238,6 @@ struct MovieSearchRow: View {
     
     var body: some View {
         HStack(spacing: 16) {
-            // Movie Poster
             AsyncImage(url: movie.posterURL) { image in
                 image
                     .resizable()
@@ -269,7 +254,6 @@ struct MovieSearchRow: View {
             .cornerRadius(8)
             .clipped()
             
-            // Movie Info
             VStack(alignment: .leading, spacing: 6) {
                 Text(movie.title)
                     .font(.headline)
@@ -299,7 +283,6 @@ struct MovieSearchRow: View {
             
             Spacer()
             
-            // Add Button
             Button(action: onAdd) {
                 if isAlreadyFavorite {
                     Image(systemName: "checkmark.circle.fill")
@@ -321,7 +304,6 @@ struct MovieSearchRow: View {
     }
 }
 
-// MARK: - Preview
 #Preview {
     MovieSearchView()
         .environmentObject(UserManager())

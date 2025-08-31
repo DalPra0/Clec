@@ -19,20 +19,16 @@ struct EditProfileView: View {
     @State private var showingMovieSearch = false
     @State private var selectedPhotoItem: PhotosPickerItem?
     
-    // Validation states
     @State private var isFormValid = false
     
     var body: some View {
         NavigationView {
             ScrollView {
                 VStack(spacing: 32) {
-                    // Profile Image Section
                     profileImageSection
                     
-                    // Form Fields
                     formFieldsSection
                     
-                    // Favorite Movies Section
                     favoriteMoviesSection
                     
                     Spacer(minLength: 100)
@@ -94,7 +90,6 @@ struct EditProfileView: View {
         }
     }
     
-    // MARK: - Profile Image Section
     private var profileImageSection: some View {
         VStack(spacing: 16) {
             Button(action: {
@@ -109,7 +104,6 @@ struct EditProfileView: View {
                             .frame(width: 120, height: 120)
                             .clipShape(Circle())
                     } else {
-                        // Default sheep image or gradient
                         Circle()
                             .fill(
                                 LinearGradient(
@@ -143,10 +137,8 @@ struct EditProfileView: View {
         }
     }
     
-    // MARK: - Form Fields Section
     private var formFieldsSection: some View {
         VStack(spacing: 20) {
-            // Full Name Field
             VStack(alignment: .leading, spacing: 8) {
                 Text("Nome completo")
                     .font(.system(size: 18, weight: .medium))
@@ -161,7 +153,6 @@ struct EditProfileView: View {
                     .autocorrectionDisabled()
             }
             
-            // Email Field
             VStack(alignment: .leading, spacing: 8) {
                 Text("E-mail")
                     .font(.system(size: 18, weight: .medium))
@@ -178,7 +169,6 @@ struct EditProfileView: View {
                     .textInputAutocapitalization(.never)
             }
             
-            // Password Field
             VStack(alignment: .leading, spacing: 8) {
                 Text("Senha")
                     .font(.system(size: 18, weight: .medium))
@@ -194,7 +184,6 @@ struct EditProfileView: View {
         }
     }
     
-    // MARK: - Favorite Movies Section
     private var favoriteMoviesSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
@@ -213,7 +202,6 @@ struct EditProfileView: View {
                     .cornerRadius(8)
             }
             
-            // Movie Grid
             LazyVGrid(columns: [
                 GridItem(.flexible(), spacing: 12),
                 GridItem(.flexible(), spacing: 12),
@@ -227,17 +215,14 @@ struct EditProfileView: View {
         }
     }
     
-    // MARK: - Movie Slot
     @ViewBuilder
     private func movieSlot(at index: Int) -> some View {
         let movie = index < userManager.favoriteMovies.count ? userManager.favoriteMovies[index] : nil
         
         Button(action: {
             if movie != nil {
-                // Show options to remove or replace
                 showRemoveMovieAlert(at: index)
             } else {
-                // Add new movie
                 showingMovieSearch = true
             }
         }) {
@@ -250,7 +235,6 @@ struct EditProfileView: View {
         .buttonStyle(PlainButtonStyle())
     }
     
-    // MARK: - Actions
     private func loadCurrentData() {
         fullName = userManager.userName
         email = userManager.userEmail
@@ -309,7 +293,6 @@ struct EditProfileView: View {
         
         alert.addAction(UIAlertAction(title: "Cancelar", style: .cancel))
         
-        // Present alert
         if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
            let rootViewController = windowScene.windows.first?.rootViewController {
             rootViewController.present(alert, animated: true)
@@ -317,7 +300,6 @@ struct EditProfileView: View {
     }
 }
 
-// MARK: - Preview
 #Preview {
     EditProfileView()
         .environmentObject(UserManager())

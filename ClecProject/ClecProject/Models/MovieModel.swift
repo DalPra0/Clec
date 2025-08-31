@@ -7,7 +7,6 @@
 
 import Foundation
 
-// MARK: - Movie Model
 struct Movie: Codable, Identifiable, Hashable {
     let id: Int
     let title: String
@@ -18,7 +17,6 @@ struct Movie: Codable, Identifiable, Hashable {
     let voteAverage: Double
     let voteCount: Int
     
-    // Computed properties for easier access
     var posterURL: URL? {
         guard let posterPath = posterPath else { return nil }
         return URL(string: "https://image.tmdb.org/t/p/w500\(posterPath)")
@@ -41,7 +39,6 @@ struct Movie: Codable, Identifiable, Hashable {
         return "\(title) (\(year))"
     }
     
-    // JSON mapping
     private enum CodingKeys: String, CodingKey {
         case id, title, overview
         case posterPath = "poster_path"
@@ -52,7 +49,6 @@ struct Movie: Codable, Identifiable, Hashable {
     }
 }
 
-// MARK: - TMDb Search Response
 struct TMDbSearchResponse: Codable {
     let page: Int
     let results: [Movie]
@@ -66,7 +62,6 @@ struct TMDbSearchResponse: Codable {
     }
 }
 
-// MARK: - Favorite Movie (for local storage)
 struct FavoriteMovie: Codable, Identifiable, Hashable {
     let id: Int
     let title: String

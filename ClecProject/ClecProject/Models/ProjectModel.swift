@@ -9,7 +9,7 @@ import Foundation
 
 
 struct ProjectModel: Codable, Identifiable {
-    let id: UUID
+    var id: UUID = UUID()
     let code: String
     var director: String
     var name: String

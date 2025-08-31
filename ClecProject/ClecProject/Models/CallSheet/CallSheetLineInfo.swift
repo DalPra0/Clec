@@ -7,7 +7,8 @@
 
 import Foundation
 
-struct CallSheetLineInfo{
+struct CallSheetLineInfo: Codable, Identifiable {
+    var id = UUID()
     var scene: Int
     var shots: [Int]
     var environmentCondition: EnvironmentConditions

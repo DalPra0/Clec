@@ -28,6 +28,17 @@ struct InitialView: View {
                         let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
                         impactFeedback.impactOccurred()
                     }
+                    .onTapGesture(count: 5) {
+                        // Secret: Clear all data with 5 taps
+                        projectManager.clearAllProjects()
+                        userManager.resetToDefault()
+                        
+                        // Strong haptic feedback
+                        let notificationFeedback = UINotificationFeedbackGenerator()
+                        notificationFeedback.notificationOccurred(.warning)
+                        
+                        print("🧿 Todos os dados foram limpos - volta para tela inicial")
+                    }
                 
                 Text("Bem vindo!")
                     .font(.title2)

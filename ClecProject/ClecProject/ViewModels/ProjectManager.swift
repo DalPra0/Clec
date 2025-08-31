@@ -50,33 +50,43 @@ class ProjectManager: ObservableObject {
     }
     
     private func loadProjects() {
+        print("📱 Carregando projetos salvos...")
+        
+        if let data = userDefaults.data(forKey: projectsKey) {
+            do {
+                let loadedProjects = try JSONDecoder().decode([ProjectModel].self, from: data)
+                self.projects = loadedProjects
+                print("✅ \(loadedProjects.count) projetos carregados com sucesso")
+            } catch {
+                print("❌ Erro ao carregar projetos: \(error.localizedDescription)")
+                print("🔄 Iniciando com lista vazia")
+            }
+        } else {
+            print("🆆 Nenhum projeto salvo encontrado - primeira execução")
+        }
         
         #if DEBUG
-        if projects.isEmpty {
-            print("📱 Carregando projetos salvos...")
-        }
+        // Para desenvolvimento - descomente para adicionar projetos mock:
+        // if projects.isEmpty { addMockProjects() }
         #endif
     }
     
     private func saveProjects() {
         print("💾 Salvando \(projects.count) projetos...")
         
-        // TODO: Implementar Codable + UserDefaults
-        /*
         do {
             let data = try JSONEncoder().encode(projects)
             userDefaults.set(data, forKey: projectsKey)
             print("✅ Projetos salvos com sucesso")
         } catch {
-            print("❌ Erro ao salvar projetos: \(error)")
+            print("❌ Erro ao salvar projetos: \(error.localizedDescription)")
         }
-        */
     }
     
     func clearAllProjects() {
         projects.removeAll()
         saveProjects()
-        print("🧹 Todos os projetos foram removidos")
+        print("🧹 Todos os projetos foram removidos e salvos")
     }
     
     func addMockProjects() {
@@ -119,7 +129,9 @@ class ProjectManager: ObservableObject {
             }
         }
         
-        print("📚 Adicionados \(mockProjects.count) projetos mock para teste")
+        saveProjects() // Save all mock projects at once
+        
+        print("📚 Adicionados \(mockProjects.count) projetos mock e salvos com persistência")
         print("🔑 Códigos de teste: AB12, XY9Z, P7Q8")
     }
 }

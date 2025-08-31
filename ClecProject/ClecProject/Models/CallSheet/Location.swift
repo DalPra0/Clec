@@ -5,7 +5,9 @@
 //  Created by Giovanni Galarda Strasser on 28/08/25.
 //
 
-struct Location{
+import Foundation
+
+struct Location: Codable {
     var name: String
     var address: String
     var latitude: Double

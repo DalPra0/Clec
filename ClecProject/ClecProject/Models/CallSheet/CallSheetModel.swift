@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct CallSheetModel{
+struct CallSheetModel: Codable, Identifiable {
     let id: UUID
     var day: Date
     var schedule: Dictionary<ScheduleActivity, Date>
@@ -15,7 +15,7 @@ struct CallSheetModel{
     var sceneTable: [CallSheetLineInfo]
     
     
-    enum ScheduleActivity: String {
+    enum ScheduleActivity: String, Codable {
         case Begginning = "Início"
         case StartFilming =  "Roda"
         case Lunch = "Almoço"

@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct EnvironmentConditions{
+struct EnvironmentConditions: Codable {
     var environment: String
     var dayCycle: String
     var weather: String

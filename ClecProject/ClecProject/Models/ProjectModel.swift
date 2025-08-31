@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct ProjectModel{
+struct ProjectModel: Codable, Identifiable {
     let id: UUID
     let code: String
     var director: String

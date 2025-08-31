@@ -24,12 +24,13 @@ class UserManager: ObservableObject {
         print("👤 Nome do usuário atualizado para: \(userName)")
     }
     
+    // MARK: - Persistence
     private func loadUserName() {
         if let savedName = userDefaults.string(forKey: userNameKey), !savedName.isEmpty {
             userName = savedName
             print("👤 Nome carregado: \(userName)")
         } else {
-            userName = "NOME USUARIO" // Default name
+            userName = "Mia" // Default name
             print("👤 Usando nome padrão: \(userName)")
         }
     }
@@ -39,7 +40,14 @@ class UserManager: ObservableObject {
         print("💾 Nome salvo: \(userName)")
     }
     
+    // MARK: - Utility
     var greeting: String {
         return "Hello, \(userName)!"
+    }
+    
+    func resetToDefault() {
+        userName = "Mia"
+        saveUserName()
+        print("🔄 Nome resetado para padrão: Mia")
     }
 }

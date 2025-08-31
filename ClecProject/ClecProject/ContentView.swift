@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject private var projectManager = ProjectManager()
+    @StateObject private var userManager = UserManager()
     
     var body: some View {
         NavigationView {
@@ -20,6 +21,7 @@ struct ContentView: View {
                 }
             }
             .environmentObject(projectManager)
+            .environmentObject(userManager)
         }
         .preferredColorScheme(.light)
     }

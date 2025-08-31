@@ -42,8 +42,12 @@ struct CreateProjectView: View {
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarHidden(false)
         .preferredColorScheme(.light)
-        .onChange(of: projectName) { _ in validateForm() }
-        .onChange(of: director) { _ in validateForm() }
+        .onChange(of: projectName) {
+            validateForm()
+        }
+        .onChange(of: director) {
+            validateForm()
+        }
         .onAppear {
             validateForm()
         }
@@ -117,7 +121,7 @@ struct CreateProjectView: View {
             .background(Color(.systemBlue).opacity(0.1))
             .cornerRadius(8)
             
-            Text("Compartilhe este código com sua equipe")
+            Text("Compartilhe este código alfanumérico com sua equipe")
                 .font(.caption)
                 .foregroundColor(.secondary)
         }
@@ -144,7 +148,15 @@ struct CreateProjectView: View {
     }
     
     private func generateProjectCode() -> String {
-        let code = String(format: "%04d", Int.random(in: 1000...9999))
+        let characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+        var code = ""
+        
+        for _ in 0..<4 {
+            let randomIndex = Int.random(in: 0..<characters.count)
+            let character = characters[characters.index(characters.startIndex, offsetBy: randomIndex)]
+            code += String(character)
+        }
+        
         return code
     }
     
@@ -159,7 +171,7 @@ struct CreateProjectView: View {
             director: director.trimmingCharacters(in: .whitespacesAndNewlines),
             name: projectName.trimmingCharacters(in: .whitespacesAndNewlines),
             photo: nil,
-            screenPlay: selectedScriptFile, // Now stores the file name
+            screenPlay: selectedScriptFile,
             deadline: deadline,
             callSheet: []
         )

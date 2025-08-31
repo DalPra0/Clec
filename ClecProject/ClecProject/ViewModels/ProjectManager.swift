@@ -50,21 +50,15 @@ class ProjectManager: ObservableObject {
     }
     
     private func loadProjects() {
-        // Por agora, vamos usar uma implementação simples
-        // Futuramente implementaremos com Codable + UserDefaults ou Core Data
         
-        // Dados mock para desenvolvimento
         #if DEBUG
         if projects.isEmpty {
             print("📱 Carregando projetos salvos...")
-            // Para testar, não vamos carregar projetos automaticamente
-            // deixa começar sempre vazio
         }
         #endif
     }
     
     private func saveProjects() {
-        // Por agora, só print. Futuramente implementar persistência real
         print("💾 Salvando \(projects.count) projetos...")
         
         // TODO: Implementar Codable + UserDefaults
@@ -79,25 +73,53 @@ class ProjectManager: ObservableObject {
         */
     }
     
-    // MARK: - Utility
     func clearAllProjects() {
         projects.removeAll()
         saveProjects()
         print("🧹 Todos os projetos foram removidos")
     }
     
-    // MARK: - Mock Data (for development)
-    func addMockProject() {
-        let mockProject = ProjectModel(
-            id: UUID(),
-            code: "1234",
-            director: "João Silva",
-            name: "Projeto Teste",
-            photo: nil,
-            screenPlay: "Um roteiro de exemplo para testar o app",
-            deadline: Calendar.current.date(byAdding: .day, value: 30, to: Date()),
-            callSheet: []
-        )
-        addProject(mockProject)
+    func addMockProjects() {
+        let mockProjects = [
+            ProjectModel(
+                id: UUID(),
+                code: "AB12",
+                director: "João Silva",
+                name: "Curta Metragem - O Início",
+                photo: nil,
+                screenPlay: "roteiro_inicio.pdf",
+                deadline: Calendar.current.date(byAdding: .day, value: 15, to: Date()),
+                callSheet: []
+            ),
+            ProjectModel(
+                id: UUID(),
+                code: "XY9Z",
+                director: "Maria Santos",
+                name: "Documentário Natureza",
+                photo: nil,
+                screenPlay: "doc_natureza.docx",
+                deadline: Calendar.current.date(byAdding: .day, value: 30, to: Date()),
+                callSheet: []
+            ),
+            ProjectModel(
+                id: UUID(),
+                code: "P7Q8",
+                director: "Carlos Lima",
+                name: "Filme Experimental",
+                photo: nil,
+                screenPlay: nil,
+                deadline: Calendar.current.date(byAdding: .day, value: 45, to: Date()),
+                callSheet: []
+            )
+        ]
+        
+        for project in mockProjects {
+            if !projects.contains(where: { $0.code == project.code }) {
+                projects.append(project)
+            }
+        }
+        
+        print("📚 Adicionados \(mockProjects.count) projetos mock para teste")
+        print("🔑 Códigos de teste: AB12, XY9Z, P7Q8")
     }
 }

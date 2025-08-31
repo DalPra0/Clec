@@ -9,6 +9,7 @@ import SwiftUI
 
 struct InitialView: View {
     @EnvironmentObject var projectManager: ProjectManager
+    @EnvironmentObject var userManager: UserManager
     
     var body: some View {
         VStack(spacing: 40) {
@@ -19,6 +20,14 @@ struct InitialView: View {
                     .font(.largeTitle)
                     .fontWeight(.bold)
                     .foregroundColor(.primary)
+                    .onLongPressGesture {
+                        projectManager.addMockProjects()
+                        
+                        userManager.updateUserName("Lucas")
+                        
+                        let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                        impactFeedback.impactOccurred()
+                    }
                 
                 Text("Bem vindo!")
                     .font(.title2)
@@ -71,5 +80,6 @@ struct InitialView: View {
     NavigationView {
         InitialView()
             .environmentObject(ProjectManager())
+            .environmentObject(UserManager())
     }
 }

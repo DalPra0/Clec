@@ -29,7 +29,7 @@ class UserManager: ObservableObject {
             userName = savedName
             print("👤 Nome carregado: \(userName)")
         } else {
-            userName = "Mia" // Default name
+            userName = "NOME USUARIO" // Default name
             print("👤 Usando nome padrão: \(userName)")
         }
     }

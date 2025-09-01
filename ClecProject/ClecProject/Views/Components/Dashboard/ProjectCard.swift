@@ -8,9 +8,12 @@
 import SwiftUI
 
 struct ProjectCard: View {
+    
     let project: ProjectModel
     let colors: [Color]
     let onTap: () -> Void
+    let projectManager: ProjectManager
+    let userManager: UserManager
     
     static let projectColors: [[Color]] = [
         [Color(.systemBlue), Color(.systemCyan)],
@@ -23,16 +26,18 @@ struct ProjectCard: View {
         [Color(.systemTeal), Color(.systemCyan)]
     ]
     
-    init(project: ProjectModel, colorIndex: Int = 0, onTap: @escaping () -> Void = {}) {
+    init(project: ProjectModel, colorIndex: Int = 0, projectManager: ProjectManager, userManager: UserManager, onTap: @escaping () -> Void = {}) {
         self.project = project
         self.onTap = onTap
+        self.projectManager = projectManager
+        self.userManager = userManager
         
         let safeIndex = colorIndex % ProjectCard.projectColors.count
         self.colors = ProjectCard.projectColors[safeIndex]
     }
     
     var body: some View {
-        Button(action: onTap) {
+        NavigationLink(destination: ProjectView().environmentObject(projectManager).environmentObject(userManager)) {
             VStack(alignment: .leading, spacing: 8) {
                 Spacer()
                 
@@ -69,28 +74,29 @@ struct ProjectCard: View {
 }
 
 #Preview {
-    let sampleProject = ProjectModel(
-        id: UUID(),
-        code: "AB12",
-        director: "João Silva",
-        name: "Curta Metragem - O Início",
-        photo: nil,
-        screenPlay: "roteiro.pdf",
-        deadline: Date(),
-        callSheet: []
-    )
-    
-    return VStack(spacing: 16) {
-        HStack(spacing: 16) {
-            ProjectCard(project: sampleProject, colorIndex: 0)
-            ProjectCard(project: sampleProject, colorIndex: 1)
-        }
-        
-        HStack(spacing: 16) {
-            ProjectCard(project: sampleProject, colorIndex: 2)
-            AddProjectCard()
-        }
-    }
-    .padding()
-    .background(Color(.systemBackground))
+    DashboardView()
+//    let sampleProject = ProjectModel(
+//        id: UUID(),
+//        code: "AB12",
+//        director: "João Silva",
+//        name: "Curta Metragem - O Início",
+//        photo: nil,
+//        screenPlay: "roteiro.pdf",
+//        deadline: Date(),
+//        callSheet: []
+//    )
+//    
+//    return VStack(spacing: 16) {
+//        HStack(spacing: 16) {
+//            ProjectCard(project: sampleProject, colorIndex: 0)
+//            ProjectCard(project: sampleProject, colorIndex: 1)
+//        }
+//        
+//        HStack(spacing: 16) {
+//            ProjectCard(project: sampleProject, colorIndex: 2)
+//            AddProjectCard()
+//        }
+//    }
+//    .padding()
+//    .background(Color(.systemBackground))
 }

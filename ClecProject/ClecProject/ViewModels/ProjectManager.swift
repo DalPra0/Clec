@@ -9,6 +9,7 @@ import Foundation
 import SwiftUI
 
 class ProjectManager: ObservableObject {
+    public var selectedProject = 0
     @Published var projects: [ProjectModel] = []
     
     private let userDefaults = UserDefaults.standard
@@ -16,6 +17,10 @@ class ProjectManager: ObservableObject {
     
     var hasProjects: Bool {
         return !projects.isEmpty
+    }
+    
+    var currentProject: ProjectModel {
+        return projects[selectedProject]
     }
     
     init() {

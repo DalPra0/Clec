@@ -8,11 +8,14 @@
 import SwiftUI
 
 struct ProjectView: View {
-    let project: ProjectModel
+    @EnvironmentObject var projectManager: ProjectManager
+    @EnvironmentObject var userManager: UserManager
     @Environment(\.dismiss) var dismiss
 
 
     var body: some View {
+        let project:ProjectModel = projectManager.currentProject
+        
         VStack{
             CustomToolbarView(message: "Boa tarde,", title: project.name, returnText: "Meus Projetos", onReturn: {dismiss()}, centerTitle: false)
             Grid{
@@ -28,12 +31,14 @@ struct ProjectView: View {
             .padding(.horizontal, 24)
             Spacer()
         }
+        .navigationBarBackButtonHidden(true)
         
 }
 }
 
 #Preview {
     NavigationStack {
-        ProjectView(project: DeveloperHelper.project)
+        ProjectView().environmentObject(ProjectManager())
+            .environmentObject(UserManager())
     }
 }

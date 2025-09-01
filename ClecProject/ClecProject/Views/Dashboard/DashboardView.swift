@@ -56,7 +56,9 @@ struct DashboardView: View {
                 ForEach(Array(projectManager.projects.enumerated()), id: \.element.id) { index, project in
                     ProjectCard(
                         project: project,
-                        colorIndex: index + 1
+                        colorIndex: index + 1,
+                        projectManager: projectManager,
+                        userManager: userManager
                     ) {
                         print("📱 Projeto '\(project.name)' foi clicado (sem navegação)")
                         

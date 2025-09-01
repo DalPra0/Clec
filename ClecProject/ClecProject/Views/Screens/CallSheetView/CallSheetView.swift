@@ -9,6 +9,7 @@ import SwiftUI
 
 struct CallSheetView: View {
     let project: ProjectModel
+    let callsheet: CallSheetModel
     var body: some View {
         @Environment(\.dismiss) var dismiss
     
@@ -22,6 +23,6 @@ struct CallSheetView: View {
 
 #Preview {
     NavigationStack{
-        CallSheetView(project: DeveloperHelper.project)
+        CallSheetView(project: DeveloperHelper.project, callsheet: DeveloperHelper.project.callSheet[0])
     }
 }

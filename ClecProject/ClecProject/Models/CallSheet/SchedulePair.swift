@@ -7,12 +7,12 @@
 
 import Foundation
 
-struct SchedulePair {
+struct SchedulePair: Codable {
     var scheduleActivity: ScheduleActivity
     var time: Date
     
     
-    enum ScheduleActivity: String {
+    enum ScheduleActivity: String, Codable {
         case Begginning = "Início"
         case StartFilming =  "Roda"
         case Lunch = "Almoço"

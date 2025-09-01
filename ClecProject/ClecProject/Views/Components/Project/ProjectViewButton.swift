@@ -12,18 +12,16 @@ struct ProjectViewButton: View {
     let title: String
     let onClick: () -> Void
     var body: some View {
-        Button(action: {}) {
-            ZStack{
-                RoundedRectangle(cornerRadius: 16)
-                    .foregroundStyle(Color.projectViewButtonBackground)
-                HStack{
-                    if(icon != nil){
-                        Image(systemName: (icon != nil) ? icon! : "")
-                    }
-                    Text(title)
+        ZStack{
+            RoundedRectangle(cornerRadius: 16)
+                .foregroundStyle(Color.projectViewButtonBackground)
+            HStack{
+                if(icon != nil){
+                    Image(systemName: (icon != nil) ? icon! : "")
                 }
-                .foregroundStyle(.black)
+                Text(title)
             }
+            .foregroundStyle(.black)
         }
     }
 }

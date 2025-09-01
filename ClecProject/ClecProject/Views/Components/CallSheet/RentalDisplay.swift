@@ -67,7 +67,7 @@ struct RentalDisplay: View {
     }
     
     var body: some View {
-        Button(action: {onSelect(index)}){
+        NavigationLink(destination: SceneInfoView(callSheet: callSheet)){
             ZStack {
                 HStack(spacing: -340){
                     RoundedRectangle(cornerRadius: 16)
@@ -78,7 +78,7 @@ struct RentalDisplay: View {
                 }
                 VStack(alignment:.leading, spacing: 8){
                     HStack{
-                        Text("Diária " + String(format: "%02d", index + 1))
+                        Text(callSheet.sheetName)
                             .font(.title)
                             .fontWeight(.semibold)
                         Spacer()
@@ -104,7 +104,7 @@ struct RentalDisplay: View {
                 .padding(.horizontal, 32)
                 .multilineTextAlignment(.leading)
             }
-            .frame(width: .infinity, height: 128)
+            .frame(height: 128)
         }
 
         }

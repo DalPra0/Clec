@@ -1,3 +1,5 @@
+// MARK: - FILENAME: ClecProject/Views/CallSheet/CallSheetView.swift
+
 //
 //  CallSheetView.swift
 //  ClecProject
@@ -8,8 +10,8 @@
 import SwiftUI
 
 struct CallSheetView: View {
-    let project: ProjectModel
-    let callsheet: CallSheetModel
+    @EnvironmentObject var projectManager: ProjectManager
+    let projectIndex: Int
     @Environment(\.dismiss) var dismiss
     
     func goToRental(index: Int){
@@ -18,38 +20,28 @@ struct CallSheetView: View {
     
     var body: some View {
         VStack{
-            //            CustomToolbarView(message: "", title: "Ordem do dia", returnText: project.name, onReturn: {dismiss()}, centerTitle: false)
-            Button(action: {
-                dismiss()
-            }) {
-                HStack {
-                    Image(systemName: "chevron.left")
-                    Text("Ordem do dia")
-                    Spacer()
-                }
-                .foregroundStyle(.black)
-                .fontWeight(.bold)
-                .font(.title2)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 32)
-            }
-
-            
+            //          CustomToolbarView(message: "", title: "Ordem do dia", returnText: project.name, onReturn: {dismiss()}, centerTitle: false)
+            CustomReturn(text: "Ordem do dia")
             VStack(spacing: -8){
-                    ForEach(project.callSheet.indices, id: \.self) { index in
-                        let sheet = project.callSheet[index]
-                        RentalDisplay(callSheet: sheet, index: index, onSelect: goToRental)
-                    }
-                    .padding(.horizontal, 16)
-                    Spacer()
+                ForEach(projectManager.projects[projectIndex].callSheet.indices, id: \.self) { index in
+                    let sheet = projectManager.projects[projectIndex].callSheet[index]
+                    RentalDisplay(callSheet: sheet, index: index, onSelect: goToRental)
                 }
-                .font(.subheadline)
+                .padding(.horizontal, 16)
+                Spacer()
             }
+            .font(.subheadline)
+            
+            CustomNavigationButton(title: "Adicionar Nova", destination: CreateCallSheetView().environmentObject(projectManager))
         }
+        .navigationBarBackButtonHidden(true)
     }
+}
 
 #Preview {
     NavigationStack{
-        CallSheetView(project: DeveloperHelper.project, callsheet: DeveloperHelper.project.callSheet[0])
+        CallSheetView(projectIndex: 0)
+            .environmentObject(ProjectManager())
+            .environmentObject(UserManager())
     }
 }

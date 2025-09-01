@@ -10,6 +10,7 @@ import SwiftUICore
 
 struct CallSheetModel: Codable, Identifiable {
     let id: UUID
+    var sheetName: String
     var day: Date
     var schedule: [SchedulePair]
     var callSheetColor: CallSheetColor
@@ -38,6 +39,15 @@ struct CallSheetModel: Codable, Identifiable {
         
         var swiftUIColor: Color {
             return Color(hex: self.rawValue)
+        }
+
+        static func allColors() -> [Color] {
+            return [
+                CallSheetColor.green.swiftUIColor,
+                CallSheetColor.yellow.swiftUIColor,
+                CallSheetColor.blue.swiftUIColor,
+                CallSheetColor.purple.swiftUIColor
+            ]
         }
     }
     

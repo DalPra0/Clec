@@ -1,3 +1,5 @@
+// MARK: - FILENAME: ClecProject/Views/Project/ProjectView.swift
+
 //
 //  ProjectView.swift
 //  ClecProject
@@ -12,8 +14,8 @@ struct ProjectView: View {
     @EnvironmentObject var projectManager: ProjectManager
     @EnvironmentObject var userManager: UserManager
     @Environment(\.dismiss) var dismiss
-
-
+    
+    
     var body: some View {
         let project:ProjectModel = projectManager.projects[projectIndex]
         
@@ -26,7 +28,9 @@ struct ProjectView: View {
                     ProjectViewButton(icon: "person.2.fill", title: "Membros", onClick: {})
                         .gridCellColumns(2)
                 }
-                ProjectViewButton(icon: nil, title: "Ordem do dia", onClick: {})
+                NavigationLink(destination: CallSheetView(projectIndex: projectIndex).environmentObject(projectManager)) {
+                    ProjectViewButton(icon: nil, title: "Ordem do dia", onClick: {})
+                }
             }
             .padding(.vertical, 68)
             .padding(.horizontal, 24)
@@ -34,7 +38,7 @@ struct ProjectView: View {
         }
         .navigationBarBackButtonHidden(true)
         
-}
+    }
 }
 
 #Preview {

@@ -78,6 +78,8 @@ struct ProjectCard: View {
 
 #Preview {
     DashboardView()
+        .environmentObject(ProjectManager())
+        .environmentObject(UserManager())
 //    let sampleProject = ProjectModel(
 //        id: UUID(),
 //        code: "AB12",

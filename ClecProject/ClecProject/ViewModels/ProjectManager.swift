@@ -9,6 +9,7 @@ import Foundation
 import SwiftUI
 
 class ProjectManager: ObservableObject {
+    public var selectedProject = 0
     @Published var projects: [ProjectModel] = []
     
     private let userDefaults = UserDefaults.standard
@@ -16,6 +17,10 @@ class ProjectManager: ObservableObject {
     
     var hasProjects: Bool {
         return !projects.isEmpty
+    }
+    
+    var currentProject: ProjectModel { //temporario, precisamos discutir melhor esse project manager
+        return projects[selectedProject]
     }
     
     init() {
@@ -47,6 +52,40 @@ class ProjectManager: ObservableObject {
     
     func getProject(by id: UUID) -> ProjectModel? {
         return projects.first { $0.id == id }
+    }
+    
+    func addCallSheetToCurrentProject(title: String, description: String, address: String, date: Date, color: CallSheetModel.CallSheetColor) {
+        guard projects.indices.contains(selectedProject) else {
+            print("❌ Projeto selecionado é inválido.")
+            return
+        }
+
+        let newLocation = SceneLocation(name: "Nova Locação", address: address, latitude: 0.0, longitude: 0.0)
+        
+        let newEnvironment = EnvironmentConditions(environment: "INT./EXT.", dayCycle: "DIA", weather: "Ensolarado")
+        
+        let newCallSheetLine = CallSheetLineInfo(
+            scene: 1,
+            shots: [1],
+            environmentCondition: newEnvironment,
+            location: newLocation,
+            description: title,
+            characters: []
+        )
+        
+        let newCallSheet = CallSheetModel(
+            id: UUID(),
+            sheetName: title,
+            day: date,
+            schedule: [],
+            callSheetColor: color,
+            sceneTable: [newCallSheetLine]
+        )
+        
+        projects[selectedProject].callSheet.append(newCallSheet)
+        saveProjects()
+        
+        print("✅ Nova diária adicionada ao projeto: \(projects[selectedProject].name)")
     }
     
     private func loadProjects() {

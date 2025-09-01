@@ -32,7 +32,7 @@ struct CallSheetView: View {
             }
             .font(.subheadline)
             
-            CustomNavigationButton(title: "Adicionar Nova", destination: CreateCallSheetView().environmentObject(projectManager))
+            CustomNavigationButton(title: "Adicionar Nova Diaria", destination: CreateCallSheetView().environmentObject(projectManager))
         }
         .navigationBarBackButtonHidden(true)
     }

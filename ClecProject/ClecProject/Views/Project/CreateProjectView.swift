@@ -173,6 +173,7 @@ struct CreateProjectView: View {
             photo: nil,
             screenPlay: selectedScriptFile,
             deadline: deadline,
+            additionalFiles: [], // Iniciar com lista vazia
             callSheet: []
         )
         

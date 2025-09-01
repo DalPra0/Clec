@@ -88,6 +88,60 @@ class ProjectManager: ObservableObject {
         print("✅ Nova diária adicionada ao projeto: \(projects[selectedProject].name)")
     }
     
+    // MARK: - File Management
+    func addFileToProject(at index: Int, file: ProjectFile) {
+        guard projects.indices.contains(index) else {
+            print("❌ Projeto no índice \(index) não encontrado")
+            return
+        }
+        
+        projects[index].additionalFiles.append(file)
+        saveProjects()
+        
+        print("✅ Arquivo '\(file.displayName)' adicionado ao projeto '\(projects[index].name)'")
+    }
+    
+    func addFileToCurrentProject(file: ProjectFile) {
+        addFileToProject(at: selectedProject, file: file)
+    }
+    
+    func removeFileFromProject(at projectIndex: Int, fileId: UUID) {
+        guard projects.indices.contains(projectIndex) else {
+            print("❌ Projeto no índice \(projectIndex) não encontrado")
+            return
+        }
+        
+        if let fileIndex = projects[projectIndex].additionalFiles.firstIndex(where: { $0.id == fileId }) {
+            let removedFile = projects[projectIndex].additionalFiles[fileIndex]
+            projects[projectIndex].additionalFiles.remove(at: fileIndex)
+            saveProjects()
+            
+            print("🗑️ Arquivo '\(removedFile.displayName)' removido do projeto '\(projects[projectIndex].name)'")
+        } else {
+            print("❌ Arquivo com ID \(fileId) não encontrado")
+        }
+    }
+    
+    func removeFileFromCurrentProject(fileId: UUID) {
+        removeFileFromProject(at: selectedProject, fileId: fileId)
+    }
+    
+    func updateFileInProject(at projectIndex: Int, updatedFile: ProjectFile) {
+        guard projects.indices.contains(projectIndex) else {
+            print("❌ Projeto no índice \(projectIndex) não encontrado")
+            return
+        }
+        
+        if let fileIndex = projects[projectIndex].additionalFiles.firstIndex(where: { $0.id == updatedFile.id }) {
+            projects[projectIndex].additionalFiles[fileIndex] = updatedFile
+            saveProjects()
+            
+            print("✅ Arquivo '\(updatedFile.displayName)' atualizado no projeto '\(projects[projectIndex].name)'")
+        } else {
+            print("❌ Arquivo com ID \(updatedFile.id) não encontrado para atualizar")
+        }
+    }
+    
     private func loadProjects() {
         print("📱 Carregando projetos salvos...")
         
@@ -129,6 +183,42 @@ class ProjectManager: ObservableObject {
     }
     
     func addMockProjects() {
+        let mockFiles1 = [
+            ProjectFile(
+                name: "Storyboard Cena 1",
+                fileName: "storyboard_cena1.jpg",
+                fileType: .jpg,
+                fileSize: "2.3 MB"
+            ),
+            ProjectFile(
+                name: "Cronograma de Filmagem",
+                fileName: "cronograma.docx",
+                fileType: .docx,
+                fileSize: "156 KB"
+            )
+        ]
+        
+        let mockFiles2 = [
+            ProjectFile(
+                name: "Referências Visuais",
+                fileName: "referencias.zip",
+                fileType: .zip,
+                fileSize: "5.2 MB"
+            ),
+            ProjectFile(
+                name: "Orçamento",
+                fileName: "orcamento.pdf",
+                fileType: .pdf,
+                fileSize: "890 KB"
+            ),
+            ProjectFile(
+                name: "Playlist Trilha Sonora",
+                fileName: "trilha_sonora.m4a",
+                fileType: .m4a,
+                fileSize: "12.4 MB"
+            )
+        ]
+        
         let mockProjects = [
             ProjectModel(
                 id: UUID(),
@@ -138,6 +228,7 @@ class ProjectManager: ObservableObject {
                 photo: nil,
                 screenPlay: "roteiro_inicio.pdf",
                 deadline: Calendar.current.date(byAdding: .day, value: 15, to: Date()),
+                additionalFiles: mockFiles1,
                 callSheet: []
             ),
             ProjectModel(
@@ -148,6 +239,7 @@ class ProjectManager: ObservableObject {
                 photo: nil,
                 screenPlay: "doc_natureza.docx",
                 deadline: Calendar.current.date(byAdding: .day, value: 30, to: Date()),
+                additionalFiles: mockFiles2,
                 callSheet: []
             ),
             ProjectModel(
@@ -158,6 +250,7 @@ class ProjectManager: ObservableObject {
                 photo: nil,
                 screenPlay: nil,
                 deadline: Calendar.current.date(byAdding: .day, value: 45, to: Date()),
+                additionalFiles: [],
                 callSheet: []
             )
         ]

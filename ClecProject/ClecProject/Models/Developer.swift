@@ -27,6 +27,7 @@ struct DeveloperHelper {
         code: "ABCD",
         director: "Munhoz",
         name: "O ataque dos Androids",
+        additionalFiles: [], // Campo obrigatório agora
         callSheet: [
             CallSheetModel(id: UUID(), sheetName: "Diária 01", day: createDate(year: 2025, month: 12, day: 12, hour: 12, minute: 12), schedule: [SchedulePair(scheduleActivity: SchedulePair.ScheduleActivity.Begginning, time: createInterval(hour: 4, minute: 30)), SchedulePair(scheduleActivity: SchedulePair.ScheduleActivity.EndFilming, time: createInterval(hour: 8, minute: 30))], callSheetColor: CallSheetModel.CallSheetColor.blue, sceneTable: [
                 CallSheetLineInfo(scene: 1, shots: [1, 2, 3], environmentCondition: EnvironmentConditions(environment: "INT.", dayCycle: "DAY", weather: "SUNNY"), location: SceneLocation(name: "Ana's Apartment", address: "Rua Visconde de Nácar, 1510", latitude: -25.4352, longitude: -49.2769), description: "Ana discovers the hidden message.", characters: [SceneCharacter(name: "Ana", actor: "Alice Braga")]),

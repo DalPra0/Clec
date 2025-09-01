@@ -25,6 +25,11 @@ struct InitialView: View {
                         
                         userManager.updateUserName("Lucas")
                         
+                        // Testar sistema de arquivos
+                        #if DEBUG
+                        FilesSystemTest.runAllTests()
+                        #endif
+                        
                         let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
                         impactFeedback.impactOccurred()
                     }

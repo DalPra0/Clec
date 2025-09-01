@@ -23,7 +23,9 @@ struct ProjectView: View {
             CustomToolbarView(message: "Boa tarde,", title: project.name, returnText: "Meus Projetos", onReturn: {dismiss()}, centerTitle: false)
             Grid{
                 GridRow{
-                    ProjectViewButton(icon: "archivebox.fill", title: "Arquivos", onClick: {})
+                    NavigationLink(destination: FilesView(projectIndex: projectIndex).environmentObject(projectManager)) {
+                        ProjectViewButton(icon: "archivebox.fill", title: "Arquivos", onClick: {})
+                    }
                         .gridCellColumns(2)
                     ProjectViewButton(icon: "person.2.fill", title: "Membros", onClick: {})
                         .gridCellColumns(2)

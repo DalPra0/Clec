@@ -56,10 +56,11 @@ struct DashboardView: View {
                 ForEach(Array(projectManager.projects.enumerated()), id: \.element.id) { index, project in
                     ProjectCard(
                         project: project,
-                        colorIndex: index + 1,
+                        index: index,
                         projectManager: projectManager,
                         userManager: userManager
                     ) {
+                        //Não sendo chamado devido a navegação
                         print("📱 Projeto '\(project.name)' foi clicado (sem navegação)")
                         
                         let impactFeedback = UIImpactFeedbackGenerator(style: .light)

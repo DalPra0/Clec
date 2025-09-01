@@ -20,6 +20,7 @@ class ProjectManager: ObservableObject {
     }
     
     var currentProject: ProjectModel {
+        print(selectedProject)
         return projects[selectedProject]
     }
     

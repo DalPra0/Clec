@@ -12,6 +12,7 @@ struct ProjectCard: View {
     let project: ProjectModel
     let colors: [Color]
     let onTap: () -> Void
+    let index: Int
     let projectManager: ProjectManager
     let userManager: UserManager
     
@@ -26,18 +27,20 @@ struct ProjectCard: View {
         [Color(.systemTeal), Color(.systemCyan)]
     ]
     
-    init(project: ProjectModel, colorIndex: Int = 0, projectManager: ProjectManager, userManager: UserManager, onTap: @escaping () -> Void = {}) {
+    init(project: ProjectModel, index: Int = 0, projectManager: ProjectManager, userManager: UserManager, onTap: @escaping () -> Void = {}) {
         self.project = project
         self.onTap = onTap
+        self.index = index
         self.projectManager = projectManager
         self.userManager = userManager
         
+        let colorIndex = index + 1
         let safeIndex = colorIndex % ProjectCard.projectColors.count
         self.colors = ProjectCard.projectColors[safeIndex]
     }
     
     var body: some View {
-        NavigationLink(destination: ProjectView().environmentObject(projectManager).environmentObject(userManager)) {
+        NavigationLink(destination: ProjectView(projectIndex:index).environmentObject(projectManager).environmentObject(userManager)) {
             VStack(alignment: .leading, spacing: 8) {
                 Spacer()
                 

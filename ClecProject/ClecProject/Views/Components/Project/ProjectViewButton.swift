@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ProjectViewButton: View {
-    let icon: String
+    let icon: String?
     let title: String
     let onClick: () -> Void
     var body: some View {
@@ -17,7 +17,9 @@ struct ProjectViewButton: View {
                 RoundedRectangle(cornerRadius: 16)
                     .foregroundStyle(Color.projectViewButtonBackground)
                 HStack{
-                    Image(systemName: icon)
+                    if(icon != nil){
+                        Image(systemName: (icon != nil) ? icon! : "")
+                    }
                     Text(title)
                 }
                 .foregroundStyle(.black)

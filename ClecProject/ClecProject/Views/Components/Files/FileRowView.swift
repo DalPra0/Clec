@@ -22,12 +22,9 @@ struct FileRowView: View {
     
     var body: some View {
         HStack(spacing: 16) {
-            // File Icon
             fileIconView
             
-            // File Info
             VStack(alignment: .leading, spacing: 4) {
-                // File name
                 HStack {
                     Text(file.displayName)
                         .font(.system(size: 16, weight: .medium))
@@ -47,7 +44,6 @@ struct FileRowView: View {
                     Spacer()
                 }
                 
-                // File details
                 HStack(spacing: 8) {
                     Text(file.fileType.displayName)
                         .font(.caption)
@@ -75,7 +71,6 @@ struct FileRowView: View {
                 }
             }
             
-            // Action button (only for additional files)
             if !file.isScreenplay {
                 actionButton
             }
@@ -102,7 +97,6 @@ struct FileRowView: View {
         }
     }
     
-    // MARK: - File Icon View
     private var fileIconView: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 8)
@@ -115,7 +109,6 @@ struct FileRowView: View {
         }
     }
     
-    // MARK: - Action Button
     private var actionButton: some View {
         Button(action: {
             showingActionSheet = true
@@ -131,10 +124,8 @@ struct FileRowView: View {
     }
 }
 
-// MARK: - Preview
 #Preview {
     VStack(spacing: 16) {
-        // Screenplay file
         FileRowView(
             file: ProjectFile(
                 name: "Roteiro",
@@ -144,7 +135,6 @@ struct FileRowView: View {
             )
         )
         
-        // Regular files
         FileRowView(
             file: ProjectFile(
                 name: "Storyboard Cena 1",

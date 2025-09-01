@@ -202,7 +202,6 @@ struct EditProfileView: View {
                     .cornerRadius(8)
             }
             
-            // Movie Grid
             LazyVGrid(columns: [
                 GridItem(.flexible(), spacing: 12),
                 GridItem(.flexible(), spacing: 12),
@@ -216,17 +215,14 @@ struct EditProfileView: View {
         }
     }
     
-    // MARK: - Movie Slot
     @ViewBuilder
     private func movieSlot(at index: Int) -> some View {
         let movie = index < userManager.favoriteMovies.count ? userManager.favoriteMovies[index] : nil
         
         Button(action: {
             if movie != nil {
-                // Show options to remove or replace
                 showRemoveMovieAlert(at: index)
             } else {
-                // Add new movie
                 showingMovieSearch = true
             }
         }) {
@@ -239,7 +235,6 @@ struct EditProfileView: View {
         .buttonStyle(PlainButtonStyle())
     }
     
-    // MARK: - Actions
     private func loadCurrentData() {
         fullName = userManager.userName
         email = userManager.userEmail
@@ -298,7 +293,6 @@ struct EditProfileView: View {
         
         alert.addAction(UIAlertAction(title: "Cancelar", style: .cancel))
         
-        // Present alert
         if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
            let rootViewController = windowScene.windows.first?.rootViewController {
             rootViewController.present(alert, animated: true)
@@ -306,7 +300,6 @@ struct EditProfileView: View {
     }
 }
 
-// MARK: - Preview
 #Preview {
     EditProfileView()
         .environmentObject(UserManager())

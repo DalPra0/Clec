@@ -26,18 +26,14 @@ struct AddFileView: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
-                // Header
                 header
                 
                 ScrollView {
                     VStack(spacing: 24) {
-                        // File name input
                         fileNameSection
                         
-                        // File type picker
                         fileTypeSection
                         
-                        // Quick actions
                         quickActionsSection
                     }
                     .padding(.top, 20)
@@ -45,7 +41,6 @@ struct AddFileView: View {
                 
                 Spacer()
                 
-                // Add button
                 addButton
             }
         }
@@ -56,7 +51,6 @@ struct AddFileView: View {
         }
     }
     
-    // MARK: - Header
     private var header: some View {
         HStack {
             Button("Cancelar") {
@@ -89,7 +83,6 @@ struct AddFileView: View {
         )
     }
     
-    // MARK: - File Name Section
     private var fileNameSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Nome do Arquivo")
@@ -103,7 +96,6 @@ struct AddFileView: View {
         .padding(.horizontal)
     }
     
-    // MARK: - File Type Section
     private var fileTypeSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Tipo de Arquivo")
@@ -129,7 +121,6 @@ struct AddFileView: View {
         .padding(.horizontal)
     }
     
-    // MARK: - Quick Actions Section
     private var quickActionsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Ações Rápidas")
@@ -168,7 +159,6 @@ struct AddFileView: View {
         .padding(.horizontal)
     }
     
-    // MARK: - Add Button
     private var addButton: some View {
         Button(action: addFile) {
             HStack {
@@ -187,7 +177,6 @@ struct AddFileView: View {
         .disabled(!isFormValid)
     }
     
-    // MARK: - Actions
     private func addFile() {
         guard isFormValid else { return }
         
@@ -205,7 +194,6 @@ struct AddFileView: View {
         
         projectManager.addFileToProject(at: projectIndex, file: newFile)
         
-        // Haptic feedback
         let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
         impactFeedback.impactOccurred()
         
@@ -234,7 +222,6 @@ struct AddFileView: View {
     }
 }
 
-// MARK: - File Type Button
 struct FileTypeButton: View {
     let fileType: FileType
     let isSelected: Bool
@@ -270,7 +257,6 @@ struct FileTypeButton: View {
     }
 }
 
-// MARK: - Quick Action Button
 struct QuickActionButton: View {
     let title: String
     let subtitle: String
@@ -315,7 +301,6 @@ struct QuickActionButton: View {
     }
 }
 
-// MARK: - File Document Picker
 struct FileDocumentPicker: UIViewControllerRepresentable {
     let onDocumentSelected: (URL) -> Void
     
@@ -349,7 +334,6 @@ struct FileDocumentPicker: UIViewControllerRepresentable {
     }
 }
 
-// MARK: - Preview
 #Preview {
     AddFileView(projectIndex: 0)
         .environmentObject(ProjectManager())

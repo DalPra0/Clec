@@ -16,10 +16,9 @@ struct ProjectModel: Codable, Identifiable {
     var photo: String?
     var screenPlay: String?
     var deadline: Date?
-    var additionalFiles: [ProjectFile] // Nova propriedade para arquivos adicionais
+    var additionalFiles: [ProjectFile]
     var callSheet: [CallSheetModel]
     
-    // Computed property para o arquivo de roteiro
     var screenplayFile: ProjectFile? {
         guard let screenPlay = screenPlay else { return nil }
         
@@ -28,12 +27,11 @@ struct ProjectModel: Codable, Identifiable {
             name: "Roteiro",
             fileName: screenPlay,
             fileType: fileType,
-            dateAdded: Date(), // Poderia ser uma data específica
+            dateAdded: Date(),
             isScreenplay: true
         )
     }
     
-    // Todos os arquivos (roteiro + adicionais)
     var allFiles: [ProjectFile] {
         var files: [ProjectFile] = []
         
@@ -45,7 +43,6 @@ struct ProjectModel: Codable, Identifiable {
         return files
     }
     
-    // Inicializador para compatibilidade com versões antigas
     init(
         id: UUID = UUID(),
         code: String,

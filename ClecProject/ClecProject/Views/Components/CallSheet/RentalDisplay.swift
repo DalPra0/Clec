@@ -13,7 +13,6 @@ struct RentalDisplay: View {
     let onSelect: (Int) -> Void
     
     
-    //Formata as datas para mostrar igual no figma
     func getDate() -> String {
 
         let startTimeDate = callSheet.getStartTime()

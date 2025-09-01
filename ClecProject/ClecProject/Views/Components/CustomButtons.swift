@@ -44,8 +44,5 @@ struct CustomActionButton: View {
     }
 }
 
-
-// MARK: - Preview
-
 #Preview {
 }

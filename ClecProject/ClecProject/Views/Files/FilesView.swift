@@ -27,19 +27,15 @@ struct FilesView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            // Custom Header
             header
             
             if hasFiles {
-                // Files content
                 ScrollView {
                     LazyVStack(spacing: 16) {
-                        // Screenplay section (if exists)
                         if let screenplay = project.screenplayFile {
                             screenplaySection(screenplay)
                         }
                         
-                        // Additional files section
                         if !project.additionalFiles.isEmpty {
                             additionalFilesSection
                         }
@@ -48,11 +44,9 @@ struct FilesView: View {
                     .padding(.horizontal, 20)
                 }
             } else {
-                // Empty state
                 emptyState
             }
             
-            // Add button
             addFileButton
         }
         .navigationBarHidden(true)
@@ -71,7 +65,6 @@ struct FilesView: View {
         }
     }
     
-    // MARK: - Header
     private var header: some View {
         VStack(spacing: 0) {
             HStack {
@@ -100,7 +93,6 @@ struct FilesView: View {
             .padding(.horizontal, 20)
             .padding(.vertical, 16)
             
-            // Project info
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(project.name)
@@ -122,7 +114,6 @@ struct FilesView: View {
         .background(Color(.systemBackground))
     }
     
-    // MARK: - Screenplay Section
     private func screenplaySection(_ screenplay: ProjectFile) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
@@ -141,7 +132,6 @@ struct FilesView: View {
         }
     }
     
-    // MARK: - Additional Files Section
     private var additionalFilesSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
@@ -179,7 +169,6 @@ struct FilesView: View {
         }
     }
     
-    // MARK: - Empty State
     private var emptyState: some View {
         VStack(spacing: 20) {
             Spacer()
@@ -206,7 +195,6 @@ struct FilesView: View {
         .padding(.horizontal, 40)
     }
     
-    // MARK: - Add File Button
     private var addFileButton: some View {
         Button(action: {
             showingAddFile = true
@@ -226,9 +214,7 @@ struct FilesView: View {
         }
     }
     
-    // MARK: - Actions
     private func removeFile(_ file: ProjectFile) {
-        // Haptic feedback
         let impactFeedback = UIImpactFeedbackGenerator(style: .light)
         impactFeedback.impactOccurred()
         
@@ -259,20 +245,17 @@ struct FilesView: View {
         
         projectManager.updateFileInProject(at: projectIndex, updatedFile: updatedFile)
         
-        // Reset state
         fileToRename = nil
         newFileName = ""
     }
 }
 
-// MARK: - Preview
 #Preview {
     NavigationView {
         FilesView(projectIndex: 0)
             .environmentObject({
                 let manager = ProjectManager()
                 
-                // Add a project with some files for preview
                 let mockFiles = [
                     ProjectFile(
                         name: "Storyboard Cena 1",

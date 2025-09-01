@@ -7,10 +7,8 @@
 
 import Foundation
 
-// MARK: - Quick Test for Files System
 struct FilesSystemTest {
     
-    // Test creating a file
     static func testFileCreation() {
         let testFile = ProjectFile(
             name: "Teste",
@@ -25,7 +23,6 @@ struct FilesSystemTest {
         print("📅 Data: \(testFile.formattedDate)")
     }
     
-    // Test file type detection
     static func testFileTypeDetection() {
         let testFiles = [
             "roteiro.pdf",
@@ -42,7 +39,6 @@ struct FilesSystemTest {
         }
     }
     
-    // Test project with files
     static func testProjectWithFiles() {
         let files = [
             ProjectFile(name: "Storyboard", fileName: "story.jpg", fileType: .jpg),
@@ -73,7 +69,6 @@ struct FilesSystemTest {
     }
 }
 
-// MARK: - Run Tests
 #if DEBUG
 extension FilesSystemTest {
     static func runAllTests() {

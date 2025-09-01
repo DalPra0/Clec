@@ -1,5 +1,3 @@
-// MARK: - FILENAME: ClecProject/Views/CallSheet/CallSheetView.swift
-
 //
 //  CallSheetView.swift
 //  ClecProject

@@ -88,7 +88,6 @@ class ProjectManager: ObservableObject {
         print("✅ Nova diária adicionada ao projeto: \(projects[selectedProject].name)")
     }
     
-    // MARK: - File Management
     func addFileToProject(at index: Int, file: ProjectFile) {
         guard projects.indices.contains(index) else {
             print("❌ Projeto no índice \(index) não encontrado")

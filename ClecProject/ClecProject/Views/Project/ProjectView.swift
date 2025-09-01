@@ -1,5 +1,3 @@
-// MARK: - FILENAME: ClecProject/Views/Project/ProjectView.swift
-
 //
 //  ProjectView.swift
 //  ClecProject

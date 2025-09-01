@@ -7,15 +7,14 @@
 
 import Foundation
 
-// MARK: - File Model
 struct ProjectFile: Codable, Identifiable, Hashable {
     let id: UUID
     var name: String
     var fileName: String
     var fileType: FileType
     var dateAdded: Date
-    var fileSize: String? // "1.2 MB", "345 KB", etc.
-    var isScreenplay: Bool // Para marcar se é o roteiro original
+    var fileSize: String?
+    var isScreenplay: Bool
     
     init(
         id: UUID = UUID(),
@@ -35,7 +34,6 @@ struct ProjectFile: Codable, Identifiable, Hashable {
         self.isScreenplay = isScreenplay
     }
     
-    // Computed properties
     var displayName: String {
         return name.isEmpty ? fileName : name
     }
@@ -55,7 +53,6 @@ struct ProjectFile: Codable, Identifiable, Hashable {
     }
 }
 
-// MARK: - File Types
 enum FileType: String, CaseIterable, Codable {
     case pdf = "pdf"
     case doc = "doc"
@@ -101,21 +98,21 @@ enum FileType: String, CaseIterable, Codable {
     var colorHex: String {
         switch self {
         case .pdf:
-            return "#FF6B6B" // Vermelho
+            return "#FF6B6B"
         case .doc, .docx, .pages:
-            return "#4ECDC4" // Turquesa
+            return "#4ECDC4"
         case .rtf, .txt:
-            return "#45B7D1" // Azul
+            return "#45B7D1"
         case .jpg, .jpeg, .png, .heic:
-            return "#96CEB4" // Verde
+            return "#96CEB4"
         case .mp4, .mov, .avi:
-            return "#FFEAA7" // Amarelo
+            return "#FFEAA7"
         case .mp3, .wav, .m4a:
-            return "#DDA0DD" // Roxo
+            return "#DDA0DD"
         case .zip, .rar:
-            return "#98D8C8" // Verde água
+            return "#98D8C8"
         case .other:
-            return "#BDC3C7" // Cinza
+            return "#BDC3C7"
         }
     }
     
@@ -142,7 +139,6 @@ enum FileType: String, CaseIterable, Codable {
         }
     }
     
-    // Detecta tipo do arquivo pela extensão
     static func fromFileName(_ fileName: String) -> FileType {
         let lowercased = fileName.lowercased()
         let components = lowercased.split(separator: ".")
@@ -155,7 +151,6 @@ enum FileType: String, CaseIterable, Codable {
     }
 }
 
-// MARK: - File Category for Organization
 enum FileCategory: String, CaseIterable {
     case screenplay = "Roteiro"
     case documents = "Documentos"
@@ -178,7 +173,7 @@ enum FileCategory: String, CaseIterable {
     func matches(fileType: FileType) -> Bool {
         switch self {
         case .screenplay:
-            return false // Screenplay é tratado separadamente
+            return false
         case .documents:
             return [.pdf, .doc, .docx, .txt, .rtf, .pages].contains(fileType)
         case .images:

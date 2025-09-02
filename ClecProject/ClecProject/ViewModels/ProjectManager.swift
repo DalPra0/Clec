@@ -5,6 +5,16 @@
 //  Created by Lucas Dal Pra Brascher on 29/08/25.
 //
 
+// 🔥 FIREBASE TODO: Este é o arquivo PRINCIPAL para Firebase integration!
+// 🔥   PRINCIPAIS MUDANÇAS NECESSÁRIAS:
+// 🔥   - import FirebaseFirestore, FirebaseAuth
+// 🔥   - Substituir UserDefaults por Firestore Database
+// 🔥   - loadProjects() → loadFromFirestore()
+// 🔥   - saveProjects() → saveToFirestore() 
+// 🔥   - Adicionar user authentication (userId)
+// 🔥   - Sync em tempo real com listeners
+// 🔥   - Error handling para network failures
+
 import Foundation
 import SwiftUI
 
@@ -12,6 +22,7 @@ class ProjectManager: ObservableObject {
     public var selectedProject = 0
     @Published var projects: [ProjectModel] = []
     
+    // 🔥 FIREBASE TODO: Substituir por Firestore
     private let userDefaults = UserDefaults.standard
     private let projectsKey = "SavedProjects"
     
@@ -141,8 +152,19 @@ class ProjectManager: ObservableObject {
         }
     }
     
+    // 🔥 FIREBASE TODO: Esta função vira loadFromFirestore() - GRANDE MUDANÇA!
+    // 🔥   - Substituir UserDefaults por Firestore query
+    // 🔥   - Filtrar por userId do usuário logado
+    // 🔥   - Adicionar listener para sync em tempo real
+    // 🔥   - Error handling para falhas de network
     private func loadProjects() {
         print("📱 Carregando projetos salvos...")
+        
+        // 🔥 FIREBASE TODO: Substituir por:
+        // let db = Firestore.firestore()
+        // db.collection("projects")
+        //   .whereField("userId", isEqualTo: currentUserId)
+        //   .addSnapshotListener { snapshot, error in ... }
         
         if let data = userDefaults.data(forKey: projectsKey) {
             do {
@@ -163,8 +185,22 @@ class ProjectManager: ObservableObject {
         #endif
     }
     
+    // 🔥 FIREBASE TODO: Esta função vira saveToFirestore() - MUDANÇA IMPORTANTE!
+    // 🔥   - Em vez de JSON local, salvar cada projeto no Firestore
+    // 🔥   - Adicionar userId em cada documento
+    // 🔥   - Usar batch writes para performance
+    // 🔥   - Error handling para falhas de upload
     private func saveProjects() {
         print("💾 Salvando \(projects.count) projetos...")
+        
+        // 🔥 FIREBASE TODO: Substituir por:
+        // let db = Firestore.firestore()
+        // let batch = db.batch()
+        // for project in projects {
+        //     let docRef = db.collection("projects").document(project.id.uuidString)
+        //     batch.setData(project.firestoreData, forDocument: docRef)
+        // }
+        // batch.commit { error in ... }
         
         do {
             let data = try JSONEncoder().encode(projects)
@@ -187,13 +223,15 @@ class ProjectManager: ObservableObject {
                 name: "Storyboard Cena 1",
                 fileName: "storyboard_cena1.jpg",
                 fileType: .jpg,
-                fileSize: "2.3 MB"
+                fileSize: "2.3 MB",
+                localURL: nil // Mock file
             ),
             ProjectFile(
                 name: "Cronograma de Filmagem",
                 fileName: "cronograma.docx",
                 fileType: .docx,
-                fileSize: "156 KB"
+                fileSize: "156 KB",
+                localURL: nil // Mock file
             )
         ]
         
@@ -202,19 +240,22 @@ class ProjectManager: ObservableObject {
                 name: "Referências Visuais",
                 fileName: "referencias.zip",
                 fileType: .zip,
-                fileSize: "5.2 MB"
+                fileSize: "5.2 MB",
+                localURL: nil // Mock file
             ),
             ProjectFile(
                 name: "Orçamento",
                 fileName: "orcamento.pdf",
                 fileType: .pdf,
-                fileSize: "890 KB"
+                fileSize: "890 KB",
+                localURL: nil // Mock file
             ),
             ProjectFile(
                 name: "Playlist Trilha Sonora",
                 fileName: "trilha_sonora.m4a",
                 fileType: .m4a,
-                fileSize: "12.4 MB"
+                fileSize: "12.4 MB",
+                localURL: nil // Mock file
             )
         ]
         
@@ -266,3 +307,31 @@ class ProjectManager: ObservableObject {
         print("🔑 Códigos de teste: AB12, XY9Z, P7Q8")
     }
 }
+
+// 🔥 FIREBASE TODO: RESUMO GERAL DAS MUDANÇAS NO PROJECTMANAGER:
+// 🔥 
+// 🔥 1. IMPORTS NECESSÁRIOS:
+// 🔥    import FirebaseFirestore
+// 🔥    import FirebaseAuth
+// 🔥    
+// 🔥 2. PROPRIEDADES A ADICIONAR:
+// 🔥    private let db = Firestore.firestore()
+// 🔥    private var currentUserId: String? { Auth.auth().currentUser?.uid }
+// 🔥    private var listener: ListenerRegistration?
+// 🔥    
+// 🔥 3. FUNÇÕES A MODIFICAR:
+// 🔥    loadProjects() → loadFromFirestore() (com listener em tempo real)
+// 🔥    saveProjects() → saveToFirestore() (batch writes)
+// 🔥    addProject() → adicionar userId automaticamente
+// 🔥    removeProject() → deletar do Firestore também
+// 🔥    
+// 🔥 4. NOVAS FUNÇÕES A CRIAR:
+// 🔥    func signOut() { // limpar listener e dados locais }
+// 🔥    func handleAuthStateChange() { // recarregar quando user mudar }
+// 🔥    
+// 🔥 5. ESTRUTURA FIRESTORE:
+// 🔥    Collection: "projects"
+// 🔥    Document ID: project.id.uuidString  
+// 🔥    Fields: code, director, name, userId, files[], callSheets[], etc
+// 🔥    
+// 🔥 ➡️ O RESTO DO CÓDIGO CONTINUA FUNCIONANDO IGUAL!

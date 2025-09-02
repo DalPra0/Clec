@@ -5,6 +5,12 @@
 //  Created by Lucas Dal Pra Brascher on 01/09/25.
 //
 
+// 🔥 FIREBASE TODO: Esta view é onde acontece o upload dos arquivos
+// 🔥   - addFile() precisa ser modificada para fazer upload Firebase
+// 🔥   - Adicionar progress indicator durante upload
+// 🔥   - Error handling se upload falhar
+// 🔥   - Talvez adicionar preview do arquivo antes do upload
+
 import SwiftUI
 import UniformTypeIdentifiers
 
@@ -16,6 +22,7 @@ struct AddFileView: View {
     @State private var selectedFileType: FileType = .pdf
     @State private var showingFilePicker = false
     @State private var showingDocumentPicker = false
+    @State private var selectedDocumentURL: URL?
     
     let projectIndex: Int
     
@@ -177,22 +184,63 @@ struct AddFileView: View {
         .disabled(!isFormValid)
     }
     
+    // 🔥 FIREBASE TODO: Esta função é o CORE do sistema de upload! Principais mudanças:
+    // 🔥   1. Adicionar @State var isUploading = false, uploadProgress = 0.0
+    // 🔥   2. Substituir RealFileManager por Firebase Storage upload
+    // 🔥   3. Mostrar loading indicator durante upload
+    // 🔥   4. Aguardar upload completar antes de dismiss()
+    // 🔥   5. Error handling robusto
     private func addFile() {
         guard isFormValid else { return }
         
         let trimmedName = fileName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let project = projectManager.projects[projectIndex]
+        
+        if let documentURL = selectedDocumentURL {
+            print("📁 Criando arquivo real: \(trimmedName)")
+            
+            // 🔥 FIREBASE TODO: Substituir tudo abaixo por:
+            // uploadToFirebaseStorage(documentURL, projectCode: project.code, fileName: trimmedName)
+            
+            if documentURL.startAccessingSecurityScopedResource() {
+                defer {
+                    documentURL.stopAccessingSecurityScopedResource()
+                }
+                
+                if let realFile = ProjectFile.createWithRealFile(
+                    name: trimmedName,
+                    sourceURL: documentURL,
+                    projectCode: project.code,
+                    isScreenplay: false
+                ) {
+                    projectManager.addFileToProject(at: projectIndex, file: realFile)
+                    print("✅ Arquivo real adicionado: \(realFile.displayName)")
+                    
+                    let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                    impactFeedback.impactOccurred()
+                    
+                    dismiss()
+                    return
+                } else {
+                    print("❌ Erro ao criar arquivo real")
+                }
+            }
+        }
+        
+        print("🎨 Criando arquivo mock: \(trimmedName)")
         let generatedFileName = "\(trimmedName.lowercased().replacingOccurrences(of: " ", with: "_")).\(selectedFileType.rawValue)"
         
-        let newFile = ProjectFile(
+        let mockFile = ProjectFile(
             name: trimmedName,
             fileName: generatedFileName,
             fileType: selectedFileType,
             dateAdded: Date(),
             fileSize: generateMockFileSize(),
-            isScreenplay: false
+            isScreenplay: false,
+            localURL: nil
         )
         
-        projectManager.addFileToProject(at: projectIndex, file: newFile)
+        projectManager.addFileToProject(at: projectIndex, file: mockFile)
         
         let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
         impactFeedback.impactOccurred()
@@ -201,9 +249,23 @@ struct AddFileView: View {
     }
     
     private func handleDocumentSelection(url: URL) {
+        print("📁 Arquivo selecionado: \(url.lastPathComponent)")
+        
         let fileType = FileType.fromFileName(url.lastPathComponent)
         fileName = url.deletingPathExtension().lastPathComponent
         selectedFileType = fileType
+        
+        if url.startAccessingSecurityScopedResource() {
+            defer {
+                url.stopAccessingSecurityScopedResource()
+            }
+            
+            selectedDocumentURL = url
+            
+            print("✅ Arquivo preparado para cópia: \(url.lastPathComponent)")
+        } else {
+            print("❌ Erro: Não foi possível acessar o arquivo selecionado")
+        }
     }
     
     private func createDocument() {

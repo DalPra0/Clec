@@ -12,8 +12,8 @@ struct CallSheetLineInfo: Codable, Identifiable {
     var scene: Int
     var shots: [Int]
     var environmentCondition: EnvironmentConditions
-    var location: Location
+    var location: SceneLocation
     var description: String
-    var characters: [Character]
+    var characters: [SceneCharacter]
     
 }

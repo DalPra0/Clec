@@ -11,80 +11,109 @@ struct FileRowView: View {
     let file: ProjectFile
     let onRemove: (() -> Void)?
     let onRename: (() -> Void)?
+    let onPreview: (() -> Void)?
     
     @State private var showingActionSheet = false
     
-    init(file: ProjectFile, onRemove: (() -> Void)? = nil, onRename: (() -> Void)? = nil) {
+    init(file: ProjectFile, onRemove: (() -> Void)? = nil, onRename: (() -> Void)? = nil, onPreview: (() -> Void)? = nil) {
         self.file = file
         self.onRemove = onRemove
         self.onRename = onRename
+        self.onPreview = onPreview
     }
     
     var body: some View {
-        HStack(spacing: 16) {
-            fileIconView
+        Button(action: {
+            let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+            impactFeedback.impactOccurred()
             
-            VStack(alignment: .leading, spacing: 4) {
-                HStack {
-                    Text(file.displayName)
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(.primary)
-                        .lineLimit(1)
-                    
-                    if file.isScreenplay {
-                        Text("ROTEIRO")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(Color.purple)
-                            .cornerRadius(4)
+            print("👁️ Abrindo preview de: \(file.displayName)")
+            
+            onPreview?()
+        }) {
+            HStack(spacing: 16) {
+                fileIconView
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text(file.displayName)
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.primary)
+                            .lineLimit(1)
+                        
+                        if file.isScreenplay {
+                            Text("ROTEIRO")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(Color.purple)
+                                .cornerRadius(4)
+                        }
+                        
+                        Spacer()
                     }
                     
-                    Spacer()
-                }
-                
-                HStack(spacing: 8) {
-                    Text(file.fileType.displayName)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    
-                    Text("•")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    
-                    Text(file.formattedDate)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    
-                    if let fileSize = file.fileSize {
+                    HStack(spacing: 8) {
+                        Text(file.fileType.displayName)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        
                         Text("•")
                             .font(.caption)
                             .foregroundColor(.secondary)
                         
-                        Text(fileSize)
+                        Text(file.formattedDate)
                             .font(.caption)
                             .foregroundColor(.secondary)
+                        
+                        if let fileSize = file.fileSize {
+                            Text("•")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            
+                            Text(fileSize)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        Spacer()
+                        
+                        HStack(spacing: 4) {
+                            Image(systemName: file.hasRealFile ? "checkmark.circle.fill" : "eye.fill")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(file.hasRealFile ? .green : .blue)
+                            
+                            Text(file.hasRealFile ? "Arquivo Real" : "Visualizar")
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(file.hasRealFile ? .green : .blue)
+                        }
+                        .opacity(0.7)
                     }
-                    
-                    Spacer()
+                }
+                
+                if !file.isScreenplay {
+                    actionButton
+                        .onTapGesture {
+                            showingActionSheet = true
+                        }
                 }
             }
-            
-            if !file.isScreenplay {
-                actionButton
-            }
+            .padding(.vertical, 12)
+            .padding(.horizontal, 16)
+            .background(Color(.systemBackground))
+            .cornerRadius(12)
+            .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
         }
-        .padding(.vertical, 12)
-        .padding(.horizontal, 16)
-        .background(Color(.systemBackground))
-        .cornerRadius(12)
-        .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
+        .buttonStyle(PlainButtonStyle())
         .actionSheet(isPresented: $showingActionSheet) {
             ActionSheet(
                 title: Text(file.displayName),
                 message: Text("O que você gostaria de fazer com este arquivo?"),
                 buttons: [
+                    .default(Text("Visualizar")) {
+                        onPreview?()
+                    },
                     .default(Text("Renomear")) {
                         onRename?()
                     },
@@ -111,7 +140,6 @@ struct FileRowView: View {
     
     private var actionButton: some View {
         Button(action: {
-            showingActionSheet = true
         }) {
             Image(systemName: "ellipsis")
                 .font(.system(size: 16, weight: .medium))
@@ -132,7 +160,10 @@ struct FileRowView: View {
                 fileName: "roteiro_principal.pdf",
                 fileType: .pdf,
                 isScreenplay: true
-            )
+            ),
+            onPreview: {
+                print("Preview do roteiro")
+            }
         )
         
         FileRowView(
@@ -143,7 +174,10 @@ struct FileRowView: View {
                 fileSize: "2.3 MB"
             ),
             onRemove: {},
-            onRename: {}
+            onRename: {},
+            onPreview: {
+                print("Preview do storyboard")
+            }
         )
         
         FileRowView(
@@ -154,7 +188,10 @@ struct FileRowView: View {
                 fileSize: "156 KB"
             ),
             onRemove: {},
-            onRename: {}
+            onRename: {},
+            onPreview: {
+                print("Preview do cronograma")
+            }
         )
     }
     .padding()

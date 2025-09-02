@@ -5,6 +5,14 @@
 //  Created by Lucas Dal Pra Brascher on 01/09/25.
 //
 
+// 🔥 FIREBASE TODO: Este arquivo é o modelo principal dos arquivos
+// 🔥 FIREBASE TODO: Principais mudanças necessárias:
+// 🔥   - localURL → firebaseURL (downloadURL do Firebase)
+// 🔥   - Adicionar firebasePath (caminho no Storage)
+// 🔥   - realFileURL() → firebaseFileURL() 
+// 🔥   - hasRealFile → hasFirebaseFile
+// 🔥   - calculatedFileSize pode vir do metadata do Firebase
+
 import Foundation
 
 struct ProjectFile: Codable, Identifiable, Hashable {
@@ -15,6 +23,12 @@ struct ProjectFile: Codable, Identifiable, Hashable {
     var dateAdded: Date
     var fileSize: String?
     var isScreenplay: Bool
+    var localURL: String? // 🔥 FIREBASE TODO: Renomear para firebaseURL: String?
+    
+    // 🔥 FIREBASE TODO: Adicionar campos do Firebase:
+    // var firebasePath: String? // path no Storage (projects/AB12/additional/foto.jpg)
+    // var downloadURL: String? // URL direta para download
+    // var uploadedBy: String? // userId de quem fez upload
     
     init(
         id: UUID = UUID(),
@@ -23,7 +37,8 @@ struct ProjectFile: Codable, Identifiable, Hashable {
         fileType: FileType,
         dateAdded: Date = Date(),
         fileSize: String? = nil,
-        isScreenplay: Bool = false
+        isScreenplay: Bool = false,
+        localURL: String? = nil
     ) {
         self.id = id
         self.name = name
@@ -32,6 +47,7 @@ struct ProjectFile: Codable, Identifiable, Hashable {
         self.dateAdded = dateAdded
         self.fileSize = fileSize
         self.isScreenplay = isScreenplay
+        self.localURL = localURL
     }
     
     var displayName: String {
@@ -50,6 +66,30 @@ struct ProjectFile: Codable, Identifiable, Hashable {
         let formatter = DateFormatter()
         formatter.dateFormat = "dd/MM/yyyy"
         return formatter.string(from: dateAdded)
+    }
+    
+    var realFileURL: URL? {
+        guard let localURL = localURL else { return nil }
+        return URL(fileURLWithPath: localURL)
+    }
+    
+    var hasRealFile: Bool {
+        guard let url = realFileURL else { return false }
+        return FileManager.default.fileExists(atPath: url.path)
+    }
+    
+    var calculatedFileSize: String? {
+        if let savedSize = fileSize {
+            return savedSize
+        }
+        
+        guard let url = realFileURL,
+              let attributes = try? FileManager.default.attributesOfItem(atPath: url.path),
+              let size = attributes[.size] as? Int64 else {
+            return nil
+        }
+        
+        return ByteCountFormatter.string(fromByteCount: size, countStyle: .file)
     }
 }
 

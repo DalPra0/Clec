@@ -10,7 +10,8 @@ import SwiftUI
 struct LoginView: View {
     
     @State var showModal = false
-   // @Binding var appState: AppState
+   // @StateObject private var projectManager = ProjectManager()
+   // @StateObject private var userManager = UserManager()
     
     var body: some View {
         
@@ -20,12 +21,12 @@ struct LoginView: View {
                 
                 VStack(spacing: 30){
                     
-                    Image("logoClaro")
+                    Image("")
                         .resizable()
                         .scaledToFit()
                         .frame(width: 230)
                     
-                    Text("Só duvida quem não viu todos.")
+                    Text(",,,.")
                         .foregroundStyle(.white)
                         .font(.title2)
                 }
@@ -62,7 +63,7 @@ struct LoginView: View {
                             .padding()
                             .foregroundStyle(.black)
                             .frame(maxWidth: .infinity)
-            //                .background(.rosa)
+                            .background(.yellow)
                             .clipShape(.buttonBorder)
                     }
                 }
@@ -70,7 +71,7 @@ struct LoginView: View {
                 
             }
             .frame(maxWidth: .infinity,maxHeight: .infinity)
-       //     .background(.azulEscuro)
+           //.background(.blue)
             .sheet(isPresented: $showModal){
                 
         //        LoginModalView(appState: $appState)
@@ -87,7 +88,3 @@ struct LoginView: View {
  //   LoginView(appState: .constant(.login))
     LoginView()
 }
-
-
-
-

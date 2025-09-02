@@ -25,7 +25,7 @@ struct LoginModalView: View {
         VStack(spacing: 50){
             
             VStack(alignment: .leading, spacing: 30){
-                Text("Bem-vindo")
+                Text("Bem-vinde")
                     .font(.largeTitle)
                     .bold()
                 
@@ -62,7 +62,7 @@ struct LoginModalView: View {
                     
                     // vai pra home
                     withAnimation{
-         //               appState = .onboarding
+         //               appState = .onboarding (qndo tiver kk)
                     }
                     
                 } label: {
@@ -71,7 +71,7 @@ struct LoginModalView: View {
                         .padding()
                         .foregroundStyle((allFieldsFilled ? .black : .gray))
                         .frame(maxWidth: .infinity)
-    //                    .background(allFieldsFilled ? Color.rosa : Color(uiColor: .systemGray3))
+                        .background(allFieldsFilled ? Color.yellow : Color(uiColor: .systemGray3))
                         .clipShape(.buttonBorder)
                 }
                 .disabled(!allFieldsFilled)

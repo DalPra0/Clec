@@ -16,7 +16,7 @@ struct CallSheetModel: Codable, Identifiable {
     
     
     enum ScheduleActivity: String, Codable {
-        case Begginning = "Início"
+        case Beginning = "Início"
         case StartFilming =  "Roda"
         case Lunch = "Almoço"
         case EndFilming = "Encerramento"

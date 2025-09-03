@@ -5,80 +5,63 @@
 //  Created by alsy ★ on 28/08/25.
 //
 
+// FILENAME: ClecProject/Views/LoginView.swift
+
 import SwiftUI
 
 struct LoginView: View {
-    
-    @State var showModal = false
-   // @StateObject private var projectManager = ProjectManager()
-   // @StateObject private var userManager = UserManager()
+    @State private var showLoginModal = false
+    @State private var showSignUp = false
     
     var body: some View {
-        
-        NavigationStack{
-            
-            VStack(spacing: 170){
-                
-                VStack(spacing: 30){
-                    
-                    Image("")
+        NavigationStack {
+            VStack(spacing: 170) {
+                VStack(spacing: 30) {
+                    Image(systemName: "film.stack.fill") // Placeholder Icon
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 230)
+                        .frame(width: 150)
+                        .foregroundColor(.yellow)
                     
-                    Text(",,,.")
-                        .foregroundStyle(.white)
-                        .font(.title2)
+                    Text("CLÉQUI!")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
                 }
-                .offset(y: showModal ? -150 : 0)
-                .animation(.easeInOut, value: showModal)
                 
-                VStack (spacing: 30){
-                    
-                    Button{
-                        
-                       withAnimation{
-                           showModal = true
-                       }
-                        
+                VStack(spacing: 20) {
+                    Button {
+                        showLoginModal = true
                     } label: {
-                        
                         Text("Fazer login")
                             .padding()
                             .foregroundStyle(.black)
                             .frame(maxWidth: .infinity)
                             .background(.white)
-                            .clipShape(.buttonBorder)
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                            .shadow(radius: 5)
                     }
                     
-                
-                        
-                    NavigationLink{
-                        
-  //                      SignInView(appState: $appState)
-                        
-                    }label: {
-                        
+                    Button {
+                        showSignUp = true
+                    } label: {
                         Text("Criar conta")
                             .padding()
                             .foregroundStyle(.black)
                             .frame(maxWidth: .infinity)
                             .background(.yellow)
-                            .clipShape(.buttonBorder)
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                            .shadow(radius: 5)
                     }
                 }
                 .padding(.horizontal, 20)
-                
             }
-            .frame(maxWidth: .infinity,maxHeight: .infinity)
-           //.background(.blue)
-            .sheet(isPresented: $showModal){
-                
-        //        LoginModalView(appState: $appState)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .sheet(isPresented: $showLoginModal) {
                 LoginModalView()
-                    .presentationDetents([
-                        .height(516)
-                    ])
+                    .presentationDetents([.height(450)])
+            }
+            .navigationDestination(isPresented: $showSignUp) {
+                SignInView()
             }
         }
     }
@@ -87,4 +70,5 @@ struct LoginView: View {
 #Preview {
  //   LoginView(appState: .constant(.login))
     LoginView()
+        .environmentObject(AuthService())
 }

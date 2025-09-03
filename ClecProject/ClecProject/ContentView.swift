@@ -1,32 +1,29 @@
-//
-//  ContentView.swift
-//  ClecProject
-//
-//  Created by Lucas Dal Pra Brascher on 25/08/25.
-//
-
 import SwiftUI
 
 struct ContentView: View {
     @StateObject private var projectManager = ProjectManager()
     @StateObject private var userManager = UserManager()
     
+    @EnvironmentObject var authService: AuthService
+    
     var body: some View {
-        NavigationView {
-            Group {
-                if projectManager.hasProjects {
-                    DashboardView()
-                } else {
-                    InitialView()
+        Group {
+            if authService.userSession != nil {
+                NavigationView {
+                    Group {
+                        if projectManager.hasProjects {
+                            DashboardView()
+                        } else {
+                            InitialView()
+                        }
+                    }
                 }
+                .environmentObject(projectManager)
+                .environmentObject(userManager)
+            } else {
+                LoginView()
             }
-            .environmentObject(projectManager)
-            .environmentObject(userManager)
         }
         .preferredColorScheme(.light)
     }
-}
-
-#Preview {
-    ContentView()
 }

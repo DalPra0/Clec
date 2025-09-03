@@ -17,7 +17,7 @@ struct ClecProjectApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView() //<-- lembrar adicionar logica para mostrar tela de login se não estiver logado na content view
+            ContentView()
                 .environmentObject(authService)
         }
     }

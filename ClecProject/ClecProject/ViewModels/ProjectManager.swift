@@ -86,42 +86,107 @@ class ProjectManager: ObservableObject {
         return projects.first { $0.id == id }
     }
     
-    func addCallSheetToCurrentProject(title: String, description: String, address: String, date: Date, color: CallSheetModel.CallSheetColor) {
+    // MARK: - Activity Management (NEW LOGIC)
+    func addActivityToDay(date: Date, title: String, description: String, address: String, time: Date, responsible: String) {
         guard var project = activeProject else {
-            print("❌ Nenhum projeto ativo para adicionar diária.")
+            print("❌ Nenhum projeto ativo para adicionar atividade")
             return
         }
-
-        let newLocation = SceneLocation(name: "Nova Locação", address: address, latitude: 0.0, longitude: 0.0)
         
-        let newEnvironment = EnvironmentConditions(environment: "INT./EXT.", dayCycle: "DIA", weather: "Ensolarado")
+        let calendar = Calendar.current
         
-        let newCallSheetLine = CallSheetLineInfo(
-            scene: 1,
-            shots: [1],
-            environmentCondition: newEnvironment,
-            location: newLocation,
-            description: title,
-            characters: []
-        )
+        // Buscar se já existe uma diária para esse dia
+        if let existingCallSheetIndex = project.callSheet.firstIndex(where: { callSheet in
+            calendar.isDate(callSheet.day, inSameDayAs: date)
+        }) {
+            // Já existe diária - adicionar atividade
+            let newActivity = CallSheetLineInfo(
+                scene: project.callSheet[existingCallSheetIndex].sceneTable.count + 1,
+                shots: [1],
+                environmentCondition: EnvironmentConditions(environment: "INT./EXT.", dayCycle: "DIA", weather: "Ensolarado"),
+                location: SceneLocation(name: title, address: address, latitude: 0.0, longitude: 0.0),
+                description: description,
+                characters: []
+            )
+            
+            project.callSheet[existingCallSheetIndex].sceneTable.append(newActivity)
+            print("✅ Atividade '\(title)' adicionada à diária existente do dia \(formatDate(date))")
+        } else {
+            // Não existe diária - criar nova diária para o dia
+            let newActivity = CallSheetLineInfo(
+                scene: 1,
+                shots: [1],
+                environmentCondition: EnvironmentConditions(environment: "INT./EXT.", dayCycle: "DIA", weather: "Ensolarado"),
+                location: SceneLocation(name: title, address: address, latitude: 0.0, longitude: 0.0),
+                description: description,
+                characters: []
+            )
+            
+            let dailyCallSheet = CallSheetModel(
+                id: UUID(),
+                sheetName: "Diária \(formatDate(date))",
+                day: date,
+                schedule: [],
+                callSheetColor: getNextColor(for: project),
+                sceneTable: [newActivity]
+            )
+            
+            project.callSheet.append(dailyCallSheet)
+            print("✅ Nova diária criada para \(formatDate(date)) com atividade '\(title)'")
+        }
         
-        let newCallSheet = CallSheetModel(
-            id: UUID(),
-            sheetName: title,
-            day: date,
-            schedule: [],
-            callSheetColor: color,
-            sceneTable: [newCallSheetLine]
-        )
-        
-        project.callSheet.append(newCallSheet)
+        // Atualizar projeto ativo
         activeProject = project
         saveActiveProject()
         updateProjectInHistory(project)
         
-        print("✅ Nova diária adicionada ao projeto: \(project.name)")
+        print("🎬 Atividade '\(title)' adicionada com sucesso ao dia \(formatDate(date))")
     }
     
+    private func getNextColor(for project: ProjectModel) -> CallSheetModel.CallSheetColor {
+        let colors: [CallSheetModel.CallSheetColor] = [.blue, .green, .yellow, .purple]
+        let existingColors = Set(project.callSheet.map { $0.callSheetColor })
+        
+        // Tentar encontrar uma cor não usada
+        for color in colors {
+            if !existingColors.contains(color) {
+                return color
+            }
+        }
+        
+        // Se todas as cores foram usadas, usar baseado no índice
+        return colors[project.callSheet.count % colors.count]
+    }
+    
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "dd/MM/yyyy"
+        formatter.locale = Locale(identifier: "pt_BR")
+        return formatter.string(from: date)
+    }
+    
+    // Função para buscar todas atividades de um dia específico
+    func getActivitiesForDay(_ date: Date) -> [CallSheetLineInfo] {
+        guard let project = activeProject else { return [] }
+        
+        let calendar = Calendar.current
+        
+        // Buscar CallSheet do dia
+        if let dayCallSheet = project.callSheet.first(where: { callSheet in
+            calendar.isDate(callSheet.day, inSameDayAs: date)
+        }) {
+            return dayCallSheet.sceneTable
+        }
+        
+        return []
+    }
+    
+    // Função para verificar se um dia tem atividades
+    func dayHasActivities(_ date: Date) -> Bool {
+        return !getActivitiesForDay(date).isEmpty
+    }
+    
+    // MARK: - File Management (maintained for FilesView compatibility)
     func addFileToProject(at index: Int, file: ProjectFile) {
         guard projects.indices.contains(index) else {
             print("❌ Projeto no índice \(index) não encontrado")

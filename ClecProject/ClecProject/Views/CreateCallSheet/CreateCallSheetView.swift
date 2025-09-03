@@ -41,15 +41,15 @@ struct CreateCallSheetView: View {
     }
     
     func done() {
-        let selectedEnum = colorEnums[selectedColorIndex]
-        
+        // Using new activity logic instead of old CallSheet logic
         DispatchQueue.main.async {
-            projectManager.addCallSheetToCurrentProject(
-                title: title,
-                description: description,
-                address: address,
+            projectManager.addActivityToDay(
                 date: date,
-                color: selectedEnum
+                title: title.isEmpty ? "Nova Diária" : title,
+                description: description.isEmpty ? title : description,
+                address: address.isEmpty ? "Local não definido" : address,
+                time: date,
+                responsible: ""
             )
         }
         

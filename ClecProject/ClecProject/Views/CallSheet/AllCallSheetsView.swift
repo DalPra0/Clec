@@ -73,7 +73,7 @@ struct AllCallSheetsView: View {
         }
         .navigationBarHidden(true)
         .sheet(isPresented: $showingAddCallSheet) {
-            AddCallSheetView()
+            AddActivityView(selectedDate: Date())
                 .environmentObject(projectManager)
         }
         .sheet(item: $selectedCallSheet) { callSheet in
@@ -91,7 +91,7 @@ struct AllCallSheetsView: View {
                     HStack(spacing: 8) {
                         Image(systemName: "chevron.left")
                             .font(.system(size: 16, weight: .medium))
-                        Text("Meus Projetos")
+                        Text("Dashboard")
                             .font(.system(size: 18, weight: .semibold))
                     }
                     .foregroundColor(.primary)
@@ -281,38 +281,7 @@ struct CallSheetDetailView: View {
     }
 }
 
-// Placeholder for AddCallSheetView - will be implemented next  
-struct AddCallSheetView: View {
-    @EnvironmentObject var projectManager: ProjectManager
-    @Environment(\.dismiss) var dismiss
-    
-    var body: some View {
-        NavigationView {
-            Form {
-                Section("Informações da Diária") {
-                    TextField("Título", text: .constant(""))
-                    TextField("Descrição", text: .constant(""))
-                    TextField("Endereço", text: .constant(""))
-                }
-            }
-            .navigationTitle("Adicionar Diária")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancelar") {
-                        dismiss()
-                    }
-                }
-                
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Pronto") {
-                        dismiss()
-                    }
-                }
-            }
-        }
-    }
-}
+
 
 #Preview {
     AllCallSheetsView()

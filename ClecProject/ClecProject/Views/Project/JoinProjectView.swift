@@ -11,66 +11,78 @@ struct JoinProjectView: View {
     @EnvironmentObject var projectManager: ProjectManager
     @Environment(\.presentationMode) var presentationMode
     
+    let onProjectJoined: (ProjectModel) -> Void
+    
     @State private var code = ""
     @State private var isValidating = false
     @State private var showingError = false
     @State private var errorMessage = ""
     @FocusState private var isTextFieldFocused: Bool
     
+    init(onProjectJoined: @escaping (ProjectModel) -> Void = { _ in }) {
+        self.onProjectJoined = onProjectJoined
+    }
+    
     var body: some View {
-        VStack(spacing: 40) {
-            headerSection
-                .padding(.horizontal, 32)
-                .padding(.top, 40)
-            
-            Spacer()
-            
-            codeInputSection
-                .padding(.horizontal, 32)
-            
-            TextField("", text: $code)
-                .keyboardType(.asciiCapable)
-                .textInputAutocapitalization(.characters)
-                .autocorrectionDisabled()
-                .focused($isTextFieldFocused)
-                .opacity(0)
-                .frame(height: 0)
-                .toolbar {
-                    ToolbarItemGroup(placement: .keyboard) {
-                        Spacer()
-                        
-                        Button("Limpar") {
-                            code = ""
+        NavigationView {
+            VStack(spacing: 40) {
+                headerSection
+                    .padding(.horizontal, 32)
+                    .padding(.top, 40)
+                
+                Spacer()
+                
+                codeInputSection
+                    .padding(.horizontal, 32)
+                
+                TextField("", text: $code)
+                    .keyboardType(.asciiCapable)
+                    .textInputAutocapitalization(.characters)
+                    .autocorrectionDisabled()
+                    .focused($isTextFieldFocused)
+                    .opacity(0)
+                    .frame(height: 0)
+                    .toolbar {
+                        ToolbarItemGroup(placement: .keyboard) {
+                            Spacer()
+                            
+                            Button("Limpar") {
+                                code = ""
+                            }
+                            .foregroundColor(.red)
+                            
+                            Button("Concluír") {
+                                isTextFieldFocused = false
+                            }
+                            .foregroundColor(.blue)
+                            .fontWeight(.semibold)
                         }
-                        .foregroundColor(.red)
-                        
-                        Button("Concluir") {
-                            isTextFieldFocused = false
+                    }
+                    .onChange(of: code) {
+                        if code.count > 4 {
+                            code = String(code.prefix(4))
                         }
-                        .foregroundColor(.blue)
-                        .fontWeight(.semibold)
+                        code = code.uppercased()
+                        
+                        if code.count == 4 {
+                            validateCode()
+                        }
                     }
+                
+                Spacer()
+            }
+            .background(Color(.systemBackground))
+            .navigationTitle("Inserir Código")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancelar") {
+                        presentationMode.wrappedValue.dismiss()
+                    }
+                    .foregroundColor(.primary)
                 }
-                .onChange(of: code) {
-                    if code.count > 4 {
-                        code = String(code.prefix(4))
-                    }
-                    code = code.uppercased()
-                    
-                    if code.count == 4 {
-                        validateCode()
-                    }
-                }
-            
-            Spacer()
+            }
         }
-        .background(Color.white.ignoresSafeArea())
-        .navigationBarItems(
-            leading: backButton
-        )
-        .navigationBarTitleDisplayMode(.inline)
-        .navigationBarHidden(false)
-        .preferredColorScheme(.light)
         .onTapGesture {
             isTextFieldFocused = true
         }
@@ -145,13 +157,6 @@ struct JoinProjectView: View {
         }
     }
     
-    private var backButton: some View {
-        Button("Voltar") {
-            presentationMode.wrappedValue.dismiss()
-        }
-        .foregroundColor(.primary)
-    }
-    
     private func validateCode() {
         guard code.count == 4 else { return }
         
@@ -172,6 +177,9 @@ struct JoinProjectView: View {
     
     private func joinProject(_ project: ProjectModel) {
         print("✅ Entrando no projeto: \(project.name)")
+        
+        // Chamar callback para definir como ativo
+        onProjectJoined(project)
         
         let notificationFeedback = UINotificationFeedbackGenerator()
         notificationFeedback.notificationOccurred(.success)

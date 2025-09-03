@@ -19,23 +19,44 @@ import Foundation
 import SwiftUI
 
 class ProjectManager: ObservableObject {
-    public var selectedProject = 0
-    @Published var projects: [ProjectModel] = []
+    // Sistema de projeto ativo único - NOVA ARQUITETURA
+    @Published var activeProject: ProjectModel?
+    @Published var projects: [ProjectModel] = [] // Para histórico/backup
     
-    // 🔥 FIREBASE TODO: Substituir por Firestore
+    // FIREBASE TODO: Substituir por Firestore
     private let userDefaults = UserDefaults.standard
     private let projectsKey = "SavedProjects"
+    private let activeProjectKey = "ActiveProject"
     
-    var hasProjects: Bool {
-        return !projects.isEmpty
+    // Computed properties para compatibilidade e fluxo novo
+    var hasActiveProject: Bool {
+        return activeProject != nil
     }
     
-    var currentProject: ProjectModel { //temporario, precisamos discutir melhor esse project manager
-        return projects[selectedProject]
+    var hasProjects: Bool {
+        return hasActiveProject
+    }
+    
+    var currentProject: ProjectModel? {
+        return activeProject
     }
     
     init() {
         loadProjects()
+        loadActiveProject()
+    }
+    
+    // MARK: - Active Project Management
+    func setActiveProject(_ project: ProjectModel) {
+        activeProject = project
+        saveActiveProject()
+        print("✅ Projeto ativo definido: \(project.name)")
+    }
+    
+    func clearActiveProject() {
+        activeProject = nil
+        userDefaults.removeObject(forKey: activeProjectKey)
+        print("🧹 Projeto ativo removido")
     }
     
     func addProject(_ project: ProjectModel) {
@@ -66,8 +87,8 @@ class ProjectManager: ObservableObject {
     }
     
     func addCallSheetToCurrentProject(title: String, description: String, address: String, date: Date, color: CallSheetModel.CallSheetColor) {
-        guard projects.indices.contains(selectedProject) else {
-            print("❌ Projeto selecionado é inválido.")
+        guard var project = activeProject else {
+            print("❌ Nenhum projeto ativo para adicionar diária.")
             return
         }
 
@@ -93,10 +114,12 @@ class ProjectManager: ObservableObject {
             sceneTable: [newCallSheetLine]
         )
         
-        projects[selectedProject].callSheet.append(newCallSheet)
-        saveProjects()
+        project.callSheet.append(newCallSheet)
+        activeProject = project
+        saveActiveProject()
+        updateProjectInHistory(project)
         
-        print("✅ Nova diária adicionada ao projeto: \(projects[selectedProject].name)")
+        print("✅ Nova diária adicionada ao projeto: \(project.name)")
     }
     
     func addFileToProject(at index: Int, file: ProjectFile) {
@@ -112,7 +135,17 @@ class ProjectManager: ObservableObject {
     }
     
     func addFileToCurrentProject(file: ProjectFile) {
-        addFileToProject(at: selectedProject, file: file)
+        guard var project = activeProject else {
+            print("❌ Nenhum projeto ativo para adicionar arquivo")
+            return
+        }
+        
+        project.additionalFiles.append(file)
+        activeProject = project
+        saveActiveProject()
+        updateProjectInHistory(project)
+        
+        print("✅ Arquivo '\(file.displayName)' adicionado ao projeto '\(project.name)'")
     }
     
     func removeFileFromProject(at projectIndex: Int, fileId: UUID) {
@@ -133,7 +166,22 @@ class ProjectManager: ObservableObject {
     }
     
     func removeFileFromCurrentProject(fileId: UUID) {
-        removeFileFromProject(at: selectedProject, fileId: fileId)
+        guard var project = activeProject else {
+            print("❌ Nenhum projeto ativo para remover arquivo")
+            return
+        }
+        
+        if let fileIndex = project.additionalFiles.firstIndex(where: { $0.id == fileId }) {
+            let removedFile = project.additionalFiles[fileIndex]
+            project.additionalFiles.remove(at: fileIndex)
+            activeProject = project
+            saveActiveProject()
+            updateProjectInHistory(project)
+            
+            print("🗑️ Arquivo '\(removedFile.displayName)' removido do projeto '\(project.name)'")
+        } else {
+            print("❌ Arquivo com ID \(fileId) não encontrado")
+        }
     }
     
     func updateFileInProject(at projectIndex: Int, updatedFile: ProjectFile) {
@@ -215,6 +263,46 @@ class ProjectManager: ObservableObject {
         projects.removeAll()
         saveProjects()
         print("🧹 Todos os projetos foram removidos e salvos")
+    }
+    
+    // MARK: - Active Project Persistence
+    private func saveActiveProject() {
+        guard let project = activeProject else {
+            userDefaults.removeObject(forKey: activeProjectKey)
+            return
+        }
+        
+        do {
+            let data = try JSONEncoder().encode(project)
+            userDefaults.set(data, forKey: activeProjectKey)
+            print("💾 Projeto ativo salvo: \(project.name)")
+        } catch {
+            print("❌ Erro ao salvar projeto ativo: \(error.localizedDescription)")
+        }
+    }
+    
+    private func loadActiveProject() {
+        guard let data = userDefaults.data(forKey: activeProjectKey) else {
+            print("📱 Nenhum projeto ativo encontrado")
+            return
+        }
+        
+        do {
+            let project = try JSONDecoder().decode(ProjectModel.self, from: data)
+            activeProject = project
+            print("✅ Projeto ativo carregado: \(project.name)")
+        } catch {
+            print("❌ Erro ao carregar projeto ativo: \(error.localizedDescription)")
+        }
+    }
+    
+    private func updateProjectInHistory(_ project: ProjectModel) {
+        if let index = projects.firstIndex(where: { $0.id == project.id }) {
+            projects[index] = project
+        } else {
+            projects.append(project)
+        }
+        saveProjects()
     }
     
     func addMockProjects() {

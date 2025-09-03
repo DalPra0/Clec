@@ -11,6 +11,8 @@ struct CreateProjectView: View {
     @EnvironmentObject var projectManager: ProjectManager
     @Environment(\.presentationMode) var presentationMode
     
+    let onProjectCreated: (ProjectModel) -> Void
+    
     @State private var projectName = ""
     @State private var director = ""
     @State private var description = ""
@@ -20,28 +22,46 @@ struct CreateProjectView: View {
     @State private var isFormValid = false
     @State private var isLoading = false
     
+    init(onProjectCreated: @escaping (ProjectModel) -> Void = { _ in }) {
+        self.onProjectCreated = onProjectCreated
+    }
+    
     var body: some View {
-        ScrollView {
-            VStack(spacing: 24) {
-                headerSection
-                
-                formSection
-                
-                codeSection
-                
-                Spacer(minLength: 40)
+        NavigationView {
+            ScrollView {
+                VStack(spacing: 24) {
+                    headerSection
+                    
+                    formSection
+                    
+                    codeSection
+                    
+                    Spacer(minLength: 40)
+                }
+                .padding(.horizontal, 24)
+                .padding(.vertical, 16)
             }
-            .padding(.horizontal, 24)
-            .padding(.vertical, 16)
+            .background(Color(.systemBackground))
+            .navigationTitle("Criar Projeto")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancelar") {
+                        presentationMode.wrappedValue.dismiss()
+                    }
+                    .foregroundColor(.primary)
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Pronto") {
+                        createProject()
+                    }
+                    .foregroundColor(isFormValid ? .blue : .secondary)
+                    .disabled(!isFormValid || isLoading)
+                    .fontWeight(.semibold)
+                }
+            }
         }
-        .background(Color.white.ignoresSafeArea())
-        .navigationBarItems(
-            leading: backButton,
-            trailing: createButton
-        )
-        .navigationBarTitleDisplayMode(.inline)
-        .navigationBarHidden(false)
-        .preferredColorScheme(.light)
         .onChange(of: projectName) {
             validateForm()
         }
@@ -127,21 +147,6 @@ struct CreateProjectView: View {
         }
     }
     
-    private var backButton: some View {
-        Button("Voltar") {
-            presentationMode.wrappedValue.dismiss()
-        }
-        .foregroundColor(.primary)
-    }
-    
-    private var createButton: some View {
-        Button("Pronto") {
-            createProject()
-        }
-        .foregroundColor(isFormValid ? .blue : .secondary)
-        .disabled(!isFormValid || isLoading)
-    }
-    
     private func validateForm() {
         isFormValid = !projectName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
                      !director.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -177,7 +182,11 @@ struct CreateProjectView: View {
             callSheet: []
         )
         
+        // Adicionar ao histórico
         projectManager.addProject(newProject)
+        
+        // Chamar callback para definir como ativo
+        onProjectCreated(newProject)
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             isLoading = false

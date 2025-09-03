@@ -12,10 +12,13 @@ import Firebase
 struct ClecProjectApp: App {
     
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
-    
+        
+    @StateObject private var authService = AuthService()
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView() //<-- lembrar adicionar logica para mostrar tela de login se não estiver logado na content view
+                .environmentObject(authService)
         }
     }
 }

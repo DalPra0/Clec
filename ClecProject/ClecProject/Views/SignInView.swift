@@ -7,117 +7,91 @@
 
 import SwiftUI
 
+// FILENAME: ClecProject/Views/SignInView.swift
+
+import SwiftUI
+
 struct SignInView: View {
     
-//    @Binding var appState: AppState
+    @EnvironmentObject var authService: AuthService
+    @Environment(\.dismiss) var dismiss
+    
+    @State private var email = ""
+    @State private var password = ""
+    @State private var confirmPassword = ""
+    @State private var showAlert = false
+    
+    private var isFormValid: Bool {
+        !email.isEmpty && !password.isEmpty && password == confirmPassword && password.count >= 6
+    }
     
     var body: some View {
-        
-        VStack(spacing: 20){
+        VStack(spacing: 30) {
+            Text("Criar Conta")
+                .font(.largeTitle)
+                .bold()
             
-            // header + butao
-            
-            VStack(spacing: 30){
-            
-                // header
-                
-                VStack(spacing: 25){
-                    
-                    Image("")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 124)
-                    
-                    (
-                        Text("")
-                        
-                        + Text("")
-                            .foregroundStyle(.yellow)
-                            .bold()
-                        
-                        + Text("")
-                    )
-                        .font(.title3)
-                        .frame(width: 335)
-                        .multilineTextAlignment(.center)
-                    
-                }
-                .padding(.top)
-                
-                Button{
-                    
-                } label: {
-                    
-                    HStack{
-                        
-                        Image(systemName: "apple.logo")
-                        Text("Continuar com Apple")
-                    }
-                    .font(.title3)
-                    .foregroundStyle(.white)
+            VStack(spacing: 15) {
+                TextField("E-mail", text: $email)
+                    .keyboardType(.emailAddress)
+                    .autocapitalization(.none)
                     .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(.black)
-                    .clipShape(.buttonBorder)
-                }
+                    .background(Color(UIColor.systemGray6))
+                    .cornerRadius(10)
+                
+                SecureField("Senha (mínimo 6 caracteres)", text: $password)
+                    .padding()
+                    .background(Color(UIColor.systemGray6))
+                    .cornerRadius(10)
+                
+                SecureField("Confirmar Senha", text: $confirmPassword)
+                    .padding()
+                    .background(Color(UIColor.systemGray6))
+                    .cornerRadius(10)
             }
             
-            //text fields
-            
-            VStack{
-                
-                // divider
-                
-                HStack{
-                    
-                    VStack{Divider()}
-                    
-                    Text("ou")
-                     
-                    VStack{Divider()}
-                }
-                .foregroundStyle(Color(uiColor: .systemGray))
-                .padding(.horizontal)
-                
-                // text fields + butao
-                
-                VStack(spacing: 35){
-                    
-                    // text fields
-                    
-                    VStack(spacing: 15){
-                        
-                        
-                        InputView(isSecure: false, label: "Usuário", placeholder: "Digite seu nome de usuário")
-                        
-                        InputView(isSecure: false, label: "E-mail", placeholder: "Digite seu e-mail")
-                        
-                        InputView(isSecure: true, label: "Senha", placeholder: "Digite sua senha")
-                        
-                        InputView(isSecure: true, label: "Confirmação", placeholder: "Confirme sua senha")
-                    }
-                    
-                    Button{
-                        
-                        // vai pra home
-                        withAnimation{
-//                            appState = .navigation
-                            
-                        }
-                    } label: {
-                        
-                        Text("Criar conta")
+            if authService.isLoading {
+                ProgressView()
+            } else {
+                Button(action: signUp) {
+                    Text("Criar conta")
                         .font(.title3)
-                        .foregroundStyle(.gray)
+                        .fontWeight(.semibold)
+                        .foregroundColor(isFormValid ? .black : .gray)
                         .padding()
                         .frame(maxWidth: .infinity)
-                        .background(Color(uiColor: .systemGray3))
-                        .clipShape(.buttonBorder)
-                    }
+                        .background(isFormValid ? Color.yellow : Color(uiColor: .systemGray3))
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
                 }
+                .disabled(!isFormValid)
+            }
+            
+            Spacer()
+        }
+        .padding(20)
+        .navigationTitle("Cadastro")
+        .navigationBarTitleDisplayMode(.inline)
+        .alert("Sign Up Failed", isPresented: $showAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(authService.errorMessage ?? "An unknown error occurred.")
+        }
+        .onChange(of: authService.errorMessage) {
+            if authService.errorMessage != nil {
+                showAlert = true
             }
         }
-        .padding(.horizontal, 20)
+        .onChange(of: authService.userSession) {
+            if authService.userSession != nil {
+                dismiss()
+            }
+        }
+    }
+    
+    private func signUp() {
+        Task {
+            await authService.signUp(withEmail: email, password: password)
+        }
     }
 }
 

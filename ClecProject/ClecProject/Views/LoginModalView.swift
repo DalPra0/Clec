@@ -9,99 +9,84 @@ import SwiftUI
 
 struct LoginModalView: View {
     
-    @State var toggle = true
- //   @Binding var appState: AppState
+    @EnvironmentObject var authService: AuthService
+    @Environment(\.dismiss) var dismiss
     
-    @State var email: String = ""
-    @State var senha: String = ""
+    @State private var email = ""
+    @State private var password = ""
+    @State private var showAlert = false
     
     var allFieldsFilled: Bool {
-        !email.isEmpty && !senha.isEmpty
+        !email.isEmpty && !password.isEmpty
     }
     
-    
     var body: some View {
-        
-        VStack(spacing: 50){
+        VStack(spacing: 50) {
             
-            VStack(alignment: .leading, spacing: 30){
+            VStack(alignment: .leading, spacing: 30) {
                 Text("Bem-vinde")
                     .font(.largeTitle)
                     .bold()
                 
-                VStack(spacing: 15){
-//                    InputView(extText: $email, isSecure: false, label: "E-mail", placeholder: "Digite seu e-mail ou usuário")
+                VStack(spacing: 15) {
+                    TextField("E-mail", text: $email)
+                        .keyboardType(.emailAddress)
+                        .autocapitalization(.none)
+                        .padding()
+                        .background(Color(UIColor.systemGray6))
+                        .cornerRadius(10)
                     
-                    VStack(spacing: 12){
-                        
-//                        InputView(extText: $senha, isSecure: true, label: "Senha", placeholder: "Digite sua senha")
-                        
-                        
-                        HStack{
-                            
-                            HStack(spacing: 15){
-                                
-                                Toggle(isOn: $toggle){}
- //                                   .tint(.rosa)
-                                    .labelsHidden()
-                                
-                                Text("Lembrar de mim")
-                            }
-                            
-                            Spacer()
-                            
-                            Text("Esqueceu sua senha")
-                        }
-                        .font(.caption)
-                    }
+                    SecureField("Senha", text: $password)
+                        .padding()
+                        .background(Color(UIColor.systemGray6))
+                        .cornerRadius(10)
                 }
             }
             
-            VStack(spacing: 20){
-                Button{
-                    
-                    // vai pra home
-                    withAnimation{
-         //               appState = .onboarding (qndo tiver kk)
+            VStack(spacing: 20) {
+                if authService.isLoading {
+                    ProgressView()
+                } else {
+                    Button(action: signIn) {
+                        Text("Entrar")
+                            .padding()
+                            .foregroundColor(allFieldsFilled ? .black : .gray)
+                            .frame(maxWidth: .infinity)
+                            .background(allFieldsFilled ? Color.yellow : Color(uiColor: .systemGray3))
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
                     }
-                    
-                } label: {
-                    
-                    Text("Entrar")
-                        .padding()
-                        .foregroundStyle((allFieldsFilled ? .black : .gray))
-                        .frame(maxWidth: .infinity)
-                        .background(allFieldsFilled ? Color.yellow : Color(uiColor: .systemGray3))
-                        .clipShape(.buttonBorder)
-                }
-                .disabled(!allFieldsFilled)
-                
-                Button{
-                    
-                    //
-                    
-                } label: {
-                    
-                    HStack{
-                        
-                        Image(systemName: "apple.logo")
-                        Text("Continuar com Apple")
-                    }
-                    .font(.title3)
-                    .foregroundStyle(.white)
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(.black)
-                    .clipShape(.buttonBorder)
+                    .disabled(!allFieldsFilled)
                 }
             }
         }
-
         .padding(20)
+        .alert("Login Failed", isPresented: $showAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(authService.errorMessage ?? "An unknown error occurred.")
+        }
+        .onChange(of: authService.errorMessage) {
+            if authService.errorMessage != nil {
+                showAlert = true
+            }
+        }
+        .onChange(of: authService.userSession) {
+            if authService.userSession != nil {
+                dismiss()
+            }
+        }
+    }
+    
+    private func signIn() {
+        Task {
+            await authService.signIn(withEmail: email, password: password)
+        }
     }
 }
+
 
 #Preview {
 //    LoginModalView(appState: .constant(.login))
     LoginModalView()
+        .environmentObject(AuthService())
 }

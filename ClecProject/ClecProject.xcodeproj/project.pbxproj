@@ -14,10 +14,12 @@
 		1568A2AA2E672098007E6BFE /* FirebaseInAppMessaging-Beta in Frameworks */ = {isa = PBXBuildFile; productRef = 1568A2A92E672098007E6BFE /* FirebaseInAppMessaging-Beta */; };
 		1568A2AC2E672098007E6BFE /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 1568A2AB2E672098007E6BFE /* FirebaseMessaging */; };
 		1568A2AE2E672098007E6BFE /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 1568A2AD2E672098007E6BFE /* FirebaseStorage */; };
+		B88F0BF22E675F900094E1E9 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = B88F0BBB2E675F900094E1E9 /* GoogleService-Info.plist */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		1549336A2E5CEF6A00C5012F /* ClecProject.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ClecProject.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B88F0BBB2E675F900094E1E9 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -51,6 +53,7 @@
 			children = (
 				1549336C2E5CEF6A00C5012F /* ClecProject */,
 				1549336B2E5CEF6A00C5012F /* Products */,
+				B88F0BBB2E675F900094E1E9 /* GoogleService-Info.plist */,
 			);
 			sourceTree = "<group>";
 		};
@@ -136,6 +139,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B88F0BF22E675F900094E1E9 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

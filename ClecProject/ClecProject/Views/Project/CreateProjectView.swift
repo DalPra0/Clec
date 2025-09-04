@@ -30,7 +30,7 @@ struct CreateProjectView: View {
         NavigationView {
             ZStack {
                 Color(hex: "#141414")
-                    .ignoresSafeArea()
+                    .ignoresSafeArea(.all)
                 
                 ScrollView {
                     VStack(spacing: 24) {
@@ -74,8 +74,8 @@ struct CreateProjectView: View {
                     .padding(.horizontal, 24)
                     .padding(.vertical, 16)
                 }
-                .scrollContentBackground(.hidden) // REMOVE O FUNDO BRANCO
-                .background(Color(hex: "#141414")) // FORÇA O FUNDO ESCURO
+                .scrollContentBackground(.hidden)
+                .background(Color.clear)
             }
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
@@ -95,6 +95,7 @@ struct CreateProjectView: View {
                 }
             }
         }
+        .colorScheme(.dark)
         .onChange(of: projectName) {
             validateForm()
         }

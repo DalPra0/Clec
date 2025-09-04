@@ -44,8 +44,8 @@ struct DashboardView: View {
     
     var body: some View {
         ZStack {
-            // Dark background
-            Color.black
+            // Dark background using asset color
+            Color("BackgroundDark")
                 .ignoresSafeArea()
             
             if let project = project {
@@ -56,9 +56,21 @@ struct DashboardView: View {
                     
                     ScrollView {
                         VStack(spacing: 24) {
-                            weekCalendarSection
-                            
-                            scenesSection
+                            // TROCA CONTEÚDO BASEADO NO TAB SELECIONADO
+                            switch selectedTab {
+                            case .geral:
+                                weekCalendarSection
+                                scenesSection
+                                
+                            case .arquivos:
+                                filesSection
+                                
+                            case .ordens:
+                                ordensDoDialSection // MESMO CONTEÚDO DA SHEET, MAS NO DASHBOARD
+                                
+                            case .configuracoes:
+                                settingsSection
+                            }
                             
                             // Bottom padding for FAB
                             Spacer(minLength: 100)
@@ -68,27 +80,48 @@ struct DashboardView: View {
                     }
                 }
                 
-                // FAB
+                // FAB - Botão liso laranja + Gradient atrás
                 VStack {
                     Spacer()
                     HStack {
                         Spacer()
-                        Button(action: {
-                            showingAddActivity = true
-                        }) {
-                            Image(systemName: "plus")
-                                .font(.system(size: 20, weight: .semibold))
-                                .foregroundColor(.white)
-                                .frame(width: 56, height: 56)
-                                .background(
-                                    Circle()
-                                        .fill(Color(hex: "#FF5722"))
-                                        .shadow(color: .black.opacity(0.3), radius: 8, x: 0, y: 4)
+                        
+                        ZStack {
+                            // GRADIENT DE FUNDO - ATRÁS DO BOTÃO
+                            Circle()
+                                .fill(
+                                    LinearGradient(
+                                        gradient: Gradient(colors: [
+                                            Color.black.opacity(0.6),    // Preto embaixo
+                                            Color.clear                   // Transparente topo
+                                        ]),
+                                        startPoint: .bottom,
+                                        endPoint: .top
+                                    )
                                 )
+                                .frame(width: 80, height: 80) // Maior que o botão para criar o glow
+                                .blur(radius: 8) // Blur no gradient de fundo
+                            
+                            // BOTÃO LISO LARANJA
+                            Button(action: {
+                                showingAddActivity = true
+                            }) {
+                                ZStack {
+                                    Circle()
+                                        .fill(Color(hex: "#F85601")) // LISO, SEM GRADIENT
+                                        .frame(width: 56, height: 56)
+                                    
+                                    Image(systemName: "plus")
+                                        .font(.system(size: 20, weight: .semibold))
+                                        .foregroundColor(.white)
+                                }
+                            }
+                            .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
                         }
-                        .padding(.trailing, 20)
-                        .padding(.bottom, 34) // Safe area bottom
+                        
+                        Spacer()
                     }
+                    .padding(.bottom, 34)
                 }
             } else {
                 // Fallback se não há projeto ativo
@@ -124,7 +157,7 @@ struct DashboardView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(greeting)
                     .font(.system(size: 28, weight: .regular))
-                    .foregroundColor(Color(hex: "#9CA3AF"))
+                    .foregroundColor(Color("TextSecondary"))
                 
                 Text(project.name)
                     .font(.system(size: 36, weight: .bold))
@@ -157,21 +190,12 @@ struct DashboardView: View {
     }
     
     private func handleTabSelection(_ tab: DashboardTab) {
-        switch tab {
-        case .geral:
-            break // Already on main view
-        case .arquivos:
-            showingFiles = true
-        case .ordens:
-            showingAllCallSheets = true
-        case .configuracoes:
-            showingSettings = true
-        }
+        // Add haptic feedback
+        let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+        impactFeedback.impactOccurred()
         
-        // Reset to geral after action
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            selectedTab = .geral
-        }
+        // Just change the selected tab - TROCA CONTEÚDO NO DASHBOARD
+        selectedTab = tab
     }
     
     // MARK: - Week Calendar Section
@@ -181,21 +205,65 @@ struct DashboardView: View {
                 .font(.system(size: 24, weight: .bold))
                 .foregroundColor(.white)
             
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 12) {
-                    ForEach(weekDays, id: \.self) { date in
-                        CalendarDayView(
+            // Calendar container - continuous rectangle like Figma
+            ZStack {
+                // Background container
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color("CalendarBackground"))
+                    .frame(height: 60)
+                
+                // Sliding selection indicator
+                GeometryReader { geometry in
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(
+                            LinearGradient(
+                                gradient: Gradient(colors: [
+                                    Color("PrimaryOrange"),
+                                    Color("PrimaryOrange").opacity(0.9)
+                                ]),
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: geometry.size.width / 7, height: 48)
+                        .shadow(color: Color("PrimaryOrange").opacity(0.4), radius: 8, x: 0, y: 2)
+                        .shadow(color: .black.opacity(0.2), radius: 2, x: 0, y: 1)
+                        .offset(x: selectedDayOffset(geometry: geometry))
+                        .animation(.interpolatingSpring(stiffness: 300, damping: 30), value: selectedDate)
+                }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 6)
+                
+                // Days content
+                HStack(spacing: 0) {
+                    ForEach(Array(weekDays.enumerated()), id: \.offset) { index, date in
+                        CalendarDayContentView(
                             date: date,
                             isSelected: Calendar.current.isDate(date, inSameDayAs: selectedDate),
                             hasEvents: hasEventsFor(date: date)
                         ) {
-                            selectedDate = date
+                            // Add haptic feedback
+                            let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                            impactFeedback.impactOccurred()
+                            
+                            withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                                selectedDate = date
+                            }
                         }
+                        .frame(maxWidth: .infinity)
                     }
                 }
-                .padding(.horizontal, 20)
             }
+            .frame(height: 60)
         }
+    }
+    
+    private func selectedDayOffset(geometry: GeometryProxy) -> CGFloat {
+        guard let selectedIndex = weekDays.firstIndex(where: { Calendar.current.isDate($0, inSameDayAs: selectedDate) }) else {
+            return 0
+        }
+        let dayWidth = geometry.size.width / 7
+        return CGFloat(selectedIndex) * dayWidth
     }
     
     private var weekDays: [Date] {
@@ -235,7 +303,7 @@ struct DashboardView: View {
         VStack(spacing: 20) {
             Image(systemName: "film")
                 .font(.system(size: 48))
-                .foregroundColor(Color(hex: "#9CA3AF"))
+                .foregroundColor(Color("TextSecondary"))
             
             VStack(spacing: 8) {
                 Text("Sem trabalho para hoje")
@@ -244,12 +312,262 @@ struct DashboardView: View {
                 
                 Text("Adicione uma nova cena ou atividade para começar")
                     .font(.system(size: 16))
-                    .foregroundColor(Color(hex: "#9CA3AF"))
+                    .foregroundColor(Color("TextSecondary"))
                     .multilineTextAlignment(.center)
             }
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 40)
+    }
+    
+    // MARK: - Files Section
+    private var filesSection: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            Text("Arquivos do Projeto")
+                .font(.system(size: 24, weight: .bold))
+                .foregroundColor(.white)
+            
+            if let project = project, !project.allFiles.isEmpty {
+                VStack(spacing: 12) {
+                    ForEach(project.allFiles, id: \.fileName) { file in
+                        HStack(spacing: 12) {
+                            Image(systemName: file.fileType.icon)
+                                .font(.system(size: 20))
+                                .foregroundColor(Color("PrimaryOrange"))
+                                .frame(width: 40, height: 40)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .fill(Color("CardBackground"))
+                                )
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(file.name)
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundColor(.white)
+                                
+                                Text(file.fileName)
+                                    .font(.system(size: 14))
+                                    .foregroundColor(Color("TextSecondary"))
+                            }
+                            
+                            Spacer()
+                            
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 14))
+                                .foregroundColor(Color("TextSecondary"))
+                        }
+                        .padding(16)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color("CardBackground"))
+                        )
+                    }
+                }
+            } else {
+                VStack(spacing: 20) {
+                    Image(systemName: "folder")
+                        .font(.system(size: 48))
+                        .foregroundColor(Color("TextSecondary"))
+                    
+                    VStack(spacing: 8) {
+                        Text("Nenhum arquivo ainda")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundColor(.white)
+                        
+                        Text("Adicione roteiros, storyboards e outros arquivos")
+                            .font(.system(size: 16))
+                            .foregroundColor(Color("TextSecondary"))
+                            .multilineTextAlignment(.center)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 40)
+            }
+        }
+    }
+    
+    // MARK: - Ordens do Dia Section (MESMO CONTEÚDO DA SHEET)
+    private var ordensDoDialSection: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            Text("Ordens do Dia")
+                .font(.system(size: 24, weight: .bold))
+                .foregroundColor(.white)
+            
+            if let project = project, !project.callSheet.isEmpty {
+                VStack(spacing: 16) {
+                    ForEach(Array(project.callSheet.enumerated()), id: \.offset) { index, callSheet in
+                        let color = CallSheetModel.CallSheetColor.allColors()[index % CallSheetModel.CallSheetColor.allColors().count]
+                        
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack {
+                                Rectangle()
+                                    .fill(color)
+                                    .frame(width: 4)
+                                    .cornerRadius(2)
+                                
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Diária \(index + 1)")
+                                        .font(.system(size: 18, weight: .bold))
+                                        .foregroundColor(.white)
+                                    
+                                    Text(formatDate(callSheet.day))
+                                        .font(.system(size: 14))
+                                        .foregroundColor(Color("TextSecondary"))
+                                }
+                                
+                                Spacer()
+                                
+                                Text("\(callSheet.sceneTable.count) cenas")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(Color("TextSecondary"))
+                                
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(Color("TextSecondary"))
+                            }
+                        }
+                        .padding(16)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color("CardBackground"))
+                        )
+                    }
+                }
+            } else {
+                VStack(spacing: 20) {
+                    Image(systemName: "doc.text")
+                        .font(.system(size: 48))
+                        .foregroundColor(Color("TextSecondary"))
+                    
+                    VStack(spacing: 8) {
+                        Text("Nenhuma ordem do dia criada")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundColor(.white)
+                        
+                        Text("Crie ordens do dia para organizar as filmagens")
+                            .font(.system(size: 16))
+                            .foregroundColor(Color("TextSecondary"))
+                            .multilineTextAlignment(.center)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 40)
+            }
+        }
+    }
+    
+    // MARK: - Settings Section
+    private var settingsSection: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            Text("Configurações")
+                .font(.system(size: 24, weight: .bold))
+                .foregroundColor(.white)
+            
+            VStack(spacing: 16) {
+                HStack(spacing: 12) {
+                    Image(systemName: "person.crop.circle")
+                        .font(.system(size: 20))
+                        .foregroundColor(Color("PrimaryOrange"))
+                        .frame(width: 40, height: 40)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color("CardBackground"))
+                        )
+                    
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Perfil do Usuário")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.white)
+                        
+                        Text(userManager.userName)
+                            .font(.system(size: 14))
+                            .foregroundColor(Color("TextSecondary"))
+                    }
+                    
+                    Spacer()
+                    
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 14))
+                        .foregroundColor(Color("TextSecondary"))
+                }
+                .padding(16)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color("CardBackground"))
+                )
+                
+                HStack(spacing: 12) {
+                    Image(systemName: "film")
+                        .font(.system(size: 20))
+                        .foregroundColor(Color("PrimaryOrange"))
+                        .frame(width: 40, height: 40)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color("CardBackground"))
+                        )
+                    
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Detalhes do Projeto")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.white)
+                        
+                        Text(project?.name ?? "Sem projeto")
+                            .font(.system(size: 14))
+                            .foregroundColor(Color("TextSecondary"))
+                    }
+                    
+                    Spacer()
+                    
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 14))
+                        .foregroundColor(Color("TextSecondary"))
+                }
+                .padding(16)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color("CardBackground"))
+                )
+                
+                HStack(spacing: 12) {
+                    Image(systemName: "square.and.arrow.up")
+                        .font(.system(size: 20))
+                        .foregroundColor(Color("PrimaryOrange"))
+                        .frame(width: 40, height: 40)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color("CardBackground"))
+                        )
+                    
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Compartilhar Projeto")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.white)
+                        
+                        Text("Código: \(project?.code ?? "----")")
+                            .font(.system(size: 14))
+                            .foregroundColor(Color("TextSecondary"))
+                    }
+                    
+                    Spacer()
+                    
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 14))
+                        .foregroundColor(Color("TextSecondary"))
+                }
+                .padding(16)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color("CardBackground"))
+                )
+            }
+        }
+    }
+    
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "dd/MM/yyyy"
+        formatter.locale = Locale(identifier: "pt_BR")
+        return formatter.string(from: date)
     }
 }
 
@@ -264,14 +582,14 @@ struct TabButton: View {
             Text(title)
                 .font(.system(size: 16, weight: .medium))
                 .foregroundColor(.white)
-                .padding(.horizontal, 20)
+                .padding(.horizontal, title == "Geral" ? 24 : 20) // Geral is slightly wider
                 .padding(.vertical, 12)
                 .background(
                     RoundedRectangle(cornerRadius: 20)
-                        .fill(isSelected ? Color(hex: "#FF5722") : Color.clear)
+                        .fill(isSelected ? Color("PrimaryOrange") : Color.clear)
                         .overlay(
                             RoundedRectangle(cornerRadius: 20)
-                                .stroke(Color(hex: "#FF5722"), lineWidth: 1.5)
+                                .stroke(Color("PrimaryOrange"), lineWidth: 1.5)
                         )
                 )
         }
@@ -279,8 +597,8 @@ struct TabButton: View {
     }
 }
 
-// MARK: - Calendar Day Component
-struct CalendarDayView: View {
+// MARK: - Calendar Day Content Component (For sliding animation)
+struct CalendarDayContentView: View {
     let date: Date
     let isSelected: Bool
     let hasEvents: Bool
@@ -301,20 +619,24 @@ struct CalendarDayView: View {
     
     var body: some View {
         Button(action: onTap) {
-            VStack(spacing: 4) {
+            VStack(spacing: 2) {
                 Text(dayName)
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(isSelected ? .white : Color(hex: "#9CA3AF"))
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(isSelected ? .white : Color("TextSecondary"))
+                    .opacity(isSelected ? 1.0 : 0.7)
+                    .scaleEffect(isSelected ? 1.0 : 0.95)
+                    .animation(.easeInOut(duration: 0.25).delay(isSelected ? 0.1 : 0), value: isSelected)
                 
                 Text(dayNumber)
-                    .font(.system(size: 18, weight: .bold))
+                    .font(.system(size: 16, weight: isSelected ? .heavy : .bold))
                     .foregroundColor(isSelected ? .white : .white)
+                    .scaleEffect(isSelected ? 1.05 : 1.0)
+                    .opacity(isSelected ? 1.0 : 0.8)
+                    .animation(.interpolatingSpring(stiffness: 400, damping: 25).delay(isSelected ? 0.05 : 0), value: isSelected)
             }
-            .frame(width: 60, height: 60)
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(isSelected ? Color(hex: "#FF5722") : Color.clear)
-            )
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .scaleEffect(isSelected ? 1.0 : 0.98)
+            .animation(.easeInOut(duration: 0.2), value: isSelected)
         }
         .buttonStyle(PlainButtonStyle())
     }
@@ -345,11 +667,11 @@ struct SceneCardView: View {
             HStack(spacing: 8) {
                 Image(systemName: "calendar")
                     .font(.system(size: 14))
-                    .foregroundColor(Color(hex: "#9CA3AF"))
+                    .foregroundColor(Color("TextSecondary"))
                 
                 Text(formattedDate)
                     .font(.system(size: 16))
-                    .foregroundColor(Color(hex: "#9CA3AF"))
+                    .foregroundColor(Color("TextSecondary"))
                 
                 Spacer()
                 
@@ -360,14 +682,14 @@ struct SceneCardView: View {
                     .padding(.vertical, 6)
                     .background(
                         Capsule()
-                            .fill(Color(hex: "#E879F9"))
+                            .fill(Color("TimeBadge"))
                     )
             }
             
             HStack(spacing: 8) {
                 // Mock avatar
                 Circle()
-                    .fill(Color(hex: "#9CA3AF"))
+                    .fill(Color("TextSecondary"))
                     .frame(width: 24, height: 24)
                     .overlay(
                         Image(systemName: "person.fill")
@@ -377,7 +699,7 @@ struct SceneCardView: View {
                 
                 Text("Username")
                     .font(.system(size: 16))
-                    .foregroundColor(Color(hex: "#9CA3AF"))
+                    .foregroundColor(Color("TextSecondary"))
                 
                 Spacer()
             }
@@ -385,7 +707,7 @@ struct SceneCardView: View {
         .padding(20)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color(hex: "#1F1F1F"))
+                .fill(Color("CardBackground"))
         )
     }
 }

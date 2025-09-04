@@ -15,20 +15,158 @@ struct InitialView: View {
     
     var body: some View {
         NavigationView {
-            ZStack {
-                Color(.systemBackground)
-                    .ignoresSafeArea()
-                
-                VStack(spacing: 0) {
-                    welcomeSection
+            GeometryReader { geometry in
+                ZStack {
+                    Color(hex: "#141414")
+                        .ignoresSafeArea()
                     
-                    Spacer()
-                    
-                    actionCards
-                    
-                    Spacer()
+                    VStack(spacing: 0) {
+                        // PARTE SUPERIOR - PEQUENA (30% da tela)
+                        VStack {
+                            Spacer()
+                            
+                            Text("Bem vindo!")
+                                .font(.system(size: 32, weight: .bold))
+                                .foregroundColor(.white)
+                                .onLongPressGesture {
+                                    projectManager.addMockProjects()
+                                    userManager.updateUserName("Lucas")
+                                    
+                                    if let firstProject = projectManager.projects.first {
+                                        projectManager.setActiveProject(firstProject)
+                                    }
+                                    
+                                    let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                                    impactFeedback.impactOccurred()
+                                }
+                                .onTapGesture(count: 5) {
+                                    projectManager.clearActiveProject()
+                                    projectManager.clearAllProjects()
+                                    userManager.resetToDefault()
+                                    
+                                    let notificationFeedback = UINotificationFeedbackGenerator()
+                                    notificationFeedback.notificationOccurred(.warning)
+                                }
+                            
+                            Text("Você pode escolher criar um projeto\nou entrar em um com código")
+                                .font(.system(size: 16, weight: .regular))
+                                .foregroundColor(Color(hex: "#8E8E93"))
+                                .multilineTextAlignment(.center)
+                                .padding(.top, 8)
+                            
+                            Spacer()
+                        }
+                        .frame(height: geometry.size.height * 0.35) // 35% DA TELA
+                        
+                        // RETÂNGULO GRANDE - OCUPA O RESTO (70% da tela)
+                        VStack(spacing: 0) {
+                            // Handle visual
+                            RoundedRectangle(cornerRadius: 2.5)
+                                .fill(Color.white.opacity(0.3))
+                                .frame(width: 36, height: 5)
+                                .padding(.top, 12)
+                                .padding(.bottom, 24)
+                            
+                            VStack(spacing: 16) {
+                                // Card Criar Projeto
+                                Button(action: {
+                                    showingCreateProject = true
+                                }) {
+                                    HStack {
+                                        VStack(alignment: .leading, spacing: 8) {
+                                            Text("Criar um Projeto")
+                                                .font(.system(size: 20, weight: .semibold))
+                                                .foregroundColor(.white)
+                                                .multilineTextAlignment(.leading)
+                                            
+                                            Text("Eu sou assistente\nde direção")
+                                                .font(.system(size: 16, weight: .medium))
+                                                .foregroundColor(.white.opacity(0.9))
+                                                .multilineTextAlignment(.leading)
+                                        }
+                                        
+                                        Spacer()
+                                        
+                                        // SVG Claquete
+                                        Image("Claquete")
+                                            .resizable()
+                                            .aspectRatio(contentMode: .fit)
+                                            .frame(width: 50, height: 50)
+                                            .clipped()
+                                    }
+                                    .padding(20)
+                                    .frame(maxWidth: .infinity, minHeight: 100)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 16)
+                                            .fill(
+                                                LinearGradient(
+                                                    gradient: Gradient(colors: [
+                                                        Color(hex: "#F85601"),
+                                                        Color(hex: "#FF99DF")
+                                                    ]),
+                                                    startPoint: .leading,
+                                                    endPoint: .trailing
+                                                )
+                                            )
+                                    )
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                                
+                                // Card Join Projeto
+                                Button(action: {
+                                    showingJoinProject = true
+                                }) {
+                                    HStack {
+                                        VStack(alignment: .leading, spacing: 8) {
+                                            Text("Você tem um código?")
+                                                .font(.system(size: 20, weight: .semibold))
+                                                .foregroundColor(.white)
+                                                .multilineTextAlignment(.leading)
+                                            
+                                            Text("Sou membro do set\nde produção")
+                                                .font(.system(size: 16, weight: .medium))
+                                                .foregroundColor(.white.opacity(0.9))
+                                                .multilineTextAlignment(.leading)
+                                        }
+                                        
+                                        Spacer()
+                                        
+                                        // SVG Claquete
+                                        Image("Claquete")
+                                            .resizable()
+                                            .aspectRatio(contentMode: .fit)
+                                            .frame(width: 50, height: 50)
+                                            .clipped()
+                                    }
+                                    .padding(20)
+                                    .frame(maxWidth: .infinity, minHeight: 100)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 16)
+                                            .fill(
+                                                LinearGradient(
+                                                    gradient: Gradient(colors: [
+                                                        Color(hex: "#F85601"),
+                                                        Color(hex: "#FF99DF")
+                                                    ]),
+                                                    startPoint: .leading,
+                                                    endPoint: .trailing
+                                                )
+                                            )
+                                    )
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                            }
+                            .padding(.horizontal, 20)
+                            
+                            Spacer()
+                        }
+                        .frame(height: geometry.size.height * 0.65) // 65% DA TELA
+                        .background(
+                            RoundedRectangle(cornerRadius: 20)
+                                .fill(Color(hex: "#1C1C1E"))
+                        )
+                    }
                 }
-                .padding(.horizontal, 20)
             }
         }
         .navigationBarHidden(true)
@@ -49,150 +187,8 @@ struct InitialView: View {
             .environmentObject(userManager)
         }
     }
-    
-    private var welcomeSection: some View {
-        VStack(spacing: 16) {
-            Spacer(minLength: 100)
-            
-            // Logo/Title
-            Text("CLÉCQUI!")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-                .foregroundColor(.primary)
-                .onLongPressGesture {
-                    // Long press para adicionar projetos mock e ativar o primeiro
-                    projectManager.addMockProjects()
-                    userManager.updateUserName("Lucas")
-                    
-                    // Definir primeiro projeto como ativo
-                    if let firstProject = projectManager.projects.first {
-                        projectManager.setActiveProject(firstProject)
-                    }
-                    
-                    #if DEBUG
-                    FilesSystemTest.runAllTests()
-                    #endif
-                    
-                    let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-                    impactFeedback.impactOccurred()
-                }
-                .onTapGesture(count: 5) {
-                    // 5 taps para limpar tudo
-                    projectManager.clearActiveProject()
-                    projectManager.clearAllProjects()
-                    userManager.resetToDefault()
-                    
-                    let notificationFeedback = UINotificationFeedbackGenerator()
-                    notificationFeedback.notificationOccurred(.warning)
-                    
-                    print("🧿 Todos os dados foram limpos - volta para tela inicial")
-                }
-            
-            Text("Bem vindo!")
-                .font(.title)
-                .fontWeight(.semibold)
-                .foregroundColor(.primary)
-            
-            Text("Você pode escolher criar um projeto\nou entrar em um com código")
-                .font(.body)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-                .lineLimit(nil)
-        }
-    }
-    
-    private var actionCards: some View {
-        VStack(spacing: 16) {
-            Button(action: {
-                showingCreateProject = true
-            }) {
-                ActionCard(
-                    title: "Criar um Projeto",
-                    subtitle: "Eu sou assistente\nde direção",
-                    gradientColors: [Color.purple, Color.blue]
-                )
-            }
-            .buttonStyle(PlainButtonStyle())
-            
-            Button(action: {
-                showingJoinProject = true
-            }) {
-                ActionCard(
-                    title: "Você tem um código?",
-                    subtitle: "Sou membro do set\nde produção",
-                    gradientColors: [Color.purple, Color.blue]
-                )
-            }
-            .buttonStyle(PlainButtonStyle())
-        }
-    }
 }
 
-struct ActionCard: View {
-    let title: String
-    let subtitle: String
-    let gradientColors: [Color]
-    
-    var body: some View {
-        HStack(spacing: 16) {
-            VStack(alignment: .leading, spacing: 8) {
-                Text(title)
-                    .font(.system(size: 20, weight: .semibold))
-                    .foregroundColor(.white)
-                    .multilineTextAlignment(.leading)
-                
-                Text(subtitle)
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.white.opacity(0.9))
-                    .multilineTextAlignment(.leading)
-            }
-            
-            Spacer()
-            
-            // Geometric illustration placeholder
-            GeometricIllustration()
-        }
-        .padding(20)
-        .frame(maxWidth: .infinity, minHeight: 120)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(
-                    LinearGradient(
-                        gradient: Gradient(colors: gradientColors),
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-        )
-        .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
-    }
-}
-
-struct GeometricIllustration: View {
-    var body: some View {
-        ZStack {
-            // Background shapes
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color.white.opacity(0.2))
-                .frame(width: 60, height: 40)
-                .rotationEffect(.degrees(15))
-            
-            RoundedRectangle(cornerRadius: 6)
-                .fill(Color.white.opacity(0.15))
-                .frame(width: 40, height: 30)
-                .rotationEffect(.degrees(-10))
-                .offset(x: 10, y: -5)
-            
-            Circle()
-                .fill(Color.white.opacity(0.1))
-                .frame(width: 20, height: 20)
-                .offset(x: -15, y: 15)
-        }
-        .frame(width: 80, height: 80)
-    }
-}
-
-// Preview com mock data
 #Preview {
     InitialView()
         .environmentObject(ProjectManager())

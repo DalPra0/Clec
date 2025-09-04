@@ -28,37 +28,70 @@ struct CreateProjectView: View {
     
     var body: some View {
         NavigationView {
-            ScrollView {
-                VStack(spacing: 24) {
-                    headerSection
-                    
-                    formSection
-                    
-                    codeSection
-                    
-                    Spacer(minLength: 40)
+            ZStack {
+                Color(hex: "#141414")
+                    .ignoresSafeArea()
+                
+                ScrollView {
+                    VStack(spacing: 24) {
+                        headerSection
+                        
+                        formSection
+                        
+                        codeSection
+                        
+                        // Botão Pronto
+                        Button(action: {
+                            createProject()
+                        }) {
+                            HStack {
+                                if isLoading {
+                                    ProgressView()
+                                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                        .scaleEffect(0.8)
+                                } else {
+                                    Text("Pronto")
+                                        .font(.system(size: 18, weight: .semibold))
+                                        .foregroundColor(.white)
+                                }
+                            }
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 50)
+                            .background(
+                                RoundedRectangle(cornerRadius: 25)
+                                    .fill(
+                                        isFormValid ? Color(hex: "#F85601") : Color.gray.opacity(0.3)
+                                    )
+                            )
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        .disabled(!isFormValid || isLoading)
+                        .padding(.horizontal, 20)
+                        .padding(.top, 20)
+                        
+                        Spacer(minLength: 40)
+                    }
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 16)
                 }
-                .padding(.horizontal, 24)
-                .padding(.vertical, 16)
+                .scrollContentBackground(.hidden) // REMOVE O FUNDO BRANCO
+                .background(Color(hex: "#141414")) // FORÇA O FUNDO ESCURO
             }
-            .background(Color(.systemBackground))
-            .navigationTitle("Criar Projeto")
+            .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancelar") {
+                    Button(action: {
                         presentationMode.wrappedValue.dismiss()
+                    }) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 16, weight: .semibold))
+                            Text("Voltar")
+                                .font(.system(size: 16, weight: .regular))
+                        }
+                        .foregroundColor(Color(hex: "#F85601"))
                     }
-                    .foregroundColor(.primary)
-                }
-                
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Pronto") {
-                        createProject()
-                    }
-                    .foregroundColor(isFormValid ? .blue : .secondary)
-                    .disabled(!isFormValid || isLoading)
-                    .fontWeight(.semibold)
                 }
             }
         }
@@ -76,13 +109,13 @@ struct CreateProjectView: View {
     private var headerSection: some View {
         VStack(spacing: 12) {
             Text("Insira as informações")
-                .font(.largeTitle)
-                .fontWeight(.bold)
+                .font(.system(size: 28, weight: .bold))
+                .foregroundColor(.white)
                 .multilineTextAlignment(.center)
             
             Text("do seu projeto")
-                .font(.largeTitle)
-                .fontWeight(.bold)
+                .font(.system(size: 28, weight: .bold))
+                .foregroundColor(.white)
                 .multilineTextAlignment(.center)
         }
         .padding(.top, 20)
@@ -121,30 +154,40 @@ struct CreateProjectView: View {
     }
     
     private var codeSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 12) {
             Text("Código")
-                .font(.headline)
-                .foregroundColor(.primary)
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundColor(.white)
             
-            HStack {
-                Text(generateProjectCode())
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .foregroundColor(.blue)
+            VStack(spacing: 8) {
+                HStack {
+                    Text(generateProjectCode())
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(Color(hex: "#F85601"))
+                    
+                    Spacer()
+                    
+                    Button(action: {
+                        // Copy to clipboard action
+                        UIPasteboard.general.string = generateProjectCode()
+                    }) {
+                        Image(systemName: "doc.on.doc")
+                            .font(.system(size: 18))
+                            .foregroundColor(Color(hex: "#F85601"))
+                    }
+                }
+                .padding(16)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color(hex: "#1C1C1E"))
+                )
                 
-                Spacer()
-                
-                Image(systemName: "doc.on.doc")
-                    .foregroundColor(.blue)
+                Text("Compartilhe este código alfanumérico com sua equipe")
+                    .font(.system(size: 14))
+                    .foregroundColor(Color(hex: "#8E8E93"))
             }
-            .padding()
-            .background(Color(.systemBlue).opacity(0.1))
-            .cornerRadius(8)
-            
-            Text("Compartilhe este código alfanumérico com sua equipe")
-                .font(.caption)
-                .foregroundColor(.secondary)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
     
     private func validateForm() {

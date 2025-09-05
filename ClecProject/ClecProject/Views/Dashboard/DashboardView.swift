@@ -15,7 +15,12 @@ struct DashboardView: View {
     @State private var showingFiles = false
     @State private var showingSettings = false
     @State private var showingAddActivity = false
+    @State private var showingAddFile = false
+    @State private var showingAddOrdemDoDia = false
     @State private var selectedTab: DashboardTab = .geral
+    @State private var isCalendarExpanded = false
+    @State private var currentWeekOffset = 0 // Para navegação de semanas
+    @State private var currentMonthOffset = 0 // Para navegação de meses
     
     enum DashboardTab: String, CaseIterable {
         case geral = "Geral"
@@ -104,7 +109,7 @@ struct DashboardView: View {
                             
                             // BOTÃO LISO LARANJA
                             Button(action: {
-                                showingAddActivity = true
+                                handleFABAction()
                             }) {
                                 ZStack {
                                     Circle()
@@ -148,6 +153,39 @@ struct DashboardView: View {
         .sheet(isPresented: $showingAddActivity) {
             AddActivityView(selectedDate: selectedDate)
                 .environmentObject(projectManager)
+        }
+        .sheet(isPresented: $showingAddFile) {
+            if let project = project,
+               let projectIndex = projectManager.projects.firstIndex(where: { $0.id == project.id }) {
+                AddFileView(projectIndex: projectIndex)
+                    .environmentObject(projectManager)
+            }
+        }
+        .sheet(isPresented: $showingAddOrdemDoDia) {
+            CreateCallSheetView()
+                .environmentObject(projectManager)
+        }
+    }
+    
+    // MARK: - FAB Action Handler
+    private func handleFABAction() {
+        switch selectedTab {
+        case .geral:
+            // Adiciona nova cena/atividade no dia selecionado
+            showingAddActivity = true
+            
+        case .arquivos:
+            // Adiciona arquivo
+            showingAddFile = true
+            
+        case .ordens:
+            // Adiciona nova ordem do dia
+            showingAddOrdemDoDia = true
+            
+        case .configuracoes:
+            // Adiciona nova cena no dia de hoje
+            selectedDate = Date() // Seleciona hoje
+            showingAddActivity = true
         }
     }
     
@@ -205,65 +243,254 @@ struct DashboardView: View {
                 .font(.system(size: 24, weight: .bold))
                 .foregroundColor(.white)
             
-            // Calendar container - continuous rectangle like Figma
-            ZStack {
-                // Background container
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color("CalendarBackground"))
-                    .frame(height: 60)
+            VStack(spacing: 16) {
+                // Header com navegação
+                calendarNavigationHeader
                 
-                // Sliding selection indicator
-                GeometryReader { geometry in
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(
-                            LinearGradient(
-                                gradient: Gradient(colors: [
-                                    Color("PrimaryOrange"),
-                                    Color("PrimaryOrange").opacity(0.9)
-                                ]),
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: geometry.size.width / 7, height: 48)
-                        .shadow(color: Color("PrimaryOrange").opacity(0.4), radius: 8, x: 0, y: 2)
-                        .shadow(color: .black.opacity(0.2), radius: 2, x: 0, y: 1)
-                        .offset(x: selectedDayOffset(geometry: geometry))
-                        .animation(.interpolatingSpring(stiffness: 300, damping: 30), value: selectedDate)
+                // Calendário (semana ou mês)
+                if isCalendarExpanded {
+                    monthCalendarView
+                } else {
+                    weekCalendarView
                 }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 6)
-                
-                // Days content
-                HStack(spacing: 0) {
-                    ForEach(Array(weekDays.enumerated()), id: \.offset) { index, date in
-                        CalendarDayContentView(
-                            date: date,
-                            isSelected: Calendar.current.isDate(date, inSameDayAs: selectedDate),
-                            hasEvents: hasEventsFor(date: date)
-                        ) {
-                            // Add haptic feedback
-                            let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-                            impactFeedback.impactOccurred()
-                            
-                            withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
-                                selectedDate = date
-                            }
+            }
+        }
+    }
+    
+    // MARK: - Calendar Navigation Header
+    private var calendarNavigationHeader: some View {
+        HStack {
+            // Seta esquerda
+            Button(action: {
+                navigatePrevious()
+            }) {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
+                    .frame(width: 32, height: 32)
+                    .background(
+                        Circle()
+                            .fill(Color("CardBackground"))
+                    )
+            }
+            
+            Spacer()
+            
+            // Mês e botão de expandir
+            Button(action: {
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                    isCalendarExpanded.toggle()
+                }
+            }) {
+                HStack(spacing: 8) {
+                    Text(currentMonthName)
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(.white)
+                    
+                    Image(systemName: isCalendarExpanded ? "chevron.up" : "chevron.down")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(Color("PrimaryOrange"))
+                        .rotationEffect(.degrees(isCalendarExpanded ? 180 : 0))
+                        .animation(.easeInOut(duration: 0.3), value: isCalendarExpanded)
+                }
+            }
+            
+            Spacer()
+            
+            // Seta direita
+            Button(action: {
+                navigateNext()
+            }) {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
+                    .frame(width: 32, height: 32)
+                    .background(
+                        Circle()
+                            .fill(Color("CardBackground"))
+                    )
+            }
+        }
+    }
+    
+    // MARK: - Week Calendar View
+    private var weekCalendarView: some View {
+        // Calendar container - continuous rectangle like Figma
+        ZStack {
+            // Background container
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color("CalendarBackground"))
+                .frame(height: 60)
+            
+            // Sliding selection indicator
+            GeometryReader { geometry in
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(
+                        LinearGradient(
+                            gradient: Gradient(colors: [
+                                Color("PrimaryOrange"),
+                                Color("PrimaryOrange").opacity(0.9)
+                            ]),
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: geometry.size.width / 7, height: 48)
+                    .shadow(color: Color("PrimaryOrange").opacity(0.4), radius: 8, x: 0, y: 2)
+                    .shadow(color: .black.opacity(0.2), radius: 2, x: 0, y: 1)
+                    .offset(x: selectedDayOffset(geometry: geometry))
+                    .animation(.interpolatingSpring(stiffness: 300, damping: 30), value: selectedDate)
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 6)
+            
+            // Days content
+            HStack(spacing: 0) {
+                ForEach(Array(currentWeekDays.enumerated()), id: \.offset) { index, date in
+                    CalendarDayContentView(
+                        date: date,
+                        isSelected: Calendar.current.isDate(date, inSameDayAs: selectedDate),
+                        hasEvents: hasEventsFor(date: date)
+                    ) {
+                        // Add haptic feedback
+                        let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                        impactFeedback.impactOccurred()
+                        
+                        withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                            selectedDate = date
                         }
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+            }
+        }
+        .frame(height: 60)
+    }
+    
+    // MARK: - Month Calendar View
+    private var monthCalendarView: some View {
+        VStack(spacing: 12) {
+            // Dias da semana (header)
+            HStack {
+                ForEach(["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"], id: \.self) { day in
+                    Text(day)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(Color("TextSecondary"))
                         .frame(maxWidth: .infinity)
+                }
+            }
+            .padding(.horizontal, 8)
+            
+            // Grid do mês
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7), spacing: 8) {
+                ForEach(currentMonthDays, id: \.self) { date in
+                    MonthDayView(
+                        date: date,
+                        isSelected: Calendar.current.isDate(date, inSameDayAs: selectedDate),
+                        isCurrentMonth: Calendar.current.isDate(date, equalTo: currentDisplayedMonth, toGranularity: .month),
+                        hasEvents: hasEventsFor(date: date)
+                    ) {
+                        let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                        impactFeedback.impactOccurred()
+                        
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                            selectedDate = date
+                        }
                     }
                 }
             }
-            .frame(height: 60)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 12)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color("CalendarBackground"))
+            )
         }
     }
     
     private func selectedDayOffset(geometry: GeometryProxy) -> CGFloat {
-        guard let selectedIndex = weekDays.firstIndex(where: { Calendar.current.isDate($0, inSameDayAs: selectedDate) }) else {
+        guard let selectedIndex = currentWeekDays.firstIndex(where: { Calendar.current.isDate($0, inSameDayAs: selectedDate) }) else {
             return 0
         }
         let dayWidth = geometry.size.width / 7
         return CGFloat(selectedIndex) * dayWidth
+    }
+    
+    // MARK: - Calendar Computed Properties
+    
+    private var currentMonthName: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMMM"
+        formatter.locale = Locale(identifier: "pt_BR")
+        return formatter.string(from: currentDisplayedMonth).capitalized
+    }
+    
+    private var currentDisplayedMonth: Date {
+        let calendar = Calendar.current
+        return calendar.date(byAdding: .month, value: currentMonthOffset, to: Date()) ?? Date()
+    }
+    
+    private var currentWeekDays: [Date] {
+        let calendar = Calendar.current
+        let today = Date()
+        
+        // Calcular a semana base (semana atual + offset)
+        let baseWeekStart = calendar.dateInterval(of: .weekOfYear, for: today)?.start ?? today
+        let targetWeekStart = calendar.date(byAdding: .weekOfYear, value: currentWeekOffset, to: baseWeekStart) ?? baseWeekStart
+        
+        return (0..<7).compactMap { dayOffset in
+            calendar.date(byAdding: .day, value: dayOffset, to: targetWeekStart)
+        }
+    }
+    
+    private var currentMonthDays: [Date] {
+        let calendar = Calendar.current
+        let month = currentDisplayedMonth
+        
+        // Primeiro dia do mês
+        guard let monthStart = calendar.dateInterval(of: .month, for: month)?.start else { return [] }
+        
+        // Primeiro domingo da grade (pode ser do mês anterior)
+        let weekday = calendar.component(.weekday, from: monthStart)
+        let daysFromSunday = (weekday - 1) % 7
+        guard let gridStart = calendar.date(byAdding: .day, value: -daysFromSunday, to: monthStart) else { return [] }
+        
+        // Gerar 42 dias (6 semanas x 7 dias) para garantir que cubra o mês completo
+        return (0..<42).compactMap { dayOffset in
+            calendar.date(byAdding: .day, value: dayOffset, to: gridStart)
+        }
+    }
+    
+    // MARK: - Navigation Functions
+    
+    private func navigatePrevious() {
+        withAnimation(.easeInOut(duration: 0.3)) {
+            if isCalendarExpanded {
+                // Modo mês: voltar mês
+                currentMonthOffset -= 1
+            } else {
+                // Modo semana: voltar semana
+                currentWeekOffset -= 1
+            }
+        }
+        
+        let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+        impactFeedback.impactOccurred()
+    }
+    
+    private func navigateNext() {
+        withAnimation(.easeInOut(duration: 0.3)) {
+            if isCalendarExpanded {
+                // Modo mês: avançar mês
+                currentMonthOffset += 1
+            } else {
+                // Modo semana: avançar semana
+                currentWeekOffset += 1
+            }
+        }
+        
+        let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+        impactFeedback.impactOccurred()
     }
     
     private var weekDays: [Date] {
@@ -568,6 +795,85 @@ struct DashboardView: View {
         formatter.dateFormat = "dd/MM/yyyy"
         formatter.locale = Locale(identifier: "pt_BR")
         return formatter.string(from: date)
+    }
+}
+
+// MARK: - Month Day View Component
+struct MonthDayView: View {
+    let date: Date
+    let isSelected: Bool
+    let isCurrentMonth: Bool
+    let hasEvents: Bool
+    let onTap: () -> Void
+    
+    private var dayNumber: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "d"
+        return formatter.string(from: date)
+    }
+    
+    private var isToday: Bool {
+        Calendar.current.isDate(date, inSameDayAs: Date())
+    }
+    
+    var body: some View {
+        Button(action: onTap) {
+            VStack(spacing: 4) {
+                Text(dayNumber)
+                    .font(.system(size: 16, weight: isSelected ? .bold : .medium))
+                    .foregroundColor(textColor)
+                
+                // Indicador de eventos
+                if hasEvents {
+                    Circle()
+                        .fill(Color("PrimaryOrange"))
+                        .frame(width: 4, height: 4)
+                } else {
+                    Circle()
+                        .fill(Color.clear)
+                        .frame(width: 4, height: 4)
+                }
+            }
+            .frame(height: 40)
+            .frame(maxWidth: .infinity)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(backgroundColor)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(borderColor, lineWidth: isToday ? 1.5 : 0)
+            )
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+    
+    private var textColor: Color {
+        if isSelected {
+            return .white
+        } else if !isCurrentMonth {
+            return Color("TextSecondary").opacity(0.5)
+        } else if isToday {
+            return Color("PrimaryOrange")
+        } else {
+            return .white
+        }
+    }
+    
+    private var backgroundColor: Color {
+        if isSelected {
+            return Color("PrimaryOrange")
+        } else {
+            return Color.clear
+        }
+    }
+    
+    private var borderColor: Color {
+        if isToday && !isSelected {
+            return Color("PrimaryOrange")
+        } else {
+            return Color.clear
+        }
     }
 }
 

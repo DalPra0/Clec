@@ -40,9 +40,8 @@ struct CodeDigitBox: View {
     
     var body: some View {
         Text(digit)
-            .font(.title)
-            .fontWeight(.bold)
-            .foregroundColor(isFilled ? .primary : .secondary)
+            .font(.system(size: 28, weight: .bold))
+            .foregroundColor(textColor)
             .frame(width: 60, height: 80)
             .background(backgroundColor)
             .cornerRadius(12)
@@ -53,19 +52,27 @@ struct CodeDigitBox: View {
             .animation(.easeInOut(duration: 0.2), value: isActive)
     }
     
+    private var textColor: Color {
+        if isFilled {
+            return .white
+        } else {
+            return Color(hex: "#8E8E93")
+        }
+    }
+    
     private var backgroundColor: Color {
         if isActive {
-            return Color(.systemBlue).opacity(0.1)
+            return Color(hex: "#1C1C1E")
         } else {
-            return Color(.systemGray6)
+            return Color(hex: "#1C1C1E")
         }
     }
     
     private var borderColor: Color {
         if isActive {
-            return Color(.systemBlue)
+            return Color(hex: "#F85601") // LARANJA EM VEZ DE AZUL
         } else {
-            return Color(.systemGray4)
+            return Color(hex: "#8E8E93").opacity(0.3)
         }
     }
 }
@@ -87,4 +94,5 @@ struct CodeDigitBox: View {
         }
     }
     .padding()
+    .background(Color(hex: "#141414"))
 }

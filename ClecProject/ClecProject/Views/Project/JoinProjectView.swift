@@ -25,64 +25,34 @@ struct JoinProjectView: View {
     
     var body: some View {
         NavigationView {
-            VStack(spacing: 40) {
-                headerSection
-                    .padding(.horizontal, 32)
-                    .padding(.top, 40)
+            ZStack {
+                // FUNDO ESCURO CONSISTENTE
+                Color(hex: "#141414")
+                    .ignoresSafeArea(.all)
                 
-                Spacer()
-                
-                codeInputSection
-                    .padding(.horizontal, 32)
-                
-                TextField("", text: $code)
-                    .keyboardType(.asciiCapable)
-                    .textInputAutocapitalization(.characters)
-                    .autocorrectionDisabled()
-                    .focused($isTextFieldFocused)
-                    .opacity(0)
-                    .frame(height: 0)
-                    .toolbar {
-                        ToolbarItemGroup(placement: .keyboard) {
-                            Spacer()
-                            
-                            Button("Limpar") {
-                                code = ""
-                            }
-                            .foregroundColor(.red)
-                            
-                            Button("Concluír") {
-                                isTextFieldFocused = false
-                            }
-                            .foregroundColor(.blue)
-                            .fontWeight(.semibold)
-                        }
-                    }
-                    .onChange(of: code) {
-                        if code.count > 4 {
-                            code = String(code.prefix(4))
-                        }
-                        code = code.uppercased()
-                        
-                        if code.count == 4 {
-                            validateCode()
-                        }
-                    }
-                
-                Spacer()
+                mainContent
             }
-            .background(Color(.systemBackground))
-            .navigationTitle("Inserir Código")
+            .background(Color(hex: "#141414"))
+            .colorScheme(.dark)
+            .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancelar") {
+                    Button(action: {
                         presentationMode.wrappedValue.dismiss()
+                    }) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 16, weight: .semibold))
+                            Text("Voltar")
+                                .font(.system(size: 16, weight: .regular))
+                        }
+                        .foregroundColor(Color(hex: "#F85601"))
                     }
-                    .foregroundColor(.primary)
                 }
             }
         }
+        .colorScheme(.dark)
         .onTapGesture {
             isTextFieldFocused = true
         }
@@ -101,16 +71,69 @@ struct JoinProjectView: View {
         }
     }
     
+    private var mainContent: some View {
+        VStack(spacing: 40) {
+            headerSection
+                .padding(.horizontal, 32)
+                .padding(.top, 40)
+            
+            Spacer()
+            
+            codeInputSection
+                .padding(.horizontal, 32)
+            
+            hiddenTextField
+            
+            Spacer()
+        }
+    }
+    
+    private var hiddenTextField: some View {
+        TextField("", text: $code)
+            .keyboardType(.asciiCapable)
+            .textInputAutocapitalization(.characters)
+            .autocorrectionDisabled()
+            .focused($isTextFieldFocused)
+            .opacity(0)
+            .frame(height: 0)
+            .toolbar {
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    
+                    Button("Limpar") {
+                        code = ""
+                    }
+                    .foregroundColor(Color(hex: "#F85601"))
+                    
+                    Button("Concluír") {
+                        isTextFieldFocused = false
+                    }
+                    .foregroundColor(Color(hex: "#F85601"))
+                    .fontWeight(.semibold)
+                }
+            }
+            .onChange(of: code) {
+                if code.count > 4 {
+                    code = String(code.prefix(4))
+                }
+                code = code.uppercased()
+                
+                if code.count == 4 {
+                    validateCode()
+                }
+            }
+    }
+    
     private var headerSection: some View {
         VStack(spacing: 12) {
-            Text("Inserir Código")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-                .foregroundColor(.primary)
+            Text("Insira o Código")
+                .font(.system(size: 28, weight: .bold))
+                .foregroundColor(.white)
+                .multilineTextAlignment(.center)
             
-            Text("Insira o código alfanumérico que o\nassistente de direção mandou")
-                .font(.body)
-                .foregroundColor(.secondary)
+            Text("Insira o código que o Assistente\nde Direção mandou")
+                .font(.system(size: 16, weight: .regular))
+                .foregroundColor(Color(hex: "#8E8E93"))
                 .multilineTextAlignment(.center)
         }
     }
@@ -122,36 +145,42 @@ struct JoinProjectView: View {
                     isTextFieldFocused = true
                 }
             
-            VStack(spacing: 8) {
+            VStack(spacing: 12) {
                 if code.isEmpty {
                     Text("Toque para digitar")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(Color(hex: "#8E8E93"))
                 } else if code.count < 4 {
-                    HStack(spacing: 16) {
-                        Text("🔢 Continue digitando...")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                    VStack(spacing: 8) {
+                        Text("Continue digitando...")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(Color(hex: "#8E8E93"))
                         
                         Button("Limpar") {
                             code = ""
                             isTextFieldFocused = true
                         }
-                        .font(.caption)
-                        .foregroundColor(.blue)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Color(hex: "#F85601"))
                     }
                 }
                 
                 if isValidating {
-                    HStack(spacing: 8) {
+                    HStack(spacing: 12) {
                         ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: Color(hex: "#F85601")))
                             .scaleEffect(0.8)
                         
                         Text("Validando código...")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.white)
                     }
-                    .padding()
+                    .padding(.vertical, 16)
+                    .padding(.horizontal, 20)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color(hex: "#1C1C1E"))
+                    )
                 }
             }
         }

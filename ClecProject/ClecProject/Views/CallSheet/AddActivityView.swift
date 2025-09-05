@@ -61,50 +61,99 @@ struct AddActivityView: View {
     
     var body: some View {
         NavigationView {
-            ScrollView {
-                VStack(spacing: 24) {
-                    activityTypeSection
-                    
-                    if selectedActivityType == .scene {
-                        sceneFields
-                    } else {
-                        scheduleActivityPicker
+            ZStack {
+                // FUNDO ESCURO CONSISTENTE
+                Color(hex: "#141414")
+                    .ignoresSafeArea(.all)
+                
+                ScrollView {
+                    VStack(spacing: 24) {
+                        headerSection
+                        
+                        activityTypeSection
+                        
+                        if selectedActivityType == .scene {
+                            sceneFields
+                        } else {
+                            scheduleActivityPicker
+                        }
+                        
+                        commonFields
+                        
+                        // Botão Adicionar
+                        Button(action: {
+                            addActivity()
+                        }) {
+                            Text("Adicionar")
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 50)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 25)
+                                        .fill(
+                                            isFormValid ? Color(hex: "#F85601") : Color.gray.opacity(0.3)
+                                        )
+                                )
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        .disabled(!isFormValid)
+                        .padding(.horizontal, 20)
+                        .padding(.top, 20)
+                        
+                        Spacer(minLength: 40)
                     }
-                    
-                    commonFields
+                    .padding(.horizontal, 20)
+                    .padding(.top, 20)
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 20)
+                .scrollContentBackground(.hidden)
+                .background(Color.clear)
             }
-            .navigationTitle("Adicionar no dia \(formatSelectedDate())")
+            .background(Color(hex: "#141414"))
+            .colorScheme(.dark)
+            .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancelar") {
+                    Button(action: {
                         dismiss()
+                    }) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 16, weight: .semibold))
+                            Text("Voltar")
+                                .font(.system(size: 16, weight: .regular))
+                        }
+                        .foregroundColor(Color(hex: "#F85601"))
                     }
-                    .foregroundColor(.primary)
-                }
-                
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Adicionar") {
-                        addActivity()
-                    }
-                    .fontWeight(.semibold)
-                    .foregroundColor(isFormValid ? .blue : .secondary)
-                    .disabled(!isFormValid)
                 }
             }
         }
+        .colorScheme(.dark)
     }
     
     // MARK: - Sections
     
+    private var headerSection: some View {
+        VStack(spacing: 12) {
+            Text("Adicionar atividade")
+                .font(.system(size: 28, weight: .bold))
+                .foregroundColor(.white)
+                .multilineTextAlignment(.center)
+            
+            Text("Para o dia \(formatSelectedDate())")
+                .font(.system(size: 16, weight: .regular))
+                .foregroundColor(Color(hex: "#8E8E93"))
+                .multilineTextAlignment(.center)
+        }
+        .padding(.top, 20)
+    }
+    
     private var activityTypeSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Tipo de Atividade")
-                .font(.system(size: 16, weight: .medium))
-                .foregroundColor(.primary)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(.white)
             
             HStack(spacing: 12) {
                 ForEach(ActivityTypeOption.allCases, id: \.self) { option in
@@ -123,12 +172,18 @@ struct AddActivityView: View {
         VStack(spacing: 20) {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Nome da Cena")
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.primary)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
                 
                 TextField("Ex: Cena 01 - Pastelaria", text: $customSceneTitle)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .font(.system(size: 16))
+                    .font(.system(size: 16, weight: .regular))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 14)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color(hex: "#1C1C1E"))
+                    )
             }
         }
     }
@@ -136,20 +191,40 @@ struct AddActivityView: View {
     private var scheduleActivityPicker: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Atividade")
-                .font(.system(size: 16, weight: .medium))
-                .foregroundColor(.primary)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(.white)
             
-            Picker("Atividade", selection: $selectedScheduleActivity) {
+            Menu {
                 ForEach(getAllScheduleActivities(), id: \.self) { activity in
-                    HStack {
-                        Text(activity.icon)
-                        Text(activity.rawValue)
+                    Button(action: {
+                        selectedScheduleActivity = activity
+                    }) {
+                        HStack {
+                            Text(activity.icon)
+                            Text(activity.rawValue)
+                        }
                     }
-                    .tag(activity)
                 }
+            } label: {
+                HStack {
+                    Text(selectedScheduleActivity.icon)
+                    Text(selectedScheduleActivity.rawValue)
+                        .font(.system(size: 16, weight: .regular))
+                        .foregroundColor(.white)
+                    
+                    Spacer()
+                    
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 14))
+                        .foregroundColor(Color(hex: "#8E8E93"))
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 14)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color(hex: "#1C1C1E"))
+                )
             }
-            .pickerStyle(.menu)
-            .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
     
@@ -158,66 +233,92 @@ struct AddActivityView: View {
             // Descrição
             VStack(alignment: .leading, spacing: 8) {
                 Text("Descrição (opcional)")
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.primary)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
                 
                 TextField("Detalhes adicionais...", text: $description, axis: .vertical)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .font(.system(size: 16))
+                    .font(.system(size: 16, weight: .regular))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 14)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color(hex: "#1C1C1E"))
+                    )
                     .lineLimit(3...6)
             }
             
             // Endereço
             VStack(alignment: .leading, spacing: 8) {
                 Text("Local")
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.primary)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
                 
                 TextField("Ex: Rua Margarida - 2207", text: $address)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .font(.system(size: 16))
+                    .font(.system(size: 16, weight: .regular))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 14)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color(hex: "#1C1C1E"))
+                    )
             }
             
             // Horário
             VStack(alignment: .leading, spacing: 8) {
                 Text("Horário")
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.primary)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
                 
                 DatePicker("", selection: $activityTime, displayedComponents: .hourAndMinute)
                     .datePickerStyle(.compact)
                     .labelsHidden()
+                    .colorScheme(.dark)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 14)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color(hex: "#1C1C1E"))
+                    )
             }
             
             // Responsável
             VStack(alignment: .leading, spacing: 8) {
                 Text("Responsável (opcional)")
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.primary)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
                 
                 TextField("Nome do responsável", text: $responsible)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .font(.system(size: 16))
+                    .font(.system(size: 16, weight: .regular))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 14)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color(hex: "#1C1C1E"))
+                    )
             }
             
             // Lembrete
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
                     Text("Lembrete")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(.primary)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.white)
                     
                     Spacer()
                     
                     Toggle("", isOn: $hasReminder)
                         .labelsHidden()
+                        .toggleStyle(SwitchToggleStyle(tint: Color(hex: "#F85601")))
                 }
                 
                 if hasReminder {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Avisar com antecedência")
                             .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(.secondary)
+                            .foregroundColor(Color(hex: "#8E8E93"))
                         
                         Picker("Tempo do lembrete", selection: $reminderTime) {
                             Text("15 minutos").tag(15)
@@ -226,6 +327,7 @@ struct AddActivityView: View {
                             Text("2 horas").tag(120)
                         }
                         .pickerStyle(.segmented)
+                        .colorScheme(.dark)
                     }
                 }
             }
@@ -294,21 +396,21 @@ struct ActivityTypeCard: View {
             VStack(spacing: 8) {
                 Image(systemName: option.icon)
                     .font(.system(size: 24))
-                    .foregroundColor(isSelected ? .white : .blue)
+                    .foregroundColor(isSelected ? .white : Color(hex: "#F85601"))
                 
                 Text(option.rawValue)
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(isSelected ? .white : .primary)
+                    .foregroundColor(isSelected ? .white : .white)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 16)
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(isSelected ? Color.blue : Color(.systemGray6))
+                    .fill(isSelected ? Color(hex: "#F85601") : Color(hex: "#1C1C1E"))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(isSelected ? Color.blue : Color.clear, lineWidth: 2)
+                    .stroke(isSelected ? Color(hex: "#F85601") : Color.clear, lineWidth: 2)
             )
         }
         .buttonStyle(PlainButtonStyle())

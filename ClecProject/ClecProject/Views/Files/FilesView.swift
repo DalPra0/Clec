@@ -227,7 +227,7 @@ struct FilesView: View {
     // MARK: - Preview Actions  
     // 🔥 FIREBASE TODO: Esta é uma das funções MAIS importantes para Firebase!
     // 🔥   1. Para arquivos Firebase: baixar temporário antes do preview
-    // 🔥   2. Adicionar @State var isDownloading = false
+    // 🔥   2. Adicionar @State var isDownloading = falset
     // 🔥   3. Mostrar loading indicator durante download
     // 🔥   4. Cache local dos arquivos baixados  
     // 🔥   5. Error handling se download falhar

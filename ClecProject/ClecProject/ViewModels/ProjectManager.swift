@@ -19,23 +19,44 @@ import Foundation
 import SwiftUI
 
 class ProjectManager: ObservableObject {
-    public var selectedProject = 0
-    @Published var projects: [ProjectModel] = []
+    // Sistema de projeto ativo único - NOVA ARQUITETURA
+    @Published var activeProject: ProjectModel?
+    @Published var projects: [ProjectModel] = [] // Para histórico/backup
     
-    // 🔥 FIREBASE TODO: Substituir por Firestore
+    // FIREBASE TODO: Substituir por Firestore
     private let userDefaults = UserDefaults.standard
     private let projectsKey = "SavedProjects"
+    private let activeProjectKey = "ActiveProject"
     
-    var hasProjects: Bool {
-        return !projects.isEmpty
+    // Computed properties para compatibilidade e fluxo novo
+    var hasActiveProject: Bool {
+        return activeProject != nil
     }
     
-    var currentProject: ProjectModel { //temporario, precisamos discutir melhor esse project manager
-        return projects[selectedProject]
+    var hasProjects: Bool {
+        return hasActiveProject
+    }
+    
+    var currentProject: ProjectModel? {
+        return activeProject
     }
     
     init() {
         loadProjects()
+        loadActiveProject()
+    }
+    
+    // MARK: - Active Project Management
+    func setActiveProject(_ project: ProjectModel) {
+        activeProject = project
+        saveActiveProject()
+        print("✅ Projeto ativo definido: \(project.name)")
+    }
+    
+    func clearActiveProject() {
+        activeProject = nil
+        userDefaults.removeObject(forKey: activeProjectKey)
+        print("🧹 Projeto ativo removido")
     }
     
     func addProject(_ project: ProjectModel) {
@@ -65,40 +86,107 @@ class ProjectManager: ObservableObject {
         return projects.first { $0.id == id }
     }
     
-    func addCallSheetToCurrentProject(title: String, description: String, address: String, date: Date, color: CallSheetModel.CallSheetColor) {
-        guard projects.indices.contains(selectedProject) else {
-            print("❌ Projeto selecionado é inválido.")
+    // MARK: - Activity Management (NEW LOGIC)
+    func addActivityToDay(date: Date, title: String, description: String, address: String, time: Date, responsible: String) {
+        guard var project = activeProject else {
+            print("❌ Nenhum projeto ativo para adicionar atividade")
             return
         }
-
-        let newLocation = SceneLocation(name: "Nova Locação", address: address, latitude: 0.0, longitude: 0.0)
         
-        let newEnvironment = EnvironmentConditions(environment: "INT./EXT.", dayCycle: "DIA", weather: "Ensolarado")
+        let calendar = Calendar.current
         
-        let newCallSheetLine = CallSheetLineInfo(
-            scene: 1,
-            shots: [1],
-            environmentCondition: newEnvironment,
-            location: newLocation,
-            description: title,
-            characters: []
-        )
+        // Buscar se já existe uma diária para esse dia
+        if let existingCallSheetIndex = project.callSheet.firstIndex(where: { callSheet in
+            calendar.isDate(callSheet.day, inSameDayAs: date)
+        }) {
+            // Já existe diária - adicionar atividade
+            let newActivity = CallSheetLineInfo(
+                scene: project.callSheet[existingCallSheetIndex].sceneTable.count + 1,
+                shots: [1],
+                environmentCondition: EnvironmentConditions(environment: "INT./EXT.", dayCycle: "DIA", weather: "Ensolarado"),
+                location: SceneLocation(name: title, address: address, latitude: 0.0, longitude: 0.0),
+                description: description,
+                characters: []
+            )
+            
+            project.callSheet[existingCallSheetIndex].sceneTable.append(newActivity)
+            print("✅ Atividade '\(title)' adicionada à diária existente do dia \(formatDate(date))")
+        } else {
+            // Não existe diária - criar nova diária para o dia
+            let newActivity = CallSheetLineInfo(
+                scene: 1,
+                shots: [1],
+                environmentCondition: EnvironmentConditions(environment: "INT./EXT.", dayCycle: "DIA", weather: "Ensolarado"),
+                location: SceneLocation(name: title, address: address, latitude: 0.0, longitude: 0.0),
+                description: description,
+                characters: []
+            )
+            
+            let dailyCallSheet = CallSheetModel(
+                id: UUID(),
+                sheetName: "Diária \(formatDate(date))",
+                day: date,
+                schedule: [],
+                callSheetColor: getNextColor(for: project),
+                sceneTable: [newActivity]
+            )
+            
+            project.callSheet.append(dailyCallSheet)
+            print("✅ Nova diária criada para \(formatDate(date)) com atividade '\(title)'")
+        }
         
-        let newCallSheet = CallSheetModel(
-            id: UUID(),
-            sheetName: title,
-            day: date,
-            schedule: [],
-            callSheetColor: color,
-            sceneTable: [newCallSheetLine]
-        )
+        // Atualizar projeto ativo
+        activeProject = project
+        saveActiveProject()
+        updateProjectInHistory(project)
         
-        projects[selectedProject].callSheet.append(newCallSheet)
-        saveProjects()
-        
-        print("✅ Nova diária adicionada ao projeto: \(projects[selectedProject].name)")
+        print("🎬 Atividade '\(title)' adicionada com sucesso ao dia \(formatDate(date))")
     }
     
+    private func getNextColor(for project: ProjectModel) -> CallSheetModel.CallSheetColor {
+        let colors: [CallSheetModel.CallSheetColor] = [.blue, .green, .yellow, .purple]
+        let existingColors = Set(project.callSheet.map { $0.callSheetColor })
+        
+        // Tentar encontrar uma cor não usada
+        for color in colors {
+            if !existingColors.contains(color) {
+                return color
+            }
+        }
+        
+        // Se todas as cores foram usadas, usar baseado no índice
+        return colors[project.callSheet.count % colors.count]
+    }
+    
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "dd/MM/yyyy"
+        formatter.locale = Locale(identifier: "pt_BR")
+        return formatter.string(from: date)
+    }
+    
+    // Função para buscar todas atividades de um dia específico
+    func getActivitiesForDay(_ date: Date) -> [CallSheetLineInfo] {
+        guard let project = activeProject else { return [] }
+        
+        let calendar = Calendar.current
+        
+        // Buscar CallSheet do dia
+        if let dayCallSheet = project.callSheet.first(where: { callSheet in
+            calendar.isDate(callSheet.day, inSameDayAs: date)
+        }) {
+            return dayCallSheet.sceneTable
+        }
+        
+        return []
+    }
+    
+    // Função para verificar se um dia tem atividades
+    func dayHasActivities(_ date: Date) -> Bool {
+        return !getActivitiesForDay(date).isEmpty
+    }
+    
+    // MARK: - File Management (maintained for FilesView compatibility)
     func addFileToProject(at index: Int, file: ProjectFile) {
         guard projects.indices.contains(index) else {
             print("❌ Projeto no índice \(index) não encontrado")
@@ -112,7 +200,17 @@ class ProjectManager: ObservableObject {
     }
     
     func addFileToCurrentProject(file: ProjectFile) {
-        addFileToProject(at: selectedProject, file: file)
+        guard var project = activeProject else {
+            print("❌ Nenhum projeto ativo para adicionar arquivo")
+            return
+        }
+        
+        project.additionalFiles.append(file)
+        activeProject = project
+        saveActiveProject()
+        updateProjectInHistory(project)
+        
+        print("✅ Arquivo '\(file.displayName)' adicionado ao projeto '\(project.name)'")
     }
     
     func removeFileFromProject(at projectIndex: Int, fileId: UUID) {
@@ -133,7 +231,22 @@ class ProjectManager: ObservableObject {
     }
     
     func removeFileFromCurrentProject(fileId: UUID) {
-        removeFileFromProject(at: selectedProject, fileId: fileId)
+        guard var project = activeProject else {
+            print("❌ Nenhum projeto ativo para remover arquivo")
+            return
+        }
+        
+        if let fileIndex = project.additionalFiles.firstIndex(where: { $0.id == fileId }) {
+            let removedFile = project.additionalFiles[fileIndex]
+            project.additionalFiles.remove(at: fileIndex)
+            activeProject = project
+            saveActiveProject()
+            updateProjectInHistory(project)
+            
+            print("🗑️ Arquivo '\(removedFile.displayName)' removido do projeto '\(project.name)'")
+        } else {
+            print("❌ Arquivo com ID \(fileId) não encontrado")
+        }
     }
     
     func updateFileInProject(at projectIndex: Int, updatedFile: ProjectFile) {
@@ -215,6 +328,46 @@ class ProjectManager: ObservableObject {
         projects.removeAll()
         saveProjects()
         print("🧹 Todos os projetos foram removidos e salvos")
+    }
+    
+    // MARK: - Active Project Persistence
+    private func saveActiveProject() {
+        guard let project = activeProject else {
+            userDefaults.removeObject(forKey: activeProjectKey)
+            return
+        }
+        
+        do {
+            let data = try JSONEncoder().encode(project)
+            userDefaults.set(data, forKey: activeProjectKey)
+            print("💾 Projeto ativo salvo: \(project.name)")
+        } catch {
+            print("❌ Erro ao salvar projeto ativo: \(error.localizedDescription)")
+        }
+    }
+    
+    private func loadActiveProject() {
+        guard let data = userDefaults.data(forKey: activeProjectKey) else {
+            print("📱 Nenhum projeto ativo encontrado")
+            return
+        }
+        
+        do {
+            let project = try JSONDecoder().decode(ProjectModel.self, from: data)
+            activeProject = project
+            print("✅ Projeto ativo carregado: \(project.name)")
+        } catch {
+            print("❌ Erro ao carregar projeto ativo: \(error.localizedDescription)")
+        }
+    }
+    
+    private func updateProjectInHistory(_ project: ProjectModel) {
+        if let index = projects.firstIndex(where: { $0.id == project.id }) {
+            projects[index] = project
+        } else {
+            projects.append(project)
+        }
+        saveProjects()
     }
     
     func addMockProjects() {

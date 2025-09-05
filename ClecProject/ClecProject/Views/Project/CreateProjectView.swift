@@ -11,6 +11,8 @@ struct CreateProjectView: View {
     @EnvironmentObject var projectManager: ProjectManager
     @Environment(\.presentationMode) var presentationMode
     
+    let onProjectCreated: (ProjectModel) -> Void
+    
     @State private var projectName = ""
     @State private var director = ""
     @State private var description = ""
@@ -20,28 +22,80 @@ struct CreateProjectView: View {
     @State private var isFormValid = false
     @State private var isLoading = false
     
+    init(onProjectCreated: @escaping (ProjectModel) -> Void = { _ in }) {
+        self.onProjectCreated = onProjectCreated
+    }
+    
     var body: some View {
-        ScrollView {
-            VStack(spacing: 24) {
-                headerSection
+        NavigationView {
+            ZStack {
+                Color(hex: "#141414")
+                    .ignoresSafeArea(.all)
                 
-                formSection
-                
-                codeSection
-                
-                Spacer(minLength: 40)
+                ScrollView {
+                    VStack(spacing: 24) {
+                        headerSection
+                        
+                        formSection
+                        
+                        codeSection
+                        
+                        // Botão Pronto
+                        Button(action: {
+                            createProject()
+                        }) {
+                            HStack {
+                                if isLoading {
+                                    ProgressView()
+                                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                        .scaleEffect(0.8)
+                                } else {
+                                    Text("Pronto")
+                                        .font(.system(size: 18, weight: .semibold))
+                                        .foregroundColor(.white)
+                                }
+                            }
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 50)
+                            .background(
+                                RoundedRectangle(cornerRadius: 25)
+                                    .fill(
+                                        isFormValid ? Color(hex: "#F85601") : Color.gray.opacity(0.3)
+                                    )
+                            )
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        .disabled(!isFormValid || isLoading)
+                        .padding(.horizontal, 20)
+                        .padding(.top, 20)
+                        
+                        Spacer(minLength: 40)
+                    }
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 16)
+                }
+                .scrollContentBackground(.hidden)
+                .background(Color.clear)
             }
-            .padding(.horizontal, 24)
-            .padding(.vertical, 16)
+            .navigationTitle("")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(action: {
+                        presentationMode.wrappedValue.dismiss()
+                    }) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 16, weight: .semibold))
+                            Text("Voltar")
+                                .font(.system(size: 16, weight: .regular))
+                        }
+                        .foregroundColor(Color(hex: "#F85601"))
+                    }
+                }
+            }
         }
-        .background(Color.white.ignoresSafeArea())
-        .navigationBarItems(
-            leading: backButton,
-            trailing: createButton
-        )
-        .navigationBarTitleDisplayMode(.inline)
-        .navigationBarHidden(false)
-        .preferredColorScheme(.light)
+        .colorScheme(.dark)
         .onChange(of: projectName) {
             validateForm()
         }
@@ -56,13 +110,13 @@ struct CreateProjectView: View {
     private var headerSection: some View {
         VStack(spacing: 12) {
             Text("Insira as informações")
-                .font(.largeTitle)
-                .fontWeight(.bold)
+                .font(.system(size: 28, weight: .bold))
+                .foregroundColor(.white)
                 .multilineTextAlignment(.center)
             
             Text("do seu projeto")
-                .font(.largeTitle)
-                .fontWeight(.bold)
+                .font(.system(size: 28, weight: .bold))
+                .foregroundColor(.white)
                 .multilineTextAlignment(.center)
         }
         .padding(.top, 20)
@@ -101,45 +155,40 @@ struct CreateProjectView: View {
     }
     
     private var codeSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 12) {
             Text("Código")
-                .font(.headline)
-                .foregroundColor(.primary)
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundColor(.white)
             
-            HStack {
-                Text(generateProjectCode())
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .foregroundColor(.blue)
+            VStack(spacing: 8) {
+                HStack {
+                    Text(generateProjectCode())
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(Color(hex: "#F85601"))
+                    
+                    Spacer()
+                    
+                    Button(action: {
+                        // Copy to clipboard action
+                        UIPasteboard.general.string = generateProjectCode()
+                    }) {
+                        Image(systemName: "doc.on.doc")
+                            .font(.system(size: 18))
+                            .foregroundColor(Color(hex: "#F85601"))
+                    }
+                }
+                .padding(16)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color(hex: "#1C1C1E"))
+                )
                 
-                Spacer()
-                
-                Image(systemName: "doc.on.doc")
-                    .foregroundColor(.blue)
+                Text("Compartilhe este código alfanumérico com sua equipe")
+                    .font(.system(size: 14))
+                    .foregroundColor(Color(hex: "#8E8E93"))
             }
-            .padding()
-            .background(Color(.systemBlue).opacity(0.1))
-            .cornerRadius(8)
-            
-            Text("Compartilhe este código alfanumérico com sua equipe")
-                .font(.caption)
-                .foregroundColor(.secondary)
         }
-    }
-    
-    private var backButton: some View {
-        Button("Voltar") {
-            presentationMode.wrappedValue.dismiss()
-        }
-        .foregroundColor(.primary)
-    }
-    
-    private var createButton: some View {
-        Button("Pronto") {
-            createProject()
-        }
-        .foregroundColor(isFormValid ? .blue : .secondary)
-        .disabled(!isFormValid || isLoading)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
     
     private func validateForm() {
@@ -177,7 +226,11 @@ struct CreateProjectView: View {
             callSheet: []
         )
         
+        // Adicionar ao histórico
         projectManager.addProject(newProject)
+        
+        // Chamar callback para definir como ativo
+        onProjectCreated(newProject)
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             isLoading = false

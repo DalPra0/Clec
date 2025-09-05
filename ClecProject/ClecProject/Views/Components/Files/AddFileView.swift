@@ -32,25 +32,74 @@ struct AddFileView: View {
     
     var body: some View {
         NavigationView {
-            VStack(spacing: 0) {
-                header
+            ZStack {
+                // FUNDO ESCURO CONSISTENTE
+                Color(hex: "#141414")
+                    .ignoresSafeArea(.all)
                 
                 ScrollView {
                     VStack(spacing: 24) {
+                        headerSection
+                        
                         fileNameSection
                         
                         fileTypeSection
                         
                         quickActionsSection
+                        
+                        // Botão Adicionar
+                        Button(action: {
+                            addFile()
+                        }) {
+                            HStack {
+                                Image(systemName: "plus")
+                                Text("Adicionar Arquivo")
+                            }
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 50)
+                            .background(
+                                RoundedRectangle(cornerRadius: 25)
+                                    .fill(
+                                        isFormValid ? Color(hex: "#F85601") : Color.gray.opacity(0.3)
+                                    )
+                            )
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        .disabled(!isFormValid)
+                        .padding(.horizontal, 20)
+                        .padding(.top, 20)
+                        
+                        Spacer(minLength: 40)
                     }
+                    .padding(.horizontal, 20)
                     .padding(.top, 20)
                 }
-                
-                Spacer()
-                
-                addButton
+                .scrollContentBackground(.hidden)
+                .background(Color.clear)
+            }
+            .background(Color(hex: "#141414"))
+            .colorScheme(.dark)
+            .navigationTitle("")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(action: {
+                        dismiss()
+                    }) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 16, weight: .semibold))
+                            Text("Voltar")
+                                .font(.system(size: 16, weight: .regular))
+                        }
+                        .foregroundColor(Color(hex: "#F85601"))
+                    }
+                }
             }
         }
+        .colorScheme(.dark)
         .sheet(isPresented: $showingDocumentPicker) {
             FileDocumentPicker { url in
                 handleDocumentSelection(url: url)
@@ -58,56 +107,44 @@ struct AddFileView: View {
         }
     }
     
-    private var header: some View {
-        HStack {
-            Button("Cancelar") {
-                dismiss()
-            }
-            .foregroundColor(.primary)
-            
-            Spacer()
-            
+    private var headerSection: some View {
+        VStack(spacing: 12) {
             Text("Adicionar Arquivo")
-                .font(.headline)
-                .fontWeight(.semibold)
+                .font(.system(size: 28, weight: .bold))
+                .foregroundColor(.white)
+                .multilineTextAlignment(.center)
             
-            Spacer()
-            
-            Button("Adicionar") {
-                addFile()
-            }
-            .foregroundColor(isFormValid ? .blue : .secondary)
-            .fontWeight(.semibold)
-            .disabled(!isFormValid)
+            Text("Adicione roteiros, storyboards\ne outros arquivos do projeto")
+                .font(.system(size: 16, weight: .regular))
+                .foregroundColor(Color(hex: "#8E8E93"))
+                .multilineTextAlignment(.center)
         }
-        .padding()
-        .background(Color(.systemBackground))
-        .overlay(
-            Rectangle()
-                .frame(height: 1)
-                .foregroundColor(Color(.systemGray4)),
-            alignment: .bottom
-        )
+        .padding(.top, 20)
     }
     
     private var fileNameSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 8) {
             Text("Nome do Arquivo")
-                .font(.headline)
-                .foregroundColor(.primary)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(.white)
             
             TextField("Ex: Storyboard Cena 1", text: $fileName)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .font(.system(size: 16))
+                .font(.system(size: 16, weight: .regular))
+                .foregroundColor(.white)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 14)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color(hex: "#1C1C1E"))
+                )
         }
-        .padding(.horizontal)
     }
     
     private var fileTypeSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Tipo de Arquivo")
-                .font(.headline)
-                .foregroundColor(.primary)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(.white)
             
             LazyVGrid(columns: [
                 GridItem(.flexible()),
@@ -125,21 +162,20 @@ struct AddFileView: View {
                 }
             }
         }
-        .padding(.horizontal)
     }
     
     private var quickActionsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Ações Rápidas")
-                .font(.headline)
-                .foregroundColor(.primary)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(.white)
             
-            VStack(spacing: 8) {
+            VStack(spacing: 12) {
                 QuickActionButton(
                     title: "Escolher do Dispositivo",
                     subtitle: "Selecionar arquivo existente",
                     icon: "folder.fill",
-                    color: .blue
+                    color: Color(hex: "#F85601")
                 ) {
                     showingDocumentPicker = true
                 }
@@ -148,7 +184,7 @@ struct AddFileView: View {
                     title: "Criar Documento",
                     subtitle: "Criar novo arquivo de texto",
                     icon: "doc.text.fill",
-                    color: .green
+                    color: Color(hex: "#34C759")
                 ) {
                     createDocument()
                 }
@@ -157,31 +193,12 @@ struct AddFileView: View {
                     title: "Adicionar Referência",
                     subtitle: "Apenas o nome, sem arquivo",
                     icon: "link",
-                    color: .orange
+                    color: Color(hex: "#FF9500")
                 ) {
                     createReference()
                 }
             }
         }
-        .padding(.horizontal)
-    }
-    
-    private var addButton: some View {
-        Button(action: addFile) {
-            HStack {
-                Image(systemName: "plus")
-                Text("Adicionar Arquivo")
-            }
-            .font(.system(size: 18, weight: .semibold))
-            .foregroundColor(.white)
-            .frame(maxWidth: .infinity)
-            .frame(height: 56)
-            .background(isFormValid ? Color.blue : Color.gray)
-            .cornerRadius(16)
-            .padding(.horizontal, 20)
-            .padding(.bottom, 20)
-        }
-        .disabled(!isFormValid)
     }
     
     // 🔥 FIREBASE TODO: Esta função é o CORE do sistema de upload! Principais mudanças:
@@ -294,7 +311,7 @@ struct FileTypeButton: View {
             VStack(spacing: 8) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 8)
-                        .fill(Color(hex: fileType.colorHex))
+                        .fill(isSelected ? Color(hex: "#F85601") : Color(hex: "#1C1C1E"))
                         .frame(width: 40, height: 40)
                     
                     Image(systemName: fileType.icon)
@@ -303,16 +320,15 @@ struct FileTypeButton: View {
                 }
                 
                 Text(fileType.displayName)
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .foregroundColor(isSelected ? .blue : .secondary)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(isSelected ? Color(hex: "#F85601") : Color(hex: "#8E8E93"))
             }
             .padding(.vertical, 8)
             .padding(.horizontal, 4)
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(isSelected ? Color.blue.opacity(0.1) : Color.clear)
-                    .stroke(isSelected ? Color.blue : Color.clear, lineWidth: 1)
+                    .fill(isSelected ? Color(hex: "#F85601").opacity(0.1) : Color.clear)
+                    .stroke(isSelected ? Color(hex: "#F85601") : Color.clear, lineWidth: 1)
             )
         }
         .buttonStyle(PlainButtonStyle())
@@ -331,7 +347,7 @@ struct QuickActionButton: View {
             HStack(spacing: 16) {
                 ZStack {
                     Circle()
-                        .fill(color.opacity(0.1))
+                        .fill(color.opacity(0.15))
                         .frame(width: 48, height: 48)
                     
                     Image(systemName: icon)
@@ -342,22 +358,24 @@ struct QuickActionButton: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
                         .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(.primary)
+                        .foregroundColor(.white)
                     
                     Text(subtitle)
                         .font(.system(size: 14))
-                        .foregroundColor(.secondary)
+                        .foregroundColor(Color(hex: "#8E8E93"))
                 }
                 
                 Spacer()
                 
                 Image(systemName: "chevron.right")
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.secondary)
+                    .foregroundColor(Color(hex: "#8E8E93"))
             }
-            .padding()
-            .background(Color(.systemGray6))
-            .cornerRadius(12)
+            .padding(16)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color(hex: "#1C1C1E"))
+            )
         }
         .buttonStyle(PlainButtonStyle())
     }

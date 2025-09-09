@@ -15,22 +15,22 @@ enum OnboardingPage: Int, CaseIterable {
     var title: String{
         switch self {
         case .fraseUm:
-            return "Frase1"
+            return "Bem-vinde ao Cleck!"
         case .fraseDois:
-            return "Frase2"
+            return "Ei, assistente de direção!"
         case .fraseTres:
-            return "Frase3"
+            return "Organize sua ordem do dia"
         }
     }
     
     var description: String{
         switch self {
         case .fraseUm:
-            return "Frase1"
+            return "O app que ajuda você a organizar a ordem do dia e manter toda a equipe alinhada nas gravações"
         case .fraseDois:
-            return "Frase2"
+            return "Crie um projeto e compartilhe com sua equipe para centralizar informações e documentos."
         case .fraseTres:
-            return "Frase3"
+            return "Selecione a data desejada, adicione as cenas e gerencie mudanças em tempo real. Simples e rápido!"
         }
     }
 }
@@ -38,8 +38,8 @@ enum OnboardingPage: Int, CaseIterable {
 struct OnboardingView: View {
     @State private var currentPage = 0
     @State private var isAnimating = false
-    @State private var deliveryOffset = false
-    @State private var trackingProgress: CGFloat = 0.0
+    @State private var fraseUm = false
+    @State private var fraseDois: CGFloat = 0.0
     
     var body: some View {
         VStack{
@@ -57,12 +57,15 @@ struct OnboardingView: View {
                 ForEach(0..<OnboardingPage.allCases.count, id: \.self) { index in
                     Circle()
                         .fill(currentPage == index ? Color.blue :
-                                Color.gray.opacity(0.5))
+                            Color.gray.opacity(0.5))
                         .frame(width: currentPage == index ? 12 : 8, height:
-                                currentPage == index ? 12: 8)
+                            currentPage == index ? 12: 8)
                         .animation(.spring(), value: currentPage)
                 }
             }
+        }
+        .onAppear() {
+            isAnimating = true
         }
     }
     
@@ -82,19 +85,18 @@ struct OnboardingView: View {
                     .offset(y: isAnimating ? 0 : 20)
                     .animation(.spring(dampingFraction: 0.8).delay(0.3), value:
                         isAnimating)
-                Text(page.description)
                 
-                Text(page.title)
+                Text(page.description)
                     .font(.system(.largeTitle, design: .rounded))
                     .fontWeight(.bold)
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal)
                     .opacity(isAnimating ? 1 : 0)
                     .offset(y: isAnimating ? 0 : 20)
                     .animation(.spring(dampingFraction: 0.8).delay(0.3), value:
                         isAnimating)
-                Text(page.description)
+            
             }
         }
         

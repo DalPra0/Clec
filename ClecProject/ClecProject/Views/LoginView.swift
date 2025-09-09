@@ -2,10 +2,8 @@
 //  LoginView.swift
 //  ClecProject
 //
-//  Created by alsy ★ on 28/08/25.
+//  Updated: Cleck! Design Implementation - Tela Inicial com Logo
 //
-
-// FILENAME: ClecProject/Views/LoginView.swift
 
 import SwiftUI
 
@@ -15,47 +13,111 @@ struct LoginView: View {
     
     var body: some View {
         NavigationStack {
-            VStack(spacing: 170) {
-                VStack(spacing: 30) {
-                    Image(systemName: "film.stack.fill") // Placeholder Icon
+            ZStack {
+                // Background preto
+                Color.black
+                    .ignoresSafeArea()
+                
+                // Elementos decorativos de cinema posicionados absolutamente
+                GeometryReader { geometry in
+                    // Câmera superior esquerda
+                    Image("AssetPersonagemSegurandoCamera")
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 150)
-                        .foregroundColor(.yellow)
+                        .frame(width: 120, height: 120)
+                        .position(
+                            x: geometry.size.width * 0.15,
+                            y: geometry.size.height * 0.25
+                        )
                     
-                    Text("CLÉQUI!")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
+                    // Rolo de filme superior direita
+                    Image("AssetRoloFIlme")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 100, height: 100)
+                        .position(
+                            x: geometry.size.width * 0.85,
+                            y: geometry.size.height * 0.20
+                        )
+                    
+                    // Claquete inferior esquerda
+                    Image("AssetMaoSegurandoClaquete")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 110, height: 110)
+                        .position(
+                            x: geometry.size.width * 0.20,
+                            y: geometry.size.height * 0.75
+                        )
+                    
+                    // Câmera laranja inferior direita
+                    Image("AssetPersoagemSegurandoCameraLaranja")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 130, height: 130)
+                        .position(
+                            x: geometry.size.width * 0.80,
+                            y: geometry.size.height * 0.70
+                        )
+                    
+                    // Rolo de filme menor (centro-esquerda)
+                    Image("AssetRoloFIlme")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 80, height: 80)
+                        .position(
+                            x: geometry.size.width * 0.10,
+                            y: geometry.size.height * 0.50
+                        )
                 }
                 
-                VStack(spacing: 20) {
-                    Button {
-                        showLoginModal = true
-                    } label: {
-                        Text("Fazer login")
-                            .padding()
-                            .foregroundStyle(.black)
-                            .frame(maxWidth: .infinity)
-                            .background(.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
-                            .shadow(radius: 5)
-                    }
+                VStack(spacing: 0) {
+                    Spacer()
                     
-                    Button {
-                        showSignUp = true
-                    } label: {
-                        Text("Criar conta")
-                            .padding()
-                            .foregroundStyle(.black)
-                            .frame(maxWidth: .infinity)
-                            .background(.yellow)
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
-                            .shadow(radius: 5)
+                    // Logo central "cleck!" com explosão amarela
+                    Image("CleckAssetComBalao")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 280, height: 280)
+                        .padding(.bottom, 40)
+                    
+                    Spacer()
+                    
+                    // Botões na parte inferior
+                    VStack(spacing: 16) {
+                        // Botão "Fazer login" - Laranja
+                        Button {
+                            showLoginModal = true
+                        } label: {
+                            Text("Fazer login")
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 56)
+                                .background(Color("PrimaryOrange"))
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                        }
+                        
+                        // Botão "Criar uma conta" - Preto com borda branca
+                        Button {
+                            showSignUp = true
+                        } label: {
+                            Text("Criar uma conta")
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 56)
+                                .background(Color.black)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Color.white, lineWidth: 2)
+                                )
+                        }
                     }
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 40)
                 }
-                .padding(.horizontal, 20)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .sheet(isPresented: $showLoginModal) {
                 LoginModalView()
                     .presentationDetents([.height(450)])
@@ -68,7 +130,6 @@ struct LoginView: View {
 }
 
 #Preview {
- //   LoginView(appState: .constant(.login))
     LoginView()
         .environmentObject(AuthService())
 }

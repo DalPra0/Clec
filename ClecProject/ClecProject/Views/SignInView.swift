@@ -2,88 +2,159 @@
 //  SignInView.swift
 //  ClecProject
 //
-//  Created by alsy ★ on 31/08/25.
+//  Cleck! Design Implementation - Tela de Criar Conta
 //
 
 import SwiftUI
 
-// FILENAME: ClecProject/Views/SignInView.swift
-
-import SwiftUI
-
 struct SignInView: View {
-    
     @EnvironmentObject var authService: AuthService
     @Environment(\.dismiss) var dismiss
     
+    @State private var name = ""
     @State private var email = ""
     @State private var password = ""
-    @State private var confirmPassword = ""
     @State private var showAlert = false
+    @State private var showLogin = false
     
-    private var isFormValid: Bool {
-        !email.isEmpty && !password.isEmpty && password == confirmPassword && password.count >= 6
+    var allFieldsFilled: Bool {
+        !name.isEmpty && !email.isEmpty && !password.isEmpty
     }
     
     var body: some View {
-        VStack(spacing: 30) {
-            Text("Criar Conta")
-                .font(.largeTitle)
-                .bold()
-            
-            VStack(spacing: 15) {
-                TextField("E-mail", text: $email)
-                    .keyboardType(.emailAddress)
-                    .autocapitalization(.none)
-                    .padding()
-                    .background(Color(UIColor.systemGray6))
-                    .cornerRadius(10)
+        NavigationStack {
+            ZStack {
+                // Background escuro
+                Color.black
+                    .ignoresSafeArea()
                 
-                SecureField("Senha (mínimo 6 caracteres)", text: $password)
-                    .padding()
-                    .background(Color(UIColor.systemGray6))
-                    .cornerRadius(10)
-                
-                SecureField("Confirmar Senha", text: $confirmPassword)
-                    .padding()
-                    .background(Color(UIColor.systemGray6))
-                    .cornerRadius(10)
-            }
-            
-            if authService.isLoading {
-                ProgressView()
-            } else {
-                Button(action: signUp) {
-                    Text("Criar conta")
-                        .font(.title3)
-                        .fontWeight(.semibold)
-                        .foregroundColor(isFormValid ? .black : .gray)
-                        .padding()
+                VStack(spacing: 0) {
+                    // Título
+                    VStack(alignment: .leading, spacing: 32) {
+                        Text("Seja bem-vindo")
+                            .font(.system(size: 28, weight: .bold))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        
+                        VStack(spacing: 20) {
+                            // Campo Nome
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Nome")
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundColor(.white)
+                                
+                                TextField("Insira o seu nome", text: $name)
+                                    .font(.system(size: 16))
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 16)
+                                    .background(Color.white.opacity(0.1))
+                                    .cornerRadius(12)
+                                    .autocorrectionDisabled()
+                            }
+                            
+                            // Campo E-mail
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("E-mail")
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundColor(.white)
+                                
+                                TextField("Insira o seu e-mail", text: $email)
+                                    .font(.system(size: 16))
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 16)
+                                    .background(Color.white.opacity(0.1))
+                                    .cornerRadius(12)
+                                    .keyboardType(.emailAddress)
+                                    .autocapitalization(.none)
+                                    .autocorrectionDisabled()
+                            }
+                            
+                            // Campo Senha
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack {
+                                    Text("Senha")
+                                        .font(.system(size: 16, weight: .medium))
+                                        .foregroundColor(.white)
+                                    
+                                    Spacer()
+                                    
+                                    Button("Recuperar senha") {
+                                        // Ação de recuperar senha
+                                    }
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(Color("PrimaryOrange"))
+                                }
+                                
+                                SecureField("Insira a sua senha", text: $password)
+                                    .font(.system(size: 16))
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 16)
+                                    .background(Color.white.opacity(0.1))
+                                    .cornerRadius(12)
+                            }
+                        }
+                    }
+                    
+                    Spacer()
+                    
+                    // Botões
+                    VStack(spacing: 20) {
+                        // Botão Confirmar
+                        Button {
+                            signUp()
+                        } label: {
+                            if authService.isLoading {
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                    .frame(height: 20)
+                            } else {
+                                Text("Confirmar")
+                                    .font(.system(size: 18, weight: .semibold))
+                                    .foregroundColor(.white)
+                            }
+                        }
                         .frame(maxWidth: .infinity)
-                        .background(isFormValid ? Color.yellow : Color(uiColor: .systemGray3))
-                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                        .frame(height: 56)
+                        .background(
+                            allFieldsFilled ? Color("PrimaryOrange") : Color.gray.opacity(0.3)
+                        )
+                        .cornerRadius(12)
+                        .disabled(!allFieldsFilled || authService.isLoading)
+                        
+                        // Link para login
+                        HStack(spacing: 4) {
+                            Text("Já tem uma conta?")
+                                .font(.system(size: 16))
+                                .foregroundColor(.white)
+                            
+                            Button("Fazer login") {
+                                dismiss()
+                            }
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(Color("PrimaryOrange"))
+                        }
+                    }
                 }
-                .disabled(!isFormValid)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 32)
             }
-            
-            Spacer()
-        }
-        .padding(20)
-        .navigationTitle("Cadastro")
-        .navigationBarTitleDisplayMode(.inline)
-        .alert("Sign Up Failed", isPresented: $showAlert) {
-            Button("OK", role: .cancel) { }
-        } message: {
-            Text(authService.errorMessage ?? "An unknown error occurred.")
-        }
-        .onChange(of: authService.errorMessage) {
-            if authService.errorMessage != nil {
-                showAlert = true
+            .alert("Sign Up Failed", isPresented: $showAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(authService.errorMessage ?? "An unknown error occurred.")
             }
-        }
-        .onChange(of: authService.userSession) {
-            if authService.userSession != nil {
-                dismiss()
+            .onChange(of: authService.errorMessage) {
+                if authService.errorMessage != nil {
+                    showAlert = true
+                }
+            }
+            .onChange(of: authService.userSession) {
+                if authService.userSession != nil {
+                    dismiss()
+                }
             }
         }
     }
@@ -96,6 +167,6 @@ struct SignInView: View {
 }
 
 #Preview {
-//    SignInView(appState: .constant(.login))
-SignInView()
+    SignInView()
+        .environmentObject(AuthService())
 }

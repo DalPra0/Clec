@@ -209,3 +209,28 @@ struct InitialView: View {
         print("🎬 Long press detectado - funcionalidade preservada!")
     }
 }
+
+#Preview {
+    InitialView()
+        .environmentObject(ProjectManager())
+        .environmentObject(UserManager())
+}
+
+// For Xcode versions prior to 15, use this syntax instead:
+/*
+struct InitialView_Previews: PreviewProvider {
+    static var previews: some View {
+        Group {
+            InitialView()
+                .environmentObject(ProjectManager())
+                .environmentObject(UserManager())
+                .preferredColorScheme(.light)
+            
+            InitialView()
+                .environmentObject(ProjectManager())
+                .environmentObject(UserManager())
+                .preferredColorScheme(.dark)
+        }
+    }
+}
+*/

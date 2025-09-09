@@ -18,6 +18,7 @@ struct DashboardView: View {
     @State private var showingAddFile = false
     @State private var showingAddOrdemDoDia = false
     @State private var selectedTab: DashboardTab = .geral
+    @State private var showingLeaveProjectAlert = false
     @State private var isCalendarExpanded = false
     @State private var currentWeekOffset = 0 // Para navegação de semanas
     @State private var currentMonthOffset = 0 // Para navegação de meses
@@ -786,7 +787,53 @@ struct DashboardView: View {
                     RoundedRectangle(cornerRadius: 12)
                         .fill(Color("CardBackground"))
                 )
+                
+                // NOVO: SAIR DO PROJETO
+                Button(action: {
+                    showingLeaveProjectAlert = true
+                }) {
+                    HStack(spacing: 12) {
+                        Image(systemName: "rectangle.portrait.and.arrow.right")
+                            .font(.system(size: 20))
+                            .foregroundColor(.red)
+                            .frame(width: 40, height: 40)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(.red.opacity(0.1))
+                            )
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Sair do Projeto")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(.red)
+                            
+                            Text("Remover acesso a este projeto")
+                                .font(.system(size: 14))
+                                .foregroundColor(Color("TextSecondary"))
+                        }
+                        
+                        Spacer()
+                        
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 14))
+                            .foregroundColor(Color("TextSecondary"))
+                    }
+                    .padding(16)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color("CardBackground"))
+                    )
+                }
+                .buttonStyle(PlainButtonStyle())
             }
+        }
+        .alert("Sair do Projeto", isPresented: $showingLeaveProjectAlert) {
+            Button("Cancelar", role: .cancel) { }
+            Button("Sair", role: .destructive) {
+                leaveProject()
+            }
+        } message: {
+            Text("Tem certeza que deseja sair do projeto \"\(project?.name ?? "")\"? Você precisará de um novo código para entrar novamente.")
         }
     }
     
@@ -795,6 +842,22 @@ struct DashboardView: View {
         formatter.dateFormat = "dd/MM/yyyy"
         formatter.locale = Locale(identifier: "pt_BR")
         return formatter.string(from: date)
+    }
+    
+    // MARK: - Leave Project Function
+    private func leaveProject() {
+        guard let currentProject = project else { return }
+        
+        let impactFeedback = UIImpactFeedbackGenerator(style: .heavy)
+        impactFeedback.impactOccurred()
+        
+        // Remover o projeto ativo
+        projectManager.setActiveProject(nil)
+        
+        print("🚪 Usuário saiu do projeto: \(currentProject.name)")
+        
+        // TODO: Implementar remoção do usuário da lista de membros no Firebase
+        // Isso seria feito no ProjectManager com uma função removeUserFromProject()
     }
 }
 

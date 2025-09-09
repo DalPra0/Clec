@@ -9,6 +9,7 @@ import Foundation
 import SwiftUI
 import FirebaseFirestore
 import FirebaseAuth
+import CoreLocation
 
 class ProjectManager: ObservableObject {
     @Published var projects: [ProjectModel] = []
@@ -16,6 +17,8 @@ class ProjectManager: ObservableObject {
 
     private let db = Firestore.firestore()
     private var projectsListener: ListenerRegistration?
+    private let weatherService = WeatherService.shared
+    private var weatherCache: [Date: WeatherMatchStatus] = [:]
 
     var hasProjects: Bool {
         return !projects.isEmpty
@@ -246,5 +249,90 @@ class ProjectManager: ObservableObject {
             .filter { Calendar.current.isDate($0.day, inSameDayAs: date) }
             .flatMap { $0.sceneTable }
             .sorted { $0.scene < $1.scene }
+    }
+    
+    func getWeatherMatch(for day: Date, completion: @escaping (WeatherMatchStatus) -> Void) {
+        let calendar = Calendar.current
+        if let cachedStatus = weatherCache.first(where: { calendar.isDate($0.key, inSameDayAs: day) })?.value {
+            print("CACHE HIT for \(day.formatted(date: .abbreviated, time: .omitted))")
+            completion(cachedStatus)
+            return
+        }
+
+        guard let project = activeProject,
+              let firstScene = project.callSheet
+                .first(where: { calendar.isDate($0.day, inSameDayAs: day) })?
+                .sceneTable.first
+        else {
+            completion(.noData)
+            return
+        }
+        
+        let location = CLLocation(
+            latitude: firstScene.location.latitude,
+            longitude: firstScene.location.longitude
+        )
+
+        Task {
+            do {
+                let forecast = try await weatherService.fetchForecast(for: location)
+                
+                guard let forecastForDay = forecast.first(where: { calendar.isDate($0.date, inSameDayAs: day) }) else {
+                    throw WeatherError.forecastNotFoundForDate
+                }
+                
+                let matchStatus = determineMatchStatus(for: firstScene, with: forecastForDay)
+                
+                await MainActor.run {
+                    weatherCache[day] = matchStatus
+                    completion(matchStatus)
+                }
+                
+            } catch {
+                print("❌ Failed to get weather match: \(error)")
+                await MainActor.run {
+                    completion(.noData)
+                }
+            }
+        }
+    }
+
+    private func determineMatchStatus(for scene: CallSheetLineInfo, with forecast: DailyForecast) -> WeatherMatchStatus {
+        let requiredWeather = scene.environmentCondition.weather.lowercased()
+        
+        switch requiredWeather {
+        case "ensolarado":
+            if forecast.precipitationChance < 0.2 && forecast.cloudCover < 0.4 {
+                return .goodMatch
+            } else if forecast.precipitationChance < 0.4 && forecast.cloudCover < 0.75 {
+                return .partialMatch
+            } else {
+                return .badMatch
+            }
+            
+        case "nublado":
+            if forecast.cloudCover > 0.6 && forecast.precipitationChance < 0.3 {
+                return .goodMatch
+            } else if forecast.cloudCover > 0.4 {
+                return .partialMatch
+            } else {
+                return .badMatch
+            }
+            
+        case "chuvoso":
+            if forecast.precipitationChance > 0.6 {
+                return .goodMatch
+            } else if forecast.precipitationChance > 0.3 {
+                return .partialMatch
+            } else {
+                return .badMatch
+            }
+            
+        default:
+            if forecast.condition.lowercased().contains(requiredWeather) {
+                return .goodMatch
+            }
+            return .unknown
+        }
     }
 }

@@ -9,17 +9,16 @@ struct ContentView: View {
     var body: some View {
         Group {
             if authService.userSession != nil {
-                NavigationView {
-                    Group {
-                        if projectManager.hasProjects {
-                            DashboardView()
-                        } else {
-                            InitialView()
-                        }
-                    }
+                // Main authenticated view
+                if projectManager.activeProject != nil {
+                    DashboardView()
+                        .environmentObject(projectManager)
+                        .environmentObject(userManager)
+                } else {
+                    InitialView()
+                        .environmentObject(projectManager)
+                        .environmentObject(userManager)
                 }
-                .environmentObject(projectManager)
-                .environmentObject(userManager)
             } else {
                 LoginView()
             }

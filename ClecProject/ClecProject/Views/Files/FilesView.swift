@@ -227,7 +227,7 @@ struct FilesView: View {
     // MARK: - Preview Actions  
     // 🔥 FIREBASE TODO: Esta é uma das funções MAIS importantes para Firebase!
     // 🔥   1. Para arquivos Firebase: baixar temporário antes do preview
-    // 🔥   2. Adicionar @State var isDownloading = false
+    // 🔥   2. Adicionar @State var isDownloading = falset
     // 🔥   3. Mostrar loading indicator durante download
     // 🔥   4. Cache local dos arquivos baixados  
     // 🔥   5. Error handling se download falhar
@@ -365,47 +365,5 @@ struct FilesView: View {
         
         fileToRename = nil
         newFileName = ""
-    }
-}
-
-#Preview {
-    NavigationView {
-        FilesView(projectIndex: 0)
-            .environmentObject({
-                let manager = ProjectManager()
-                
-                let mockFiles = [
-                    ProjectFile(
-                        name: "Storyboard Cena 1",
-                        fileName: "storyboard_cena1.jpg",
-                        fileType: .jpg,
-                        fileSize: "2.3 MB"
-                    ),
-                    ProjectFile(
-                        name: "Cronograma de Filmagem",
-                        fileName: "cronograma.docx",
-                        fileType: .docx,
-                        fileSize: "156 KB"
-                    ),
-                    ProjectFile(
-                        name: "Referências Visuais",
-                        fileName: "referencias.zip",
-                        fileType: .zip,
-                        fileSize: "5.2 MB"
-                    )
-                ]
-                
-                let project = ProjectModel(
-                    code: "TEST",
-                    director: "João Silva",
-                    name: "Projeto Teste",
-                    screenPlay: "roteiro_principal.pdf",
-                    additionalFiles: mockFiles,
-                    callSheet: []
-                )
-                
-                manager.projects = [project]
-                return manager
-            }())
     }
 }

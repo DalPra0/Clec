@@ -7,6 +7,8 @@
 
 import Foundation
 import SwiftUI
+import FirebaseFirestore
+import FirebaseAuth
 
 class UserManager: ObservableObject {
     @Published var userName: String = "Nome padrão"
@@ -15,13 +17,8 @@ class UserManager: ObservableObject {
     @Published var favoriteMovies: [FavoriteMovie] = []
     @Published var profileImageData: Data?
     
-    private let userDefaults = UserDefaults.standard
-    
-    private let userNameKey = "UserName"
-    private let userEmailKey = "UserEmail"
-    private let userPasswordKey = "UserPassword"
-    private let favoriteMoviesKey = "FavoriteMovies"
-    private let profileImageKey = "ProfileImageData"
+    private var db = Firestore.firestore()
+    private var userListener: ListenerRegistration?
     
     var canAddFavoriteMovie: Bool {
         return favoriteMovies.count < 4
@@ -32,7 +29,61 @@ class UserManager: ObservableObject {
     }
     
     init() {
-        loadUserData()
+        Auth.auth().addStateDidChangeListener { [weak self] (_, user) in
+            guard let self = self else { return }
+            if let user = user {
+                self.listenForUserData(userId: user.uid)
+            } else {
+                self.userListener?.remove()
+                self.resetToDefaultLocal()
+            }
+        }
+    }
+    
+    deinit {
+        userListener?.remove()
+    }
+    
+    func listenForUserData(userId: String) {
+        userListener?.remove()
+        
+        let docRef = db.collection("users").document(userId)
+        
+        userListener = docRef.addSnapshotListener { documentSnapshot, error in
+            guard let document = documentSnapshot else {
+                print("Error fetching user document: \(error?.localizedDescription ?? "Unknown error")")
+                return
+            }
+            
+            if let userProfile = try? document.data(as: UserProfile.self) {
+                self.userName = userProfile.userName
+                self.userEmail = userProfile.userEmail
+                self.favoriteMovies = userProfile.favoriteMovies
+            } else if !document.exists {
+                self.userName = "Mia"
+                self.userEmail = Auth.auth().currentUser?.email ?? ""
+                self.saveUserData()
+            }
+        }
+    }
+    
+    private func saveUserData() {
+        guard let userId = Auth.auth().currentUser?.uid else {
+            return
+        }
+        
+        let userProfile = UserProfile(
+            id: userId,
+            userName: self.userName,
+            userEmail: self.userEmail,
+            favoriteMovies: self.favoriteMovies
+        )
+        
+        do {
+            try db.collection("users").document(userId).setData(from: userProfile, merge: true)
+        } catch {
+            print("Error saving user data to Firestore: \(error.localizedDescription)")
+        }
     }
     
     func updateUserName(_ name: String) {
@@ -53,13 +104,11 @@ class UserManager: ObservableObject {
     
     func updateUserPassword(_ password: String) {
         userPassword = password
-        saveUserData()
         print("🔒 Senha atualizada")
     }
     
     func updateProfileImage(_ imageData: Data?) {
         profileImageData = imageData
-        saveUserData()
         print("📸 Imagem de perfil atualizada")
     }
     
@@ -107,58 +156,6 @@ class UserManager: ObservableObject {
         return favoriteMovies.contains { $0.id == movie.id }
     }
     
-    private func loadUserData() {
-        print("📱 Carregando dados do usuário...")
-        
-        if let savedName = userDefaults.string(forKey: userNameKey), !savedName.isEmpty {
-            userName = savedName
-        } else {
-            userName = "Nome Padrao"
-        }
-        
-        userEmail = userDefaults.string(forKey: userEmailKey) ?? ""
-        
-        userPassword = userDefaults.string(forKey: userPasswordKey) ?? ""
-        
-        profileImageData = userDefaults.data(forKey: profileImageKey)
-        
-        if let data = userDefaults.data(forKey: favoriteMoviesKey) {
-            do {
-                favoriteMovies = try JSONDecoder().decode([FavoriteMovie].self, from: data)
-                print("✅ \(favoriteMovies.count) filmes favoritos carregados")
-            } catch {
-                print("❌ Erro ao carregar filmes favoritos: \(error.localizedDescription)")
-                favoriteMovies = []
-            }
-        }
-        
-        print("👤 Dados carregados - Nome: \(userName), Email: \(userEmail), Filmes: \(favoriteMovies.count)")
-    }
-    
-    private func saveUserData() {
-        print("💾 Salvando dados do usuário...")
-        
-        userDefaults.set(userName, forKey: userNameKey)
-        
-        userDefaults.set(userEmail, forKey: userEmailKey)
-        
-        userDefaults.set(userPassword, forKey: userPasswordKey)
-        
-        if let imageData = profileImageData {
-            userDefaults.set(imageData, forKey: profileImageKey)
-        } else {
-            userDefaults.removeObject(forKey: profileImageKey)
-        }
-        
-        do {
-            let data = try JSONEncoder().encode(favoriteMovies)
-            userDefaults.set(data, forKey: favoriteMoviesKey)
-            print("✅ Dados salvos com sucesso")
-        } catch {
-            print("❌ Erro ao salvar filmes favoritos: \(error.localizedDescription)")
-        }
-    }
-    
     func resetToDefault() {
         userName = "Mia"
         userEmail = ""
@@ -169,9 +166,24 @@ class UserManager: ObservableObject {
         print("🔄 Dados do usuário resetados para padrão")
     }
     
+    private func resetToDefaultLocal() {
+        self.userName = "Nome Padrão"
+        self.userEmail = ""
+        self.userPassword = ""
+        self.favoriteMovies = []
+        self.profileImageData = nil
+    }
+    
     func clearFavoriteMovies() {
         favoriteMovies.removeAll()
         saveUserData()
         print("🧹 Filmes favoritos limpos")
     }
+}
+
+fileprivate struct UserProfile: Codable, Identifiable {
+    @DocumentID var id: String?
+    var userName: String
+    var userEmail: String
+    var favoriteMovies: [FavoriteMovie]
 }

@@ -6,10 +6,11 @@
 //
 
 import Foundation
+import FirebaseFirestore
 
 
 struct ProjectModel: Codable, Identifiable {
-    var id: UUID = UUID()
+    @DocumentID var id: String?
     let code: String
     var director: String
     var name: String
@@ -18,6 +19,9 @@ struct ProjectModel: Codable, Identifiable {
     var deadline: Date?
     var additionalFiles: [ProjectFile]
     var callSheet: [CallSheetModel]
+    
+    var ownerId: String
+    var members: [String]
     
     var screenplayFile: ProjectFile? {
         guard let screenPlay = screenPlay else { return nil }
@@ -44,7 +48,7 @@ struct ProjectModel: Codable, Identifiable {
     }
     
     init(
-        id: UUID = UUID(),
+        id: String? = nil,
         code: String,
         director: String,
         name: String,
@@ -52,7 +56,9 @@ struct ProjectModel: Codable, Identifiable {
         screenPlay: String? = nil,
         deadline: Date? = nil,
         additionalFiles: [ProjectFile] = [],
-        callSheet: [CallSheetModel]
+        callSheet: [CallSheetModel],
+        ownerId: String,
+        members: [String]
     ) {
         self.id = id
         self.code = code
@@ -63,5 +69,7 @@ struct ProjectModel: Codable, Identifiable {
         self.deadline = deadline
         self.additionalFiles = additionalFiles
         self.callSheet = callSheet
+        self.ownerId = ownerId
+        self.members = members
     }
 }

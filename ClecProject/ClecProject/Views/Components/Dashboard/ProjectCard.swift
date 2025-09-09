@@ -12,9 +12,9 @@ struct ProjectCard: View {
     let project: ProjectModel
     let colors: [Color]
     let onTap: () -> Void
-    let index: Int
-    let projectManager: ProjectManager
-    let userManager: UserManager
+    
+    @EnvironmentObject var projectManager: ProjectManager
+    @EnvironmentObject var userManager: UserManager
     
     static let projectColors: [[Color]] = [
         [Color(.systemBlue), Color(.systemCyan)],
@@ -27,20 +27,19 @@ struct ProjectCard: View {
         [Color(.systemTeal), Color(.systemCyan)]
     ]
     
-    init(project: ProjectModel, index: Int = 0, projectManager: ProjectManager, userManager: UserManager, onTap: @escaping () -> Void = {}) {
+    init(project: ProjectModel, index: Int = 0, onTap: @escaping () -> Void = {}) {
         self.project = project
         self.onTap = onTap
-        self.index = index
-        self.projectManager = projectManager
-        self.userManager = userManager
         
-        let colorIndex = index + 1
-        let safeIndex = colorIndex % ProjectCard.projectColors.count
-        self.colors = ProjectCard.projectColors[safeIndex]
+        let colorIndex = index % ProjectCard.projectColors.count
+        self.colors = ProjectCard.projectColors[colorIndex]
     }
     
     var body: some View {
-        NavigationLink(destination: ProjectView(projectIndex:index).environmentObject(projectManager).environmentObject(userManager)) {
+        Button(action: {
+            projectManager.setActiveProject(project)
+            onTap()
+        }) {
             VStack(alignment: .leading, spacing: 8) {
                 Spacer()
                 
@@ -74,34 +73,4 @@ struct ProjectCard: View {
         }
         .buttonStyle(PlainButtonStyle())
     }
-}
-
-#Preview {
-    DashboardView()
-        .environmentObject(ProjectManager())
-        .environmentObject(UserManager())
-//    let sampleProject = ProjectModel(
-//        id: UUID(),
-//        code: "AB12",
-//        director: "João Silva",
-//        name: "Curta Metragem - O Início",
-//        photo: nil,
-//        screenPlay: "roteiro.pdf",
-//        deadline: Date(),
-//        callSheet: []
-//    )
-//    
-//    return VStack(spacing: 16) {
-//        HStack(spacing: 16) {
-//            ProjectCard(project: sampleProject, colorIndex: 0)
-//            ProjectCard(project: sampleProject, colorIndex: 1)
-//        }
-//        
-//        HStack(spacing: 16) {
-//            ProjectCard(project: sampleProject, colorIndex: 2)
-//            AddProjectCard()
-//        }
-//    }
-//    .padding()
-//    .background(Color(.systemBackground))
 }

@@ -1,8 +1,8 @@
 //
-//  Developer.swift
-//  ClecProject
+//  Developer.swift
+//  ClecProject
 //
-//  Created by Giovanni Galarda Strasser on 29/08/25.
+//  Created by Giovanni Galarda Strasser on 29/08/25.
 //
 
 import Foundation
@@ -40,6 +40,8 @@ struct DeveloperHelper {
                 CallSheetLineInfo(scene: 10, shots: [1, 2, 3, 4], environmentCondition: EnvironmentConditions(environment: "EXT.", dayCycle: "DAY", weather: "CLOUDY"), location: SceneLocation(name: "Rua XV de Novembro", address: "Rua XV de Novembro, Centro", latitude: -25.4295, longitude: -49.2719), description: "Final chase sequence.", characters: [SceneCharacter(name: "Ana", actor: "Alice Braga"), SceneCharacter(name: "Beto", actor: "Wagner Moura")]),
                 CallSheetLineInfo(scene: 11, shots: [1], environmentCondition: EnvironmentConditions(environment: "INT.", dayCycle: "DAY", weather: "SUNNY"), location: SceneLocation(name: "Lucca Cafés Especiais", address: "Alameda Pres. Taunay, 40", latitude: -25.4328, longitude: -49.2820), description: "The heroes celebrate their victory.", characters: [SceneCharacter(name: "Ana", actor: "Alice Braga"), SceneCharacter(name: "Beto", actor: "Wagner Moura")])
             ])
-        ]
+        ],
+        ownerId: "dev_user",
+        members: ["dev_user"]
     )
 }

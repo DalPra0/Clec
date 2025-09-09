@@ -430,23 +430,3 @@ extension CallSheetModel.ScheduleActivity {
         }
     }
 }
-
-#Preview {
-    AddActivityView(selectedDate: Date())
-        .environmentObject({
-            let manager = ProjectManager()
-            let mockProject = ProjectModel(
-                id: UUID(),
-                code: "TEST",
-                director: "João Silva",
-                name: "Título do filme",
-                photo: nil,
-                screenPlay: "roteiro.pdf",
-                deadline: Date(),
-                additionalFiles: [],
-                callSheet: []
-            )
-            manager.setActiveProject(mockProject)
-            return manager
-        }())
-}

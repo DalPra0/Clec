@@ -190,24 +190,20 @@ struct JoinProjectView: View {
         guard code.count == 4 else { return }
         
         isValidating = true
-        
         isTextFieldFocused = false
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-            if let project = projectManager.getProject(by: code) {
+        projectManager.joinProject(withCode: code) { project in
+            isValidating = false
+            if let project = project {
                 joinProject(project)
             } else {
                 showError("Código não encontrado. Verifique se o código está correto.")
             }
-            
-            isValidating = false
         }
     }
     
     private func joinProject(_ project: ProjectModel) {
         print("✅ Entrando no projeto: \(project.name)")
-        
-        // Chamar callback para definir como ativo
         onProjectJoined(project)
         
         let notificationFeedback = UINotificationFeedbackGenerator()
@@ -222,12 +218,5 @@ struct JoinProjectView: View {
         
         let notificationFeedback = UINotificationFeedbackGenerator()
         notificationFeedback.notificationOccurred(.error)
-    }
-}
-
-#Preview {
-    NavigationView {
-        JoinProjectView()
-            .environmentObject(ProjectManager())
     }
 }

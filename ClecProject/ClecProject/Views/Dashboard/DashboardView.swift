@@ -1017,31 +1017,3 @@ struct SceneCardView: View {
         )
     }
 }
-
-#Preview {
-    DashboardView()
-        .environmentObject({
-            let manager = ProjectManager()
-            let userManager = UserManager()
-            userManager.updateUserName("Lucas")
-            
-            let mockProject = ProjectModel(
-                id: UUID(),
-                code: "TEST",
-                director: "João Silva",
-                name: "Título do filme",
-                photo: nil,
-                screenPlay: "roteiro.pdf",
-                deadline: Date(),
-                additionalFiles: [],
-                callSheet: []
-            )
-            manager.setActiveProject(mockProject)
-            return manager
-        }())
-        .environmentObject({
-            let userManager = UserManager()
-            userManager.updateUserName("Lucas")
-            return userManager
-        }())
-}

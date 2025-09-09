@@ -6,9 +6,11 @@
 //
 
 import SwiftUI
+import FirebaseAuth
 
 struct CreateProjectView: View {
     @EnvironmentObject var projectManager: ProjectManager
+    @EnvironmentObject var userManager: UserManager
     @Environment(\.presentationMode) var presentationMode
     
     let onProjectCreated: (ProjectModel) -> Void
@@ -38,9 +40,6 @@ struct CreateProjectView: View {
                         
                         formSection
                         
-                        codeSection
-                        
-                        // Botão Pronto
                         Button(action: {
                             createProject()
                         }) {
@@ -154,68 +153,22 @@ struct CreateProjectView: View {
         }
     }
     
-    private var codeSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Código")
-                .font(.system(size: 20, weight: .semibold))
-                .foregroundColor(.white)
-            
-            VStack(spacing: 8) {
-                HStack {
-                    Text(generateProjectCode())
-                        .font(.system(size: 24, weight: .bold))
-                        .foregroundColor(Color(hex: "#F85601"))
-                    
-                    Spacer()
-                    
-                    Button(action: {
-                        // Copy to clipboard action
-                        UIPasteboard.general.string = generateProjectCode()
-                    }) {
-                        Image(systemName: "doc.on.doc")
-                            .font(.system(size: 18))
-                            .foregroundColor(Color(hex: "#F85601"))
-                    }
-                }
-                .padding(16)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color(hex: "#1C1C1E"))
-                )
-                
-                Text("Compartilhe este código alfanumérico com sua equipe")
-                    .font(.system(size: 14))
-                    .foregroundColor(Color(hex: "#8E8E93"))
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-    
     private func validateForm() {
         isFormValid = !projectName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-                     !director.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                      !director.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
     
     private func generateProjectCode() -> String {
         let characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-        var code = ""
-        
-        for _ in 0..<4 {
-            let randomIndex = Int.random(in: 0..<characters.count)
-            let character = characters[characters.index(characters.startIndex, offsetBy: randomIndex)]
-            code += String(character)
-        }
-        
-        return code
+        return String((0..<4).map{ _ in characters.randomElement()! })
     }
     
     private func createProject() {
-        guard isFormValid else { return }
+        guard isFormValid, let userId = Auth.auth().currentUser?.uid else { return }
         
         isLoading = true
         
-        let newProject = ProjectModel(
-            id: UUID(),
+        var newProject = ProjectModel(
             code: generateProjectCode(),
             director: director.trimmingCharacters(in: .whitespacesAndNewlines),
             name: projectName.trimmingCharacters(in: .whitespacesAndNewlines),
@@ -223,25 +176,18 @@ struct CreateProjectView: View {
             screenPlay: selectedScriptFile,
             deadline: deadline,
             additionalFiles: [],
-            callSheet: []
+            callSheet: [],
+            ownerId: userId,
+            members: [userId]
         )
         
-        // Adicionar ao histórico
         projectManager.addProject(newProject)
-        
-        // Chamar callback para definir como ativo
-        onProjectCreated(newProject)
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            isLoading = false
-            presentationMode.wrappedValue.dismiss()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            if let createdProject = projectManager.projects.first(where: { $0.code == newProject.code }) {
+                self.onProjectCreated(createdProject)
+            }
+            self.isLoading = false
+            self.presentationMode.wrappedValue.dismiss()
         }
-    }
-}
-
-#Preview {
-    NavigationView {
-        CreateProjectView()
-            .environmentObject(ProjectManager())
     }
 }

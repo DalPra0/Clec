@@ -49,7 +49,6 @@ struct AllCallSheetsView: View {
                     Spacer()
                 }
                 
-                // FAB
                 VStack {
                     Spacer()
                     HStack {
@@ -166,7 +165,6 @@ struct CallSheetRowView: View {
         formatter.timeStyle = .short
         let startTime = formatter.string(from: callSheet.day)
         
-        // Adicionar 2 horas como exemplo (em um app real, seria calculado)
         let endTime = formatter.string(from: callSheet.day.addingTimeInterval(2 * 3600))
         
         return "\(startTime) - \(endTime) pm"
@@ -182,12 +180,10 @@ struct CallSheetRowView: View {
     var body: some View {
         Button(action: onTap) {
             HStack(spacing: 0) {
-                // Color bar
                 Rectangle()
                     .fill(colorBar)
                     .frame(width: 4)
                 
-                // Content
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
@@ -236,7 +232,6 @@ struct CallSheetRowView: View {
     }
 }
 
-// Placeholder for CallSheetDetailView - will be implemented next
 struct CallSheetDetailView: View {
     let callSheet: CallSheetModel
     @EnvironmentObject var projectManager: ProjectManager
@@ -288,9 +283,9 @@ struct CallSheetDetailView: View {
         .environmentObject({
             let manager = ProjectManager()
             let mockProject = ProjectModel(
-                id: UUID(),
+                id: "dev_project",
                 code: "TEST",
-                director: "João Silva", 
+                director: "João Silva",
                 name: "Título do filme",
                 photo: nil,
                 screenPlay: "roteiro.pdf",
@@ -314,7 +309,9 @@ struct CallSheetDetailView: View {
                             )
                         ]
                     )
-                ]
+                ],
+                ownerId: "dev_user",
+                members: ["dev_user"]
             )
             manager.setActiveProject(mockProject)
             return manager

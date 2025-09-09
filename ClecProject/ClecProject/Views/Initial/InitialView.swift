@@ -28,25 +28,6 @@ struct InitialView: View {
                             Text("Bem vindo!")
                                 .font(.system(size: 32, weight: .bold))
                                 .foregroundColor(.white)
-                                .onLongPressGesture {
-                                    projectManager.addMockProjects()
-                                    userManager.updateUserName("Lucas")
-                                    
-                                    if let firstProject = projectManager.projects.first {
-                                        projectManager.setActiveProject(firstProject)
-                                    }
-                                    
-                                    let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-                                    impactFeedback.impactOccurred()
-                                }
-                                .onTapGesture(count: 5) {
-                                    projectManager.clearActiveProject()
-                                    projectManager.clearAllProjects()
-                                    userManager.resetToDefault()
-                                    
-                                    let notificationFeedback = UINotificationFeedbackGenerator()
-                                    notificationFeedback.notificationOccurred(.warning)
-                                }
                             
                             Text("Você pode escolher criar um projeto\nou entrar em um com código")
                                 .font(.system(size: 16, weight: .regular))
@@ -187,10 +168,4 @@ struct InitialView: View {
             .environmentObject(userManager)
         }
     }
-}
-
-#Preview {
-    InitialView()
-        .environmentObject(ProjectManager())
-        .environmentObject(UserManager())
 }

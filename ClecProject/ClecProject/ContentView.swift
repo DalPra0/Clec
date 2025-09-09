@@ -23,6 +23,6 @@ struct ContentView: View {
                 LoginView()
             }
         }
-        .preferredColorScheme(.light)
+        // REMOVIDO: .preferredColorScheme(.light) - AGORA É AUTOMÁTICO!
     }
 }

@@ -2,7 +2,7 @@
 //  InitialView.swift
 //  ClecProject
 //
-//  DESIGN PIXEL-PERFECT - SEM QUEBRAR FUNCIONALIDADE
+//  LIGHT/DARK MODE AUTOMÁTICO - DESIGN PIXEL-PERFECT
 
 import SwiftUI
 
@@ -16,8 +16,8 @@ struct InitialView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                // FUNDO PRETO COMPLETO
-                Color.black
+                // FUNDO AUTOMÁTICO (BRANCO NO LIGHT, PRETO NO DARK)
+                Color("BackgroundMain")
                     .ignoresSafeArea()
                 
                 VStack(spacing: 0) {
@@ -28,7 +28,7 @@ struct InitialView: View {
                         // Título principal
                         Text("Bem vindo!")
                             .font(.system(size: 32, weight: .bold))
-                            .foregroundColor(.white)
+                            .foregroundColor(Color("TextPrimary"))
                             .onTapGesture {
                                 handleLogoTap()
                             }
@@ -39,7 +39,7 @@ struct InitialView: View {
                         // Subtítulo
                         Text("Você pode escolher criar um projeto\nou entrar em um com código")
                             .font(.system(size: 18, weight: .regular))
-                            .foregroundColor(.white.opacity(0.7))
+                            .foregroundColor(Color("TextSecondary"))
                             .multilineTextAlignment(.center)
                             .lineSpacing(4)
                     }
@@ -66,7 +66,7 @@ struct InitialView: View {
                                     
                                     Text("Eu sou assistente\nde direção")
                                         .font(.system(size: 16, weight: .medium))
-                                        .foregroundColor(.white)
+                                        .foregroundColor(Color("TextPrimary"))
                                         .multilineTextAlignment(.leading)
                                         .lineSpacing(2)
                                 }
@@ -83,7 +83,7 @@ struct InitialView: View {
                             .padding(.vertical, 32)
                             .background(
                                 RoundedRectangle(cornerRadius: 20)
-                                    .fill(Color(hex: "#1C1C1E"))
+                                    .fill(Color("CardBackground"))
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 20)
                                             .stroke(
@@ -119,7 +119,7 @@ struct InitialView: View {
                                     
                                     Text("Sou membro do\nset de produção")
                                         .font(.system(size: 16, weight: .medium))
-                                        .foregroundColor(.white)
+                                        .foregroundColor(Color("TextPrimary"))
                                         .multilineTextAlignment(.leading)
                                         .lineSpacing(2)
                                 }
@@ -136,7 +136,7 @@ struct InitialView: View {
                             .padding(.vertical, 32)
                             .background(
                                 RoundedRectangle(cornerRadius: 20)
-                                    .fill(Color(hex: "#1C1C1E"))
+                                    .fill(Color("CardBackground"))
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 20)
                                             .stroke(
@@ -163,7 +163,7 @@ struct InitialView: View {
             }
         }
         .navigationBarHidden(true)
-        .preferredColorScheme(.dark)
+        // REMOVIDO: .preferredColorScheme(.dark) - AGORA É AUTOMÁTICO!
         .sheet(isPresented: $showingCreateProject) {
             CreateProjectView(onProjectCreated: { project in
                 projectManager.setActiveProject(project)
@@ -182,13 +182,12 @@ struct InitialView: View {
         }
     }
     
-    // MARK: - Gesture Handlers SIMPLES (sem quebrar nada)
+    // MARK: - Gesture Handlers
     
     private func handleLogoTap() {
         tapCount += 1
         
         if tapCount >= 5 {
-            // 5 taps rápidos - Usar método que existe no UserManager
             let impactFeedback = UIImpactFeedbackGenerator(style: .heavy)
             impactFeedback.impactOccurred()
             
@@ -204,7 +203,6 @@ struct InitialView: View {
     }
     
     private func handleLongPress() {
-        // Long press - Só mostra mensagem, não quebra nada
         let impactFeedback = UIImpactFeedbackGenerator(style: .heavy)
         impactFeedback.impactOccurred()
         

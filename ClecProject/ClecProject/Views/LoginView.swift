@@ -23,7 +23,7 @@ struct LoginView: View {
                         .frame(width: 150)
                         .foregroundColor(.yellow)
                     
-                    Text("CLÉQUI!")
+                    Text("CLECK!")
                         .font(.largeTitle)
                         .fontWeight(.bold)
                 }

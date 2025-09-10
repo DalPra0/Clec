@@ -8,38 +8,41 @@
 import SwiftUI
 
 enum OnboardingPage: Int, CaseIterable {
-    case fraseUm
-    case fraseDois
-    case fraseTres
+    case firstPage
+    case secondPage
+    case thirdPage
     
+    //titulos
     var title: String{
         switch self {
-        case .fraseUm:
+        case .firstPage:
             return "Bem-vinde ao Cleck!"
-        case .fraseDois:
+        case .secondPage:
             return "Ei, assistente de direção!"
-        case .fraseTres:
+        case .thirdPage:
             return "Organize sua ordem do dia"
         }
     }
     
+    //descriçoes
     var description: String{
         switch self {
-        case .fraseUm:
+        case .firstPage:
             return "O app que ajuda você a organizar a ordem do dia e manter toda a equipe alinhada nas gravações"
-        case .fraseDois:
+        case .secondPage:
             return "Crie um projeto e compartilhe com sua equipe para centralizar informações e documentos."
-        case .fraseTres:
+        case .thirdPage:
             return "Selecione a data desejada, adicione as cenas e gerencie mudanças em tempo real. Simples e rápido!"
         }
     }
+    
 }
 
 struct OnboardingView: View {
     @State private var currentPage = 0
     @State private var isAnimating = false
-    @State private var fraseUm = false
-    @State private var fraseDois: CGFloat = 0.0
+    @State private var firstPage = false
+    @State private var secondPage: CGFloat = 0.0
     
     var body: some View {
         VStack{
@@ -69,14 +72,71 @@ struct OnboardingView: View {
         }
     }
     
+    //imagens
+    private var firstPageGroup: some View {
+        ZStack {
+            Image("logoOnboarding")
+                .padding()
+                .scaledToFit()
+                .offset(y: isAnimating ? 0 : 20)
+            
+            Image("claqueteOnboarding")
+                .resizable()
+                .frame(height: 200)
+                .offset(x: -100, y: isAnimating ? 0 : 20)
+        }
+    }
+    
+    private var secondPageGroup: some View {
+        ZStack {
+            Image("logoOnboarding")
+                .padding()
+                .scaledToFit()
+                .offset(y: isAnimating ? 0 : 20)
+            
+//            Image("claqueteOnboarding")
+//                .padding()
+//                .scaledToFit()
+//                .frame(height: 100)
+//                .offset(y: isAnimating ? 0 : 20)
+        }
+    }
+    
+    private var thirdPageGroup: some View {
+        ZStack {
+            Image("logoOnboarding")
+                .padding()
+                .scaledToFit()
+                .offset(y: isAnimating ? 0 : 20)
+            
+//            Image("claqueteOnboarding")
+//                .padding()
+//                .scaledToFit()
+//                .frame(height: 100)
+//                .offset(y: isAnimating ? 0 : 20)
+        }
+    }
+    
     @ViewBuilder
     private func getPageView(for page: OnboardingPage) -> some View {
         VStack(spacing:30) {
             
-            //texto aki
+            //config imagens
+            ZStack {
+                switch page {
+                case .firstPage:
+                    firstPageGroup
+                case .secondPage:
+                    secondPageGroup
+                case .thirdPage:
+                    thirdPageGroup
+                }
+            }
+            
+            //config textos
             VStack(spacing:20) {
                 Text(page.title)
-                    .font(.system(.largeTitle, design: .rounded))
+                    .font(.system(.title, design: .rounded))
                     .fontWeight(.bold)
                     .foregroundStyle(.primary)
                     .multilineTextAlignment(.center)
@@ -87,11 +147,10 @@ struct OnboardingView: View {
                         isAnimating)
                 
                 Text(page.description)
-                    .font(.system(.largeTitle, design: .rounded))
-                    .fontWeight(.bold)
-                    .foregroundStyle(.secondary)
+                    .font(.system(.title3, design: .rounded))
+                    .foregroundStyle(.primary)
                     .multilineTextAlignment(.center)
-                    .padding(.horizontal)
+                    .padding(.horizontal, 32)
                     .opacity(isAnimating ? 1 : 0)
                     .offset(y: isAnimating ? 0 : 20)
                     .animation(.spring(dampingFraction: 0.8).delay(0.3), value:
@@ -99,7 +158,7 @@ struct OnboardingView: View {
             
             }
         }
-        
+        .padding(.top,50)
     }
     
 }

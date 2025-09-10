@@ -43,6 +43,7 @@ struct OnboardingView: View {
     @State private var isAnimating = false
     @State private var firstPage = false
     @State private var secondPage: CGFloat = 0.0
+    @Binding var isUserOldLocal: Bool
     
     var body: some View {
         VStack{
@@ -59,7 +60,7 @@ struct OnboardingView: View {
             HStack(spacing:12) {
                 ForEach(0..<OnboardingPage.allCases.count, id: \.self) { index in
                     Circle()
-                        .fill(currentPage == index ? Color.blue :
+                        .fill(currentPage == index ? Color.laranjaPastel :
                             Color.gray.opacity(0.5))
                         .frame(width: currentPage == index ? 12 : 8, height:
                             currentPage == index ? 12: 8)
@@ -78,12 +79,12 @@ struct OnboardingView: View {
             Image("logoOnboarding")
                 .padding()
                 .scaledToFit()
-                .offset(y: isAnimating ? 0 : 20)
+                .offset(y: isAnimating ? -120 : 20)
             
             Image("claqueteOnboarding")
                 .resizable()
                 .frame(height: 200)
-                .offset(x: -100, y: isAnimating ? 0 : 20)
+                .offset(x: -20, y: isAnimating ? 40 : 20)
         }
     }
     
@@ -108,6 +109,15 @@ struct OnboardingView: View {
                 .padding()
                 .scaledToFit()
                 .offset(y: isAnimating ? 0 : 20)
+            
+            VStack{
+                Spacer()
+                Button("ai ta bom sai"){
+                    isUserOldLocal = true
+                    print("sai aaaa de mim kkk")
+                    UserDefaults.standard.set(true, forKey: "isUserOld")
+                }
+            }
             
 //            Image("claqueteOnboarding")
 //                .padding()
@@ -145,6 +155,7 @@ struct OnboardingView: View {
                     .offset(y: isAnimating ? 0 : 20)
                     .animation(.spring(dampingFraction: 0.8).delay(0.3), value:
                         isAnimating)
+                    .rotationEffect(Angle(degrees: 20))
                 
                 Text(page.description)
                     .font(.system(.title3, design: .rounded))
@@ -164,5 +175,6 @@ struct OnboardingView: View {
 }
 
 #Preview {
-    OnboardingView()
+    @Previewable @State var isUserOldLocal = false
+    OnboardingView(isUserOldLocal: $isUserOldLocal)
 }

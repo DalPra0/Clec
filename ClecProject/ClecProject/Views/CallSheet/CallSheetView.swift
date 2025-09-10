@@ -37,9 +37,16 @@ struct CallSheetView: View {
 }
 
 #Preview {
-    NavigationStack{
+    let projectManager: ProjectManager = {
+        let manager = ProjectManager()
+        let mockProject = DeveloperHelper.project
+        manager.projects = [mockProject]
+        return manager
+    }()
+
+    return NavigationStack {
         CallSheetView(projectIndex: 0)
-            .environmentObject(ProjectManager())
+            .environmentObject(projectManager)
             .environmentObject(UserManager())
     }
 }

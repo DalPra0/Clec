@@ -18,11 +18,9 @@ struct DashboardView: View {
     @State private var showingAddFile = false
     @State private var showingAddOrdemDoDia = false
     @State private var selectedTab: DashboardTab = .geral
-    @State private var showingLeaveProjectAlert = false
     @State private var isCalendarExpanded = false
-    @State private var currentWeekOffset = 0 // Para navegação de semanas
-    @State private var currentMonthOffset = 0 // Para navegação de meses
-    
+    @State private var selectedDayForecast: DailyForecast?
+
     enum DashboardTab: String, CaseIterable {
         case geral = "Geral"
         case arquivos = "Arquivos"
@@ -34,7 +32,6 @@ struct DashboardView: View {
         projectManager.activeProject
     }
     
-    // NEW LOGIC: Get all activities for selected day
     private var todaysActivities: [CallSheetLineInfo] {
         projectManager.getActivitiesForDay(selectedDate)
     }
@@ -50,7 +47,6 @@ struct DashboardView: View {
     
     var body: some View {
         ZStack {
-            // Dark background using asset color
             Color("BackgroundDark")
                 .ignoresSafeArea()
             
@@ -62,23 +58,22 @@ struct DashboardView: View {
                     
                     ScrollView {
                         VStack(spacing: 24) {
-                            // TROCA CONTEÚDO BASEADO NO TAB SELECIONADO
                             switch selectedTab {
                             case .geral:
                                 weekCalendarSection
+                                weatherInfoSection
                                 scenesSection
                                 
                             case .arquivos:
                                 filesSection
                                 
                             case .ordens:
-                                ordensDoDialSection // MESMO CONTEÚDO DA SHEET, MAS NO DASHBOARD
+                                ordensDoDialSection
                                 
                             case .configuracoes:
                                 settingsSection
                             }
                             
-                            // Bottom padding for FAB
                             Spacer(minLength: 100)
                         }
                         .padding(.horizontal, 20)
@@ -86,35 +81,32 @@ struct DashboardView: View {
                     }
                 }
                 
-                // FAB - Botão liso laranja + Gradient atrás
                 VStack {
                     Spacer()
                     HStack {
                         Spacer()
                         
                         ZStack {
-                            // GRADIENT DE FUNDO - ATRÁS DO BOTÃO
                             Circle()
                                 .fill(
                                     LinearGradient(
                                         gradient: Gradient(colors: [
-                                            Color.black.opacity(0.6),    // Preto embaixo
-                                            Color.clear                   // Transparente topo
+                                            Color.black.opacity(0.6),
+                                            Color.clear
                                         ]),
                                         startPoint: .bottom,
                                         endPoint: .top
                                     )
                                 )
-                                .frame(width: 80, height: 80) // Maior que o botão para criar o glow
-                                .blur(radius: 8) // Blur no gradient de fundo
+                                .frame(width: 80, height: 80)
+                                .blur(radius: 8)
                             
-                            // BOTÃO LISO LARANJA
                             Button(action: {
                                 handleFABAction()
                             }) {
                                 ZStack {
                                     Circle()
-                                        .fill(Color(hex: "#F85601")) // LISO, SEM GRADIENT
+                                        .fill(Color(hex: "#F85601"))
                                         .frame(width: 56, height: 56)
                                     
                                     Image(systemName: "plus")
@@ -130,7 +122,6 @@ struct DashboardView: View {
                     .padding(.bottom, 34)
                 }
             } else {
-                // Fallback se não há projeto ativo
                 VStack {
                     Text("Nenhum projeto ativo")
                         .font(.title2)
@@ -166,31 +157,35 @@ struct DashboardView: View {
             CreateCallSheetView()
                 .environmentObject(projectManager)
         }
+        .onAppear {
+            fetchWeather(for: selectedDate)
+        }
+        .onChange(of: selectedDate) {
+            fetchWeather(for: selectedDate)
+        }
     }
     
-    // MARK: - FAB Action Handler
+    private func fetchWeather(for date: Date) {
+        selectedDayForecast = nil
+        projectManager.getForecast(for: date) { forecast in
+            selectedDayForecast = forecast
+        }
+    }
+    
     private func handleFABAction() {
         switch selectedTab {
         case .geral:
-            // Adiciona nova cena/atividade no dia selecionado
             showingAddActivity = true
-            
         case .arquivos:
-            // Adiciona arquivo
             showingAddFile = true
-            
         case .ordens:
-            // Adiciona nova ordem do dia
             showingAddOrdemDoDia = true
-            
         case .configuracoes:
-            // Adiciona nova cena no dia de hoje
-            selectedDate = Date() // Seleciona hoje
+            selectedDate = Date()
             showingAddActivity = true
         }
     }
     
-    // MARK: - Header Section
     private func headerSection(project: ProjectModel) -> some View {
         VStack(alignment: .leading, spacing: 16) {
             VStack(alignment: .leading, spacing: 4) {
@@ -209,7 +204,6 @@ struct DashboardView: View {
         .padding(.top, 16)
     }
     
-    // MARK: - Tabs Section
     private var tabsSection: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 16) {
@@ -218,7 +212,6 @@ struct DashboardView: View {
                         title: tab.rawValue,
                         isSelected: selectedTab == tab
                     ) {
-                        selectedTab = tab
                         handleTabSelection(tab)
                     }
                 }
@@ -229,15 +222,12 @@ struct DashboardView: View {
     }
     
     private func handleTabSelection(_ tab: DashboardTab) {
-        // Add haptic feedback
         let impactFeedback = UIImpactFeedbackGenerator(style: .light)
         impactFeedback.impactOccurred()
         
-        // Just change the selected tab - TROCA CONTEÚDO NO DASHBOARD
         selectedTab = tab
     }
     
-    // MARK: - Week Calendar Section
     private var weekCalendarSection: some View {
         VStack(alignment: .leading, spacing: 20) {
             Text("Minha Semana")
@@ -245,10 +235,8 @@ struct DashboardView: View {
                 .foregroundColor(.white)
             
             VStack(spacing: 16) {
-                // Header com navegação
                 calendarNavigationHeader
                 
-                // Calendário (semana ou mês)
                 if isCalendarExpanded {
                     monthCalendarView
                 } else {
@@ -258,10 +246,38 @@ struct DashboardView: View {
         }
     }
     
-    // MARK: - Calendar Navigation Header
+    private var weatherInfoSection: some View {
+        Group {
+            if let forecast = selectedDayForecast {
+                HStack(spacing: 16) {
+                    Image(systemName: forecast.symbolName)
+                        .font(.system(size: 44))
+                        .foregroundColor(Color("PrimaryOrange"))
+                        .frame(width: 60)
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(forecast.condition)
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundColor(.white)
+                        
+                        Text("Chance de chuva: \(Int(forecast.precipitationChance * 100))%")
+                            .font(.system(size: 14))
+                            .foregroundColor(Color("TextSecondary"))
+                    }
+                    
+                    Spacer()
+                }
+                .padding(16)
+                .background(Color("CardBackground"))
+                .cornerRadius(16)
+                .transition(.opacity.combined(with: .scale(scale: 0.95)))
+            }
+        }
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: selectedDayForecast != nil)
+    }
+    
     private var calendarNavigationHeader: some View {
         HStack {
-            // Seta esquerda
             Button(action: {
                 navigatePrevious()
             }) {
@@ -277,7 +293,6 @@ struct DashboardView: View {
             
             Spacer()
             
-            // Mês e botão de expandir
             Button(action: {
                 withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
                     isCalendarExpanded.toggle()
@@ -288,7 +303,7 @@ struct DashboardView: View {
                         .font(.system(size: 18, weight: .semibold))
                         .foregroundColor(.white)
                     
-                    Image(systemName: isCalendarExpanded ? "chevron.up" : "chevron.down")
+                    Image(systemName: "chevron.down")
                         .font(.system(size: 14, weight: .medium))
                         .foregroundColor(Color("PrimaryOrange"))
                         .rotationEffect(.degrees(isCalendarExpanded ? 180 : 0))
@@ -298,7 +313,6 @@ struct DashboardView: View {
             
             Spacer()
             
-            // Seta direita
             Button(action: {
                 navigateNext()
             }) {
@@ -314,16 +328,12 @@ struct DashboardView: View {
         }
     }
     
-    // MARK: - Week Calendar View
     private var weekCalendarView: some View {
-        // Calendar container - continuous rectangle like Figma
         ZStack {
-            // Background container
             RoundedRectangle(cornerRadius: 16)
                 .fill(Color("CalendarBackground"))
                 .frame(height: 60)
             
-            // Sliding selection indicator
             GeometryReader { geometry in
                 RoundedRectangle(cornerRadius: 12)
                     .fill(
@@ -336,31 +346,27 @@ struct DashboardView: View {
                             endPoint: .bottomTrailing
                         )
                     )
-                    .frame(width: geometry.size.width / 7, height: 48)
+                    .frame(width: geometry.size.width / 7, height: 50)
                     .shadow(color: Color("PrimaryOrange").opacity(0.4), radius: 8, x: 0, y: 2)
                     .shadow(color: .black.opacity(0.2), radius: 2, x: 0, y: 1)
-                    .offset(x: selectedDayOffset(geometry: geometry))
+                    .offset(x: selectedDayOffset(geometry: geometry), y: 5)
                     .animation(.interpolatingSpring(stiffness: 300, damping: 30), value: selectedDate)
             }
-            .padding(.horizontal, 8)
-            .padding(.vertical, 6)
             
-            // Days content
             HStack(spacing: 0) {
-                ForEach(Array(currentWeekDays.enumerated()), id: \.offset) { index, date in
+                ForEach(currentWeekDays, id: \.self) { date in
                     CalendarDayContentView(
                         date: date,
                         isSelected: Calendar.current.isDate(date, inSameDayAs: selectedDate),
-                        hasEvents: hasEventsFor(date: date)
-                    ) {
-                        // Add haptic feedback
-                        let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-                        impactFeedback.impactOccurred()
-                        
-                        withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
-                            selectedDate = date
+                        onTap: {
+                            let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                            impactFeedback.impactOccurred()
+                            
+                            withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                                selectedDate = date
+                            }
                         }
-                    }
+                    )
                     .frame(maxWidth: .infinity)
                 }
             }
@@ -368,10 +374,8 @@ struct DashboardView: View {
         .frame(height: 60)
     }
     
-    // MARK: - Month Calendar View
     private var monthCalendarView: some View {
         VStack(spacing: 12) {
-            // Dias da semana (header)
             HStack {
                 ForEach(["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"], id: \.self) { day in
                     Text(day)
@@ -382,13 +386,12 @@ struct DashboardView: View {
             }
             .padding(.horizontal, 8)
             
-            // Grid do mês
             LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7), spacing: 8) {
                 ForEach(currentMonthDays, id: \.self) { date in
                     MonthDayView(
                         date: date,
                         isSelected: Calendar.current.isDate(date, inSameDayAs: selectedDate),
-                        isCurrentMonth: Calendar.current.isDate(date, equalTo: currentDisplayedMonth, toGranularity: .month),
+                        isCurrentMonth: Calendar.current.isDate(date, equalTo: selectedDate, toGranularity: .month),
                         hasEvents: hasEventsFor(date: date)
                     ) {
                         let impactFeedback = UIImpactFeedbackGenerator(style: .light)
@@ -417,64 +420,44 @@ struct DashboardView: View {
         return CGFloat(selectedIndex) * dayWidth
     }
     
-    // MARK: - Calendar Computed Properties
-    
     private var currentMonthName: String {
         let formatter = DateFormatter()
-        formatter.dateFormat = "MMMM"
+        formatter.dateFormat = "MMMM yyyy"
         formatter.locale = Locale(identifier: "pt_BR")
-        return formatter.string(from: currentDisplayedMonth).capitalized
-    }
-    
-    private var currentDisplayedMonth: Date {
-        let calendar = Calendar.current
-        return calendar.date(byAdding: .month, value: currentMonthOffset, to: Date()) ?? Date()
+        return formatter.string(from: selectedDate).capitalized
     }
     
     private var currentWeekDays: [Date] {
         let calendar = Calendar.current
-        let today = Date()
-        
-        // Calcular a semana base (semana atual + offset)
-        let baseWeekStart = calendar.dateInterval(of: .weekOfYear, for: today)?.start ?? today
-        let targetWeekStart = calendar.date(byAdding: .weekOfYear, value: currentWeekOffset, to: baseWeekStart) ?? baseWeekStart
-        
+        guard let startOfWeek = calendar.dateInterval(of: .weekOfYear, for: selectedDate)?.start else {
+            return []
+        }
         return (0..<7).compactMap { dayOffset in
-            calendar.date(byAdding: .day, value: dayOffset, to: targetWeekStart)
+            calendar.date(byAdding: .day, value: dayOffset, to: startOfWeek)
         }
     }
     
     private var currentMonthDays: [Date] {
         let calendar = Calendar.current
-        let month = currentDisplayedMonth
+        guard let monthStart = calendar.dateInterval(of: .month, for: selectedDate)?.start else { return [] }
         
-        // Primeiro dia do mês
-        guard let monthStart = calendar.dateInterval(of: .month, for: month)?.start else { return [] }
-        
-        // Primeiro domingo da grade (pode ser do mês anterior)
         let weekday = calendar.component(.weekday, from: monthStart)
         let daysFromSunday = (weekday - 1) % 7
         guard let gridStart = calendar.date(byAdding: .day, value: -daysFromSunday, to: monthStart) else { return [] }
         
-        // Gerar 42 dias (6 semanas x 7 dias) para garantir que cubra o mês completo
         return (0..<42).compactMap { dayOffset in
             calendar.date(byAdding: .day, value: dayOffset, to: gridStart)
         }
     }
     
-    // MARK: - Navigation Functions
-    
     private func navigatePrevious() {
         withAnimation(.easeInOut(duration: 0.3)) {
             if isCalendarExpanded {
-                // Modo mês: voltar mês
-                currentMonthOffset -= 1
+                selectedDate = Calendar.current.date(byAdding: .month, value: -1, to: selectedDate) ?? selectedDate
             } else {
-                // Modo semana: voltar semana
-                currentWeekOffset -= 1
+                selectedDate = Calendar.current.date(byAdding: .weekOfYear, value: -1, to: selectedDate) ?? selectedDate
             }
         }
-        
         let impactFeedback = UIImpactFeedbackGenerator(style: .light)
         impactFeedback.impactOccurred()
     }
@@ -482,33 +465,19 @@ struct DashboardView: View {
     private func navigateNext() {
         withAnimation(.easeInOut(duration: 0.3)) {
             if isCalendarExpanded {
-                // Modo mês: avançar mês
-                currentMonthOffset += 1
+                selectedDate = Calendar.current.date(byAdding: .month, value: 1, to: selectedDate) ?? selectedDate
             } else {
-                // Modo semana: avançar semana
-                currentWeekOffset += 1
+                selectedDate = Calendar.current.date(byAdding: .weekOfYear, value: 1, to: selectedDate) ?? selectedDate
             }
         }
-        
         let impactFeedback = UIImpactFeedbackGenerator(style: .light)
         impactFeedback.impactOccurred()
-    }
-    
-    private var weekDays: [Date] {
-        let calendar = Calendar.current
-        let today = Date()
-        let startOfWeek = calendar.dateInterval(of: .weekOfYear, for: today)?.start ?? today
-        
-        return (0..<7).compactMap { dayOffset in
-            calendar.date(byAdding: .day, value: dayOffset, to: startOfWeek)
-        }
     }
     
     private func hasEventsFor(date: Date) -> Bool {
         return projectManager.dayHasActivities(date)
     }
     
-    // MARK: - Scenes Section
     private var scenesSection: some View {
         VStack(alignment: .leading, spacing: 20) {
             Text("Cenas desse dia")
@@ -548,7 +517,6 @@ struct DashboardView: View {
         .padding(.vertical, 40)
     }
     
-    // MARK: - Files Section
     private var filesSection: some View {
         VStack(alignment: .leading, spacing: 20) {
             Text("Arquivos do Projeto")
@@ -557,7 +525,7 @@ struct DashboardView: View {
             
             if let project = project, !project.allFiles.isEmpty {
                 VStack(spacing: 12) {
-                    ForEach(project.allFiles, id: \.fileName) { file in
+                    ForEach(project.allFiles, id: \.id) { file in
                         HStack(spacing: 12) {
                             Image(systemName: file.fileType.icon)
                                 .font(.system(size: 20))
@@ -614,7 +582,6 @@ struct DashboardView: View {
         }
     }
     
-    // MARK: - Ordens do Dia Section (MESMO CONTEÚDO DA SHEET)
     private var ordensDoDialSection: some View {
         VStack(alignment: .leading, spacing: 20) {
             Text("Ordens do Dia")
@@ -624,7 +591,7 @@ struct DashboardView: View {
             if let project = project, !project.callSheet.isEmpty {
                 VStack(spacing: 16) {
                     ForEach(Array(project.callSheet.enumerated()), id: \.offset) { index, callSheet in
-                        let color = CallSheetModel.CallSheetColor.allColors()[index % CallSheetModel.CallSheetColor.allColors().count]
+                        let color = callSheet.callSheetColor.swiftUIColor
                         
                         VStack(alignment: .leading, spacing: 12) {
                             HStack {
@@ -684,7 +651,6 @@ struct DashboardView: View {
         }
     }
     
-    // MARK: - Settings Section
     private var settingsSection: some View {
         VStack(alignment: .leading, spacing: 20) {
             Text("Configurações")
@@ -787,53 +753,7 @@ struct DashboardView: View {
                     RoundedRectangle(cornerRadius: 12)
                         .fill(Color("CardBackground"))
                 )
-                
-                // NOVO: SAIR DO PROJETO
-                Button(action: {
-                    showingLeaveProjectAlert = true
-                }) {
-                    HStack(spacing: 12) {
-                        Image(systemName: "rectangle.portrait.and.arrow.right")
-                            .font(.system(size: 20))
-                            .foregroundColor(.red)
-                            .frame(width: 40, height: 40)
-                            .background(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .fill(.red.opacity(0.1))
-                            )
-                        
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Sair do Projeto")
-                                .font(.system(size: 16, weight: .medium))
-                                .foregroundColor(.red)
-                            
-                            Text("Remover acesso a este projeto")
-                                .font(.system(size: 14))
-                                .foregroundColor(Color("TextSecondary"))
-                        }
-                        
-                        Spacer()
-                        
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 14))
-                            .foregroundColor(Color("TextSecondary"))
-                    }
-                    .padding(16)
-                    .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(Color("CardBackground"))
-                    )
-                }
-                .buttonStyle(PlainButtonStyle())
             }
-        }
-        .alert("Sair do Projeto", isPresented: $showingLeaveProjectAlert) {
-            Button("Cancelar", role: .cancel) { }
-            Button("Sair", role: .destructive) {
-                leaveProject()
-            }
-        } message: {
-            Text("Tem certeza que deseja sair do projeto \"\(project?.name ?? "")\"? Você precisará de um novo código para entrar novamente.")
         }
     }
     
@@ -843,25 +763,8 @@ struct DashboardView: View {
         formatter.locale = Locale(identifier: "pt_BR")
         return formatter.string(from: date)
     }
-    
-    // MARK: - Leave Project Function
-    private func leaveProject() {
-        guard let currentProject = project else { return }
-        
-        let impactFeedback = UIImpactFeedbackGenerator(style: .heavy)
-        impactFeedback.impactOccurred()
-        
-        // Remover o projeto ativo
-        projectManager.setActiveProject(nil)
-        
-        print("🚪 Usuário saiu do projeto: \(currentProject.name)")
-        
-        // TODO: Implementar remoção do usuário da lista de membros no Firebase
-        // Isso seria feito no ProjectManager com uma função removeUserFromProject()
-    }
 }
 
-// MARK: - Month Day View Component
 struct MonthDayView: View {
     let date: Date
     let isSelected: Bool
@@ -886,7 +789,6 @@ struct MonthDayView: View {
                     .font(.system(size: 16, weight: isSelected ? .bold : .medium))
                     .foregroundColor(textColor)
                 
-                // Indicador de eventos
                 if hasEvents {
                     Circle()
                         .fill(Color("PrimaryOrange"))
@@ -940,7 +842,6 @@ struct MonthDayView: View {
     }
 }
 
-// MARK: - Tab Button Component
 struct TabButton: View {
     let title: String
     let isSelected: Bool
@@ -951,7 +852,7 @@ struct TabButton: View {
             Text(title)
                 .font(.system(size: 16, weight: .medium))
                 .foregroundColor(.white)
-                .padding(.horizontal, title == "Geral" ? 24 : 20) // Geral is slightly wider
+                .padding(.horizontal, title == "Geral" ? 24 : 20)
                 .padding(.vertical, 12)
                 .background(
                     RoundedRectangle(cornerRadius: 20)
@@ -966,11 +867,9 @@ struct TabButton: View {
     }
 }
 
-// MARK: - Calendar Day Content Component (For sliding animation)
 struct CalendarDayContentView: View {
     let date: Date
     let isSelected: Bool
-    let hasEvents: Bool
     let onTap: () -> Void
     
     private var dayName: String {
@@ -988,20 +887,15 @@ struct CalendarDayContentView: View {
     
     var body: some View {
         Button(action: onTap) {
-            VStack(spacing: 2) {
+            VStack(spacing: 4) {
                 Text(dayName)
                     .font(.system(size: 12, weight: .medium))
                     .foregroundColor(isSelected ? .white : Color("TextSecondary"))
                     .opacity(isSelected ? 1.0 : 0.7)
-                    .scaleEffect(isSelected ? 1.0 : 0.95)
-                    .animation(.easeInOut(duration: 0.25).delay(isSelected ? 0.1 : 0), value: isSelected)
                 
                 Text(dayNumber)
                     .font(.system(size: 16, weight: isSelected ? .heavy : .bold))
                     .foregroundColor(isSelected ? .white : .white)
-                    .scaleEffect(isSelected ? 1.05 : 1.0)
-                    .opacity(isSelected ? 1.0 : 0.8)
-                    .animation(.interpolatingSpring(stiffness: 400, damping: 25).delay(isSelected ? 0.05 : 0), value: isSelected)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .scaleEffect(isSelected ? 1.0 : 0.98)
@@ -1011,7 +905,6 @@ struct CalendarDayContentView: View {
     }
 }
 
-// MARK: - Scene Card Component
 struct SceneCardView: View {
     let activity: CallSheetLineInfo
     let selectedDate: Date
@@ -1024,7 +917,7 @@ struct SceneCardView: View {
     }
     
     private var timeString: String {
-        "06:30" // Mock time for now
+        "06:30"
     }
     
     var body: some View {
@@ -1056,7 +949,6 @@ struct SceneCardView: View {
             }
             
             HStack(spacing: 8) {
-                // Mock avatar
                 Circle()
                     .fill(Color("TextSecondary"))
                     .frame(width: 24, height: 24)

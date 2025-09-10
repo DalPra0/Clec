@@ -25,7 +25,7 @@ class ProjectManager: ObservableObject {
     }
 
     init() {
-        Auth.auth().addStateDidChangeListener { [weak self] (_, user) in
+        _ = Auth.auth().addStateDidChangeListener { [weak self] (_, user) in
             if let user = user {
                 self?.setupProjectsListener(for: user.uid)
             } else {
@@ -90,12 +90,7 @@ class ProjectManager: ObservableObject {
 
         let query = db.collection("projects").whereField("code", isEqualTo: code).limit(to: 1)
 
-        query.getDocuments { snapshot, error in
-            if let error = error {
-                completion(nil)
-                return
-            }
-
+        query.getDocuments { snapshot, _ in
             guard let document = snapshot?.documents.first else {
                 completion(nil)
                 return

@@ -110,7 +110,7 @@ struct DashboardView: View {
         case .ordens:
             OrdersSection(project: project)
         case .configuracoes:
-            SettingsSection(project: project, userManager: userManager)
+            SettingsSection(project: project)
         }
     }
     

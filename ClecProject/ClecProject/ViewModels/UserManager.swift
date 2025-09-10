@@ -38,10 +38,27 @@ class UserManager: ObservableObject {
                 self.resetToDefaultLocal()
             }
         }
+        
+        // Listen for profile creation notifications
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleCreateUserProfile(_:)),
+            name: Notification.Name("CreateUserProfile"),
+            object: nil
+        )
     }
     
     deinit {
         userListener?.remove()
+        NotificationCenter.default.removeObserver(self)
+    }
+    
+    @objc private func handleCreateUserProfile(_ notification: Notification) {
+        guard let userInfo = notification.userInfo,
+              let name = userInfo["name"] as? String else { return }
+        
+        print("🎆 Creating user profile for: \(name)")
+        setupInitialProfile(name: name)
     }
     
     func listenForUserData(userId: String) {
@@ -60,9 +77,21 @@ class UserManager: ObservableObject {
                 self.userEmail = userProfile.userEmail
                 self.favoriteMovies = userProfile.favoriteMovies
             } else if !document.exists {
-                self.userName = "Mia"
+                // User authenticated but no profile in Firestore - prompt for name
+                self.userName = "Usuário"
                 self.userEmail = Auth.auth().currentUser?.email ?? ""
-                self.saveUserData()
+                
+                // Don't save automatically - wait for notification or manual setup
+                print("⚠️ User profile not found in Firestore. Waiting for profile setup...")
+                
+                // Fallback: If no profile gets created within 3 seconds, save with default name
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                    // Only save if still no profile and user is still "Usuário"
+                    if self.userName == "Usuário" {
+                        print("🔄 Fallback: Creating profile with default name")
+                        self.saveUserData()
+                    }
+                }
             }
         }
     }
@@ -90,6 +119,14 @@ class UserManager: ObservableObject {
         userName = name.trimmingCharacters(in: .whitespacesAndNewlines)
         saveUserData()
         print("👤 Nome do usuário atualizado para: \(userName)")
+    }
+    
+    func setupInitialProfile(name: String) {
+        userName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        userEmail = Auth.auth().currentUser?.email ?? ""
+        favoriteMovies = []
+        saveUserData()
+        print("🎆 Perfil inicial criado para: \(userName)")
     }
     
     var greeting: String {
@@ -157,7 +194,7 @@ class UserManager: ObservableObject {
     }
     
     func resetToDefault() {
-        userName = "Mia"
+        userName = "Usuário"
         userEmail = ""
         userPassword = ""
         favoriteMovies = []

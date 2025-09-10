@@ -118,6 +118,35 @@ class ProjectManager: ObservableObject {
         guard let projectId = project.id else { return }
         db.collection("projects").document(projectId).delete()
     }
+    
+    func leaveProject(_ project: ProjectModel, completion: @escaping (Bool) -> Void) {
+        guard let projectId = project.id,
+              let userId = Auth.auth().currentUser?.uid else {
+            completion(false)
+            return
+        }
+        
+        // Remove user from project members
+        db.collection("projects").document(projectId).updateData([
+            "members": FieldValue.arrayRemove([userId])
+        ]) { error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    print("❌ Error leaving project: \(error.localizedDescription)")
+                    completion(false)
+                } else {
+                    print("✅ Successfully left project: \(project.name)")
+                    
+                    // Reset active project if this was the active one
+                    if self.activeProject?.id == projectId {
+                        self.setActiveProject(nil)
+                    }
+                    
+                    completion(true)
+                }
+            }
+        }
+    }
 
     func addActivityToDay(date: Date, title: String, description: String, address: String, time: Date, responsible: String) {
         guard let projectId = activeProject?.id else { return }

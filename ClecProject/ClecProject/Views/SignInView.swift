@@ -250,7 +250,7 @@ struct SignInView: View {
     
     private func signUp() {
         Task {
-            await authService.signUp(withEmail: email, password: password)
+            await authService.signUp(withEmail: email, password: password, name: name)
         }
     }
 }

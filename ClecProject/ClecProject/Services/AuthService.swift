@@ -45,17 +45,36 @@ class AuthService: ObservableObject {
     }
     
     @MainActor
-    func signUp(withEmail email: String, password: String) async {
+    func signUp(withEmail email: String, password: String, name: String) async {
         isLoading = true
         errorMessage = nil
         do {
             try await Auth.auth().createUser(withEmail: email, password: password)
             print("✅ User created and signed in successfully: \(userSession?.email ?? "No email")")
+            
+            // Create user profile with the provided name
+            await createUserProfile(name: name)
+            
         } catch {
             print("❌ Error signing up: \(error.localizedDescription)")
             self.errorMessage = mapFirebaseError(error)
         }
         isLoading = false
+    }
+    
+    @MainActor
+    private func createUserProfile(name: String) async {
+        // Wait a bit for Firebase Auth to fully initialize
+        try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+        
+        // Notify UserManager to create initial profile
+        NotificationCenter.default.post(
+            name: Notification.Name("CreateUserProfile"),
+            object: nil,
+            userInfo: ["name": name]
+        )
+        
+        print("🎆 Profile creation notification sent for: \(name)")
     }
     
     func signOut() {

@@ -16,7 +16,8 @@ class UserManager: ObservableObject {
     @Published var userPassword: String = ""
     @Published var favoriteMovies: [FavoriteMovie] = []
     @Published var profileImageData: Data?
-    
+    @Published var activeProjectId: String?   // 🔥 Novo campo
+
     private var db = Firestore.firestore()
     private var userListener: ListenerRegistration?
     
@@ -76,17 +77,15 @@ class UserManager: ObservableObject {
                 self.userName = userProfile.userName
                 self.userEmail = userProfile.userEmail
                 self.favoriteMovies = userProfile.favoriteMovies
+                self.activeProjectId = userProfile.activeProjectId   // 🔥 carrega do Firestore
             } else if !document.exists {
-                // User authenticated but no profile in Firestore - prompt for name
                 self.userName = "Usuário"
                 self.userEmail = Auth.auth().currentUser?.email ?? ""
+                self.activeProjectId = nil
                 
-                // Don't save automatically - wait for notification or manual setup
                 print("⚠️ User profile not found in Firestore. Waiting for profile setup...")
                 
-                // Fallback: If no profile gets created within 3 seconds, save with default name
                 DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                    // Only save if still no profile and user is still "Usuário"
                     if self.userName == "Usuário" {
                         print("🔄 Fallback: Creating profile with default name")
                         self.saveUserData()
@@ -105,7 +104,8 @@ class UserManager: ObservableObject {
             id: userId,
             userName: self.userName,
             userEmail: self.userEmail,
-            favoriteMovies: self.favoriteMovies
+            favoriteMovies: self.favoriteMovies,
+            activeProjectId: self.activeProjectId   // 🔥 salva também
         )
         
         do {
@@ -125,6 +125,7 @@ class UserManager: ObservableObject {
         userName = name.trimmingCharacters(in: .whitespacesAndNewlines)
         userEmail = Auth.auth().currentUser?.email ?? ""
         favoriteMovies = []
+        activeProjectId = nil   // 🔥 nenhum projeto ativo ao criar
         saveUserData()
         print("🎆 Perfil inicial criado para: \(userName)")
     }
@@ -199,6 +200,7 @@ class UserManager: ObservableObject {
         userPassword = ""
         favoriteMovies = []
         profileImageData = nil
+        activeProjectId = nil   // 🔥 reseta também
         saveUserData()
         print("🔄 Dados do usuário resetados para padrão")
     }
@@ -209,6 +211,7 @@ class UserManager: ObservableObject {
         self.userPassword = ""
         self.favoriteMovies = []
         self.profileImageData = nil
+        self.activeProjectId = nil
     }
     
     func clearFavoriteMovies() {
@@ -223,4 +226,5 @@ fileprivate struct UserProfile: Codable, Identifiable {
     var userName: String
     var userEmail: String
     var favoriteMovies: [FavoriteMovie]
+    var activeProjectId: String?   // 🔥 novo campo persistido
 }

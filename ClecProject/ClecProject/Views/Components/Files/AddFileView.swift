@@ -413,8 +413,3 @@ struct FileDocumentPicker: UIViewControllerRepresentable {
         }
     }
 }
-
-#Preview {
-    AddFileView(projectIndex: 0)
-        .environmentObject(ProjectManager())
-}

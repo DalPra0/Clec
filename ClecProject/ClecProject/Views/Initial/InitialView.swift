@@ -2,11 +2,13 @@
 //  InitialView.swift
 //  ClecProject
 //
-//  LIGHT/DARK MODE AUTOMÁTICO - DESIGN PIXEL-PERFECT
+//  PIXEL-PERFECT FIGMA - Tela "Bem vindo!" Idêntica ao Design
+//
 
 import SwiftUI
 
 struct InitialView: View {
+    @Environment(\.colorScheme) var colorScheme
     @EnvironmentObject var projectManager: ProjectManager
     @EnvironmentObject var userManager: UserManager
     @State private var showingCreateProject = false
@@ -15,155 +17,183 @@ struct InitialView: View {
     
     var body: some View {
         NavigationView {
-            ZStack {
-                // FUNDO AUTOMÁTICO (BRANCO NO LIGHT, PRETO NO DARK)
-                Color("BackgroundMain")
-                    .ignoresSafeArea()
-                
-                VStack(spacing: 0) {
-                    Spacer()
+            GeometryReader { geometry in
+                ZStack {
+                    // FUNDO AUTOMÁTICO - Azul no light, preto no dark
+                    Color("DesignSystem/Background")
+                        .ignoresSafeArea()
                     
-                    // HEADER COM TÍTULO E SUBTÍTULO
-                    VStack(spacing: 16) {
-                        // Título principal
-                        Text("Bem vindo!")
-                            .font(.system(size: 32, weight: .bold))
-                            .foregroundColor(Color("TextPrimary"))
-                            .onTapGesture {
-                                handleLogoTap()
-                            }
-                            .onLongPressGesture(minimumDuration: 1.0) {
-                                handleLongPress()
-                            }
-                        
-                        // Subtítulo
-                        Text("Você pode escolher criar um projeto\nou entrar em um com código")
-                            .font(.system(size: 18, weight: .regular))
-                            .foregroundColor(Color("TextSecondary"))
-                            .multilineTextAlignment(.center)
-                            .lineSpacing(4)
-                    }
-                    .padding(.horizontal, 32)
+                    // ASSETS CINEMATOGRÁFICOS DECORATIVOS - igual ao Figma
                     
-                    Spacer()
-                        .frame(height: 64)
+                    // Boneco com câmera - superior esquerda
+                    Image("AssetPersonagemSegurandoCamera")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 200, height: 180)
+                        .rotationEffect(.degrees(-15))
+                        .position(
+                            x: geometry.size.width * 0.15,
+                            y: geometry.size.height * 0.15
+                        )
                     
-                    // CARDS PRINCIPAIS
-                    VStack(spacing: 24) {
-                        // CARD 1: CRIAR PROJETO
-                        Button(action: {
-                            let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-                            impactFeedback.impactOccurred()
-                            showingCreateProject = true
-                        }) {
-                            HStack(spacing: 0) {
-                                // TEXTO À ESQUERDA
-                                VStack(alignment: .leading, spacing: 8) {
-                                    Text("Criar um Projeto")
-                                        .font(.system(size: 22, weight: .bold))
-                                        .foregroundColor(Color("PrimaryOrange"))
-                                        .multilineTextAlignment(.leading)
-                                    
-                                    Text("Eu sou assistente\nde direção")
-                                        .font(.system(size: 16, weight: .medium))
-                                        .foregroundColor(Color("TextPrimary"))
-                                        .multilineTextAlignment(.leading)
-                                        .lineSpacing(2)
+                    // Rolos de filme - decorativos
+                    Image("AssetRoloFIlme")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 120, height: 120)
+                        .rotationEffect(.degrees(15))
+                        .position(
+                            x: geometry.size.width * 0.85,
+                            y: geometry.size.height * 0.15
+                        )
+                    
+                    Image("AssetRoloFIlme")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 100, height: 100)
+                        .rotationEffect(.degrees(-20))
+                        .position(
+                            x: geometry.size.width * 0.15,
+                            y: geometry.size.height * 0.75
+                        )
+                    
+                    // LAYOUT PRINCIPAL
+                    VStack(spacing: 0) {
+                        // HEADER - exato do Figma
+                        VStack(spacing: 16) {
+                            Text("Bem vindo!")
+                                .font(.system(size: 28, weight: .bold))
+                                .foregroundColor(Color("DesignSystem/TextPrimary"))
+                                .onTapGesture {
+                                    handleLogoTap()
                                 }
-                                
-                                Spacer()
-                                
-                                // ILUSTRAÇÃO À DIREITA
-                                Image("AssetMaoSegurandoClaqueteLaranja")
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(width: 120, height: 120)
-                            }
-                            .padding(.horizontal, 24)
-                            .padding(.vertical, 32)
-                            .background(
-                                RoundedRectangle(cornerRadius: 20)
-                                    .fill(Color("CardBackground"))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 20)
-                                            .stroke(
-                                                LinearGradient(
-                                                    gradient: Gradient(colors: [
-                                                        Color("PrimaryOrange").opacity(0.3),
-                                                        Color("PrimaryOrange").opacity(0.1)
-                                                    ]),
-                                                    startPoint: .topLeading,
-                                                    endPoint: .bottomTrailing
-                                                ),
-                                                lineWidth: 1.5
-                                            )
-                                    )
-                            )
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                        
-                        // CARD 2: ENTRAR COM CÓDIGO
-                        Button(action: {
-                            let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-                            impactFeedback.impactOccurred()
-                            showingJoinProject = true
-                        }) {
-                            HStack(spacing: 0) {
-                                // TEXTO À ESQUERDA
-                                VStack(alignment: .leading, spacing: 8) {
-                                    Text("Você tem\num código?")
-                                        .font(.system(size: 22, weight: .bold))
-                                        .foregroundColor(Color("PrimaryOrange"))
-                                        .multilineTextAlignment(.leading)
-                                        .lineSpacing(2)
-                                    
-                                    Text("Sou membro do\nset de produção")
-                                        .font(.system(size: 16, weight: .medium))
-                                        .foregroundColor(Color("TextPrimary"))
-                                        .multilineTextAlignment(.leading)
-                                        .lineSpacing(2)
+                                .onLongPressGesture(minimumDuration: 1.0) {
+                                    handleLongPress()
                                 }
-                                
-                                Spacer()
-                                
-                                // ILUSTRAÇÃO À DIREITA
-                                Image("AssetPersoagemSegurandoCameraLaranja")
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(width: 120, height: 120)
-                            }
-                            .padding(.horizontal, 24)
-                            .padding(.vertical, 32)
-                            .background(
-                                RoundedRectangle(cornerRadius: 20)
-                                    .fill(Color("CardBackground"))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 20)
-                                            .stroke(
-                                                LinearGradient(
-                                                    gradient: Gradient(colors: [
-                                                        Color("PrimaryOrange").opacity(0.3),
-                                                        Color("PrimaryOrange").opacity(0.1)
-                                                    ]),
-                                                    startPoint: .topLeading,
-                                                    endPoint: .bottomTrailing
-                                                ),
-                                                lineWidth: 1.5
-                                            )
-                                    )
-                            )
+                            
+                            Text("Você pode escolher criar um projeto\nou entrar em um com código")
+                                .font(.system(size: 17, weight: .regular))
+                                .foregroundColor(Color("DesignSystem/TextPrimary"))
+                                .multilineTextAlignment(.center)
+                                .lineSpacing(3)
                         }
-                        .buttonStyle(PlainButtonStyle())
+                        .padding(.top, 80)
+                        .padding(.horizontal, 32)
+                        
+                        Spacer()
+                        
+                        // CARDS GRANDES - exatos do Figma
+                        VStack(spacing: 53) {
+                            // CARD 1: CRIAR PROJETO
+                            Button(action: {
+                                let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                                impactFeedback.impactOccurred()
+                                showingCreateProject = true
+                            }) {
+                                HStack(spacing: 13) {
+                                    // TEXTO À ESQUERDA
+                                    VStack(alignment: .leading, spacing: 0) {
+                                        Text("Criar um Projeto")
+                                            .font(.system(size: 20, weight: .semibold))
+                                            .foregroundColor(Color("DesignSystem/Primary"))
+                                            .tracking(-0.45)
+                                            .multilineTextAlignment(.leading)
+                                        
+                                        Text("Eu sou assistente\nde direção")
+                                            .font(.system(size: 16, weight: .regular))
+                                            .foregroundColor(colorScheme == .dark ? Color("DesignSystem/TextPrimary") : Color("DesignSystem/TextPrimary"))
+                                            .tracking(-0.31)
+                                            .multilineTextAlignment(.leading)
+                                            .lineSpacing(1)
+                                            .padding(.top, 6)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    // ASSET À DIREITA - claquete com rotação
+                                    Image("AssetMaoSegurandoClaqueteLaranja")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 187, height: 177)
+                                        .rotationEffect(.degrees(180))
+                                        .scaleEffect(x: -1, y: -1)
+                                }
+                                .padding(.horizontal, 24)
+                                .padding(.vertical, 24)
+                                .frame(height: 156)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(Color("DesignSystem/Surface"))
+                                        .shadow(
+                                            color: Color.black.opacity(0.25),
+                                            radius: 4,
+                                            x: 0,
+                                            y: 4
+                                        )
+                                )
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            
+                            // CARD 2: CÓDIGO
+                            Button(action: {
+                                let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                                impactFeedback.impactOccurred()
+                                showingJoinProject = true
+                            }) {
+                                HStack(spacing: 0) {
+                                    // TEXTO À ESQUERDA
+                                    VStack(alignment: .leading, spacing: 0) {
+                                        Text("Você tem\num código?")
+                                            .font(.system(size: 20, weight: .semibold))
+                                            .foregroundColor(Color("DesignSystem/Primary"))
+                                            .tracking(-0.45)
+                                            .multilineTextAlignment(.leading)
+                                            .lineSpacing(1)
+                                        
+                                        Text("Sou membro do\nset de produção")
+                                            .font(.system(size: 16, weight: .regular))
+                                            .foregroundColor(colorScheme == .dark ? Color("DesignSystem/TextPrimary") : Color("DesignSystem/TextPrimary"))
+                                            .tracking(-0.31)
+                                            .multilineTextAlignment(.leading)
+                                            .lineSpacing(1)
+                                            .padding(.top, 6)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    // ASSET À DIREITA - câmera com rotação
+                                    Image("AssetPersoagemSegurandoCameraLaranja")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 293, height: 262)
+                                        .rotationEffect(.degrees(180))
+                                        .scaleEffect(x: -1, y: -1)
+                                }
+                                .padding(.horizontal, 24)
+                                .padding(.vertical, 24)
+                                .frame(height: 156)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(Color("DesignSystem/Surface"))
+                                        .shadow(
+                                            color: Color.black.opacity(0.25),
+                                            radius: 4,
+                                            x: 0,
+                                            y: 4
+                                        )
+                                )
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                        }
+                        .frame(width: 327) // Width exato do Figma
+                        
+                        Spacer()
+                        Spacer()
                     }
-                    .padding(.horizontal, 24)
-                    
-                    Spacer()
-                    Spacer()
                 }
             }
         }
         .navigationBarHidden(true)
-        // REMOVIDO: .preferredColorScheme(.dark) - AGORA É AUTOMÁTICO!
         .sheet(isPresented: $showingCreateProject) {
             CreateProjectView(onProjectCreated: { project in
                 projectManager.setActiveProject(project)
@@ -215,22 +245,3 @@ struct InitialView: View {
         .environmentObject(ProjectManager())
         .environmentObject(UserManager())
 }
-
-// For Xcode versions prior to 15, use this syntax instead:
-/*
-struct InitialView_Previews: PreviewProvider {
-    static var previews: some View {
-        Group {
-            InitialView()
-                .environmentObject(ProjectManager())
-                .environmentObject(UserManager())
-                .preferredColorScheme(.light)
-            
-            InitialView()
-                .environmentObject(ProjectManager())
-                .environmentObject(UserManager())
-                .preferredColorScheme(.dark)
-        }
-    }
-}
-*/

@@ -2,131 +2,136 @@
 //  LoginView.swift
 //  ClecProject
 //
-//  Updated: Pixel-Perfect Figma Implementation
+//  Pixel-Perfect Figma Implementation - Tamanhos REAIS e Posições EXATAS
 //
 
 import SwiftUI
 
 struct LoginView: View {
-    @State private var showLoginModal = false
+    @Environment(\.colorScheme) var colorScheme
+    @State private var showingLoginView = false
     @State private var showSignUp = false
     
     var body: some View {
         NavigationStack {
-            ZStack {
-                // Background - Cor exata do Figma
-                Color(hex: "#060606")
-                    .ignoresSafeArea()
-                
-                // Elementos decorativos de cinema posicionados como no Figma
-                GeometryReader { geometry in
-                    // Asset 11 - Câmera principal (superior esquerda) - MOVIDO PARA CIMA
+            GeometryReader { geometry in
+                ZStack {
+                    // Background - Automático Dark/Light Mode
+                    Color("DesignSystem/Background")
+                        .ignoresSafeArea()
+                    
+                    // Elementos cinematográficos decorativos - TAMANHOS REAIS DO FIGMA
+                    
+                    // Câmera superior esquerda - TAMANHO MÁXIMO igual ao Figma
                     Image("AssetPersonagemSegurandoCamera")
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 280, height: 250)
+                        .frame(width: 380, height: 340) // TAMANHO MÁXIMO - ajuste final
                         .rotationEffect(.degrees(-15))
                         .position(
-                            x: geometry.size.width * 0.10,
-                            y: geometry.size.height * 0.08  // MAIS PARA CIMA (era 0.15)
+                            x: geometry.size.width * 0.18,  // 18% da largura
+                            y: geometry.size.height * 0.15  // 15% da altura
                         )
                     
-                    // Asset 17 - Rolo superior direita - MOVIDO PARA CIMA
+                    // Rolo superior direita - GRANDE como no Figma
                     Image("AssetRoloFIlme")
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 220, height: 220)
-                        .rotationEffect(.degrees(13))
+                        .frame(width: 170, height: 170) // MAIOR - tamanho real do Figma
+                        .rotationEffect(.degrees(15))
                         .position(
-                            x: geometry.size.width * 0.85,
-                            y: geometry.size.height * 0.10  // MAIS PARA CIMA (era 0.18)
+                            x: geometry.size.width * 0.82,  // 82% da largura
+                            y: geometry.size.height * 0.15  // 15% da altura
                         )
                     
-                    // Asset 16 - Claquete inferior direita - MOVIDO PARA CIMA
+                    // Logo central "CLECK!" - DOMINANTE como no Figma
+                    Image(colorScheme == .dark ? "CleckAssetComBalao" : "CleckAssetComBalaoLaranja")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 380, height: 320) // MUITO MAIOR - dominante na tela
+                        .position(
+                            x: geometry.size.width * 0.5,   // Centro horizontal
+                            y: geometry.size.height * 0.42  // 42% da altura - posição central
+                        )
+                    
+                    // Rolo inferior esquerda - GRANDE como no Figma
+                    Image("AssetRoloFIlme")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 150, height: 150) // MAIOR - visível no design
+                        .rotationEffect(.degrees(15))
+                        .position(
+                            x: geometry.size.width * 0.15,  // 15% da largura
+                            y: geometry.size.height * 0.68  // 68% da altura
+                        )
+                    
+                    // Claquete inferior direita - TAMANHO MÁXIMO para encostar no balão
                     Image("AssetMaoSegurandoClaquete")
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 300, height: 280)
-                        .rotationEffect(.degrees(-3))
+                        .frame(width: 320, height: 290) // TAMANHO MÁXIMO - ajuste final
+                        .rotationEffect(.degrees(-10))
                         .position(
-                            x: geometry.size.width * 0.75,
-                            y: geometry.size.height * 0.50  // MAIS PARA CIMA (era 0.65)
+                            x: geometry.size.width * 0.85,  // 85% da largura
+                            y: geometry.size.height * 0.65  // 65% - ENCOSTA na pontinha do balão
                         )
                     
-                    // Asset 17 copy - Rolo inferior esquerda - MOVIDO PARA CIMA
-                    Image("AssetRoloFIlme")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 200, height: 200)
-                        .rotationEffect(.degrees(13))
-                        .position(
-                            x: geometry.size.width * 0.05,
-                            y: geometry.size.height * 0.55  // MAIS PARA CIMA (era 0.70)
-                        )
-                }
-                
-                VStack(spacing: 0) {
-                    // Spacer pequeno - logo mais centrado mas um pouco mais alto
-                    Spacer(minLength: 40)
-                    
-                    // Logo central "cleck!" - POSICIONADO PARA CRIAR ESPAÇO LIMPO EMBAIXO
-                    Image("CleckAssetComBalao")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 320, height: 240)
-                        .padding(.bottom, 40) // Mais espaço embaixo para separar dos botões
-                    
-                    // Spacer grande para criar área limpa para os botões
-                    Spacer(minLength: 120)
-                    
-                    // Botões na parte inferior - Especificações exatas do Figma
-                    VStack(spacing: 24) { // Spacing exato do Figma
-                        // Botão "Fazer login" - Laranja
-                        Button {
-                            let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-                            impactFeedback.impactOccurred()
-                            showLoginModal = true
-                        } label: {
-                            Text("Fazer login")
-                                .font(.system(size: 17, weight: .semibold)) // Font size exato do Figma
-                                .foregroundColor(.white)
-                                .tracking(-0.43) // Letter spacing do Figma
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 56)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 12) // Border radius exato
-                                        .fill(Color(hex: "#f85601")) // Cor exata do Figma
-                                )
-                        }
-                        .buttonStyle(PlainButtonStyle())
+                    // BOTÕES na parte inferior - SOBRE os elementos
+                    VStack {
+                        Spacer() // Empurra os botões para baixo
                         
-                        // Botão "Criar uma conta" - Outline laranja (NÃO branco!)
-                        Button {
-                            let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-                            impactFeedback.impactOccurred()
-                            showSignUp = true
-                        } label: {
-                            Text("Criar uma conta")
-                                .font(.system(size: 17, weight: .semibold)) // Font size exato do Figma
-                                .foregroundColor(.white)
-                                .tracking(-0.43) // Letter spacing do Figma
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 56)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .stroke(Color(hex: "#f85601"), lineWidth: 1) // Borda LARANJA, não branca!
-                                )
+                        VStack(spacing: 16) {
+                            // Botão "Fazer login" - LARANJA SÓLIDO
+                            Button {
+                                let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                                impactFeedback.impactOccurred()
+                                showingLoginView = true
+                            } label: {
+                                Text("Fazer login")
+                                    .font(.system(size: 17, weight: .semibold))
+                                    .foregroundColor(Color("DesignSystem/OnPrimary"))
+                                    .tracking(-0.43)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 56)
+                            .background(Color("DesignSystem/Primary"))
+                            .cornerRadius(12)
+                            .buttonStyle(PlainButtonStyle())
+                            
+                            // Botão "Criar uma conta" - OUTLINE ADAPTÁVEL
+                            Button {
+                                let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                                impactFeedback.impactOccurred()
+                                showSignUp = true
+                            } label: {
+                                Text("Criar uma conta")
+                                    .font(.system(size: 17, weight: .semibold))
+                                    .foregroundColor(Color("DesignSystem/ButtonSecondaryText"))
+                                    .tracking(-0.43)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 56)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color("DesignSystem/Primary"), lineWidth: 2)
+                            )
+                            .buttonStyle(PlainButtonStyle())
                         }
-                        .buttonStyle(PlainButtonStyle())
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 20)
+                        
+                        // Home Indicator
+                        Rectangle()
+                            .fill(Color("DesignSystem/HomeIndicator"))
+                            .frame(width: 134, height: 5)
+                            .cornerRadius(3)
+                            .padding(.bottom, 8)
                     }
-                    .frame(width: 370) // Width exato do Figma
-                    .padding(.bottom, 60) // Padding menor para manter botões na área limpa
                 }
             }
-            .preferredColorScheme(.dark)
-            .sheet(isPresented: $showLoginModal) {
+            .ignoresSafeArea(.all)
+            .navigationDestination(isPresented: $showingLoginView) {
                 LoginModalView()
-                    .presentationDetents([.height(450)])
             }
             .navigationDestination(isPresented: $showSignUp) {
                 SignInView()

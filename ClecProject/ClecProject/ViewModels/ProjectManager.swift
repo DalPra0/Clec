@@ -20,11 +20,30 @@ class ProjectManager: ObservableObject {
     private let weatherService = WeatherService.shared
     private var forecastCache: [Date: DailyForecast] = [:]
 
+    // 🔥 Referência ao UserManager para manter sincronizado
+    private var userManager: UserManager?
+
     var hasProjects: Bool {
         return !projects.isEmpty
     }
 
+    // ✅ Init usado no preview e em testes
     init() {
+        self.userManager = nil
+        _ = Auth.auth().addStateDidChangeListener { [weak self] (_, user) in
+            if let user = user {
+                self?.setupProjectsListener(for: user.uid)
+            } else {
+                self?.detachProjectsListener()
+                self?.projects = []
+                self?.activeProject = nil
+            }
+        }
+    }
+
+    // ✅ Init oficial usado no app, com UserManager
+    init(userManager: UserManager?) {
+        self.userManager = userManager
         _ = Auth.auth().addStateDidChangeListener { [weak self] (_, user) in
             if let user = user {
                 self?.setupProjectsListener(for: user.uid)
@@ -62,10 +81,27 @@ class ProjectManager: ObservableObject {
                 try? document.data(as: ProjectModel.self)
             }
 
-            if let currentActiveId = self.activeProject?.id {
-                self.activeProject = self.projects.first { $0.id == currentActiveId }
+            // 🔄 Buscar projeto ativo salvo no usuário
+            self.restoreActiveProject(for: userId)
+        }
+    }
+
+    private func restoreActiveProject(for userId: String) {
+        db.collection("users").document(userId).getDocument { snapshot, _ in
+            guard let data = snapshot?.data() else { return }
+
+            if let activeId = data["activeProjectId"] as? String {
+                if let project = self.projects.first(where: { $0.id == activeId }) {
+                    self.activeProject = project
+                    self.userManager?.activeProjectId = project.id   // 🔥 sincroniza com UserManager
+                    print("✅ Projeto ativo restaurado: \(project.name)")
+                } else {
+                    print("⚠️ Projeto ativo salvo não encontrado entre os projetos do usuário")
+                }
             } else if self.projects.count == 1 {
                 self.activeProject = self.projects.first
+                self.userManager?.activeProjectId = self.projects.first?.id
+                print("ℹ️ Apenas um projeto encontrado, definindo como ativo automaticamente")
             }
         }
     }
@@ -117,6 +153,47 @@ class ProjectManager: ObservableObject {
     func removeProject(_ project: ProjectModel) {
         guard let projectId = project.id else { return }
         db.collection("projects").document(projectId).delete()
+    }
+    
+    func leaveProject(_ project: ProjectModel, completion: @escaping (Bool) -> Void) {
+        guard let projectId = project.id,
+              let userId = Auth.auth().currentUser?.uid else {
+            completion(false)
+            return
+        }
+        
+        db.collection("projects").document(projectId).updateData([
+            "members": FieldValue.arrayRemove([userId])
+        ]) { error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    print("❌ Error leaving project: \(error.localizedDescription)")
+                    completion(false)
+                } else {
+                    print("✅ Successfully left project: \(project.name)")
+                    
+                    if self.activeProject?.id == projectId {
+                        self.setActiveProject(nil)
+                    }
+                    
+                    completion(true)
+                }
+            }
+        }
+    }
+
+    func setActiveProject(_ project: ProjectModel?) {
+        self.activeProject = project
+        guard let userId = Auth.auth().currentUser?.uid else { return }
+
+        let projectId = project?.id
+        db.collection("users").document(userId).setData(
+            ["activeProjectId": projectId ?? NSNull()],
+            merge: true
+        )
+
+        // 🔥 sincroniza com UserManager também
+        self.userManager?.activeProjectId = projectId
     }
 
     func addActivityToDay(date: Date, title: String, description: String, address: String, time: Date, responsible: String) {
@@ -220,10 +297,6 @@ class ProjectManager: ObservableObject {
         } catch {
             print("Error updating file in project: \(error.localizedDescription)")
         }
-    }
-
-    func setActiveProject(_ project: ProjectModel?) {
-        self.activeProject = project
     }
 
     func dayHasActivities(_ date: Date) -> Bool {

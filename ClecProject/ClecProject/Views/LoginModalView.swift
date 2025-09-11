@@ -28,6 +28,7 @@ struct LoginModalView: View {
                     // Background - Automático: Azul no light, escuro no dark
                     Color("DesignSystem/Background")
                         .ignoresSafeArea()
+                        .dismissKeyboardOnTap() // Dismiss keyboard when tapping background
                     
                     // BONECO SEGURANDO ORDEM DO DIA - ASSET CORRETO
                     Image("AssetPersonagemSegurandoOrdemdoDia")

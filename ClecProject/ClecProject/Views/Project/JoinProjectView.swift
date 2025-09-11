@@ -27,8 +27,9 @@ struct JoinProjectView: View {
         NavigationView {
             ZStack {
                 // FUNDO ESCURO CONSISTENTE
-                Color(hex: "#141414")
+                Color("BackgroundDark")
                     .ignoresSafeArea(.all)
+                    .dismissKeyboardOnTap() // Dismiss keyboard when tapping background
                 
                 mainContent
             }

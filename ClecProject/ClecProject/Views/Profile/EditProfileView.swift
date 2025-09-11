@@ -36,12 +36,14 @@ struct EditProfileView: View {
                 .padding(.horizontal, 24)
                 .padding(.top, 20)
             }
-            .background(Color(.systemBackground))
+            .background(Color("BackgroundDark"))
+            .dismissKeyboardOnTap() // Dismiss keyboard when tapping background
             .navigationBarTitleDisplayMode(.inline)
             .navigationBarBackButtonHidden(true)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancelar") {
+                        hideKeyboard() // Hide keyboard before dismissing
                         presentationMode.wrappedValue.dismiss()
                     }
                     .foregroundColor(.primary)
@@ -141,29 +143,45 @@ struct EditProfileView: View {
         VStack(spacing: 20) {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Nome completo")
-                    .font(.system(size: 18, weight: .medium))
-                    .foregroundColor(.primary)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
                 
                 TextField("Nome do usuário", text: $fullName)
                     .font(.system(size: 16))
-                    .padding(.horizontal, 20)
+                    .foregroundColor(.white)
+                    .accentColor(Color("PrimaryOrange"))
+                    .padding(.horizontal, 16)
                     .padding(.vertical, 16)
-                    .background(Color(.systemGray6))
-                    .cornerRadius(25)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color("CardBackground"))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color("TextSecondary").opacity(0.3), lineWidth: 1)
+                            )
+                    )
                     .autocorrectionDisabled()
             }
             
             VStack(alignment: .leading, spacing: 8) {
                 Text("E-mail")
-                    .font(.system(size: 18, weight: .medium))
-                    .foregroundColor(.primary)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
                 
-                TextField("Nome do usuário", text: $email)
+                TextField("Seu e-mail", text: $email)
                     .font(.system(size: 16))
-                    .padding(.horizontal, 20)
+                    .foregroundColor(.white)
+                    .accentColor(Color("PrimaryOrange"))
+                    .padding(.horizontal, 16)
                     .padding(.vertical, 16)
-                    .background(Color(.systemGray6))
-                    .cornerRadius(25)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color("CardBackground"))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color("TextSecondary").opacity(0.3), lineWidth: 1)
+                            )
+                    )
                     .keyboardType(.emailAddress)
                     .autocorrectionDisabled()
                     .textInputAutocapitalization(.never)
@@ -171,15 +189,23 @@ struct EditProfileView: View {
             
             VStack(alignment: .leading, spacing: 8) {
                 Text("Senha")
-                    .font(.system(size: 18, weight: .medium))
-                    .foregroundColor(.primary)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
                 
-                SecureField("Nome do usuário", text: $password)
+                SecureField("Sua senha", text: $password)
                     .font(.system(size: 16))
-                    .padding(.horizontal, 20)
+                    .foregroundColor(.white)
+                    .accentColor(Color("PrimaryOrange"))
+                    .padding(.horizontal, 16)
                     .padding(.vertical, 16)
-                    .background(Color(.systemGray6))
-                    .cornerRadius(25)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color("CardBackground"))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color("TextSecondary").opacity(0.3), lineWidth: 1)
+                            )
+                    )
             }
         }
     }
@@ -188,18 +214,20 @@ struct EditProfileView: View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
                 Text("Filmes Favoritos")
-                    .font(.system(size: 18, weight: .medium))
-                    .foregroundColor(.primary)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
                 
                 Spacer()
                 
                 Text("\(userManager.favoriteMovies.count)/4")
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.secondary)
+                    .foregroundColor(Color("TextSecondary"))
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
-                    .background(Color(.systemGray5))
-                    .cornerRadius(8)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color("CardBackground"))
+                    )
             }
             
             LazyVGrid(columns: [

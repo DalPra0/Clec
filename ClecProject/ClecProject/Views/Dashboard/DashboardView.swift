@@ -36,8 +36,12 @@ struct DashboardView: View {
     // MARK: - Body
     var body: some View {
         ZStack {
-            Color("BackgroundDark")
-                .ignoresSafeArea()
+            LinearGradient(
+                colors: [Color("BackgroundDark"), .black],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
             
             if let project = project {
                 mainContent(project: project)
@@ -142,7 +146,11 @@ struct DashboardView: View {
     private func handleFABAction() {
         switch selectedTab {
         case .geral:
-            showingAddActivity = true
+            if projectManager.dayHasActivities(selectedDate) {
+                showingAddActivity = true
+            } else {
+                showingAddOrdemDoDia = true
+            }
         case .arquivos:
             showingAddFile = true
         case .ordens:

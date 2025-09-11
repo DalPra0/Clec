@@ -177,6 +177,7 @@ struct OnboardingView: View {
             
             if(page.hasButton) {
                 Button {
+                    isUserOldLocal = true
                     UserDefaults.standard.set(true, forKey: "isUserOld")
                     //mandar p/ content view :P
                 } label: {

@@ -196,14 +196,58 @@ class ProjectManager: ObservableObject {
         self.userManager?.activeProjectId = projectId
     }
 
-    func addActivityToDay(date: Date, title: String, description: String, address: String, time: Date, responsible: String) {
+    // MARK: - Call Sheet Management
+    
+    func createCallSheetWithFirstScene(callSheetTitle: String, date: Date, color: CallSheetModel.CallSheetColor, sceneDescription: String, sceneAddress: String, sceneTime: Date) {
+        guard let projectId = activeProject?.id else { return }
+        
+        if activeProject?.callSheet.contains(where: { Calendar.current.isDate($0.day, inSameDayAs: date) }) ?? false {
+            print("⚠️ A call sheet for this day already exists.")
+            // Optionally, we could add the scene to the existing sheet here, but for now we'll just prevent duplicates.
+            return
+        }
+
+        let newLocation = SceneLocation(name: sceneAddress, address: sceneAddress, latitude: 0.0, longitude: 0.0)
+        let newEnvironment = EnvironmentConditions(environment: "INT./EXT.", dayCycle: "DAY", weather: "Ensolarado")
+        let firstScene = CallSheetLineInfo(
+            scene: 1,
+            shots: [1],
+            environmentCondition: newEnvironment,
+            location: newLocation,
+            description: sceneDescription,
+            characters: []
+        )
+        
+        let schedule = [SchedulePair(scheduleActivity: .Begginning, time: sceneTime)]
+
+        let newCallSheet = CallSheetModel(
+            id: UUID(),
+            sheetName: callSheetTitle,
+            day: date,
+            schedule: schedule,
+            callSheetColor: color,
+            sceneTable: [firstScene]
+        )
+
+        do {
+            let callSheetData = try Firestore.Encoder().encode(newCallSheet)
+            db.collection("projects").document(projectId).updateData([
+                "callSheet": FieldValue.arrayUnion([callSheetData])
+            ])
+        } catch {
+             print("Error encoding call sheet: \(error.localizedDescription)")
+        }
+    }
+
+    func addSceneToDay(date: Date, title: String, description: String, address: String, time: Date, responsible: String) {
         guard let projectId = activeProject?.id else { return }
 
-        let newLocation = SceneLocation(name: "Nova Locação", address: address, latitude: 0.0, longitude: 0.0)
+        let newLocation = SceneLocation(name: address, address: address, latitude: 0.0, longitude: 0.0)
         let newEnvironment = EnvironmentConditions(environment: "INT./EXT.", dayCycle: "DIA", weather: "Ensolarado")
 
-        let newCallSheetLine = CallSheetLineInfo(
-            scene: (activeProject?.callSheet.flatMap({$0.sceneTable}).count ?? 0) + 1,
+        let sceneNumber = (activeProject?.callSheet.flatMap({$0.sceneTable}).count ?? 0) + 1
+        let newScene = CallSheetLineInfo(
+            scene: sceneNumber,
             shots: [1],
             environmentCondition: newEnvironment,
             location: newLocation,
@@ -213,17 +257,20 @@ class ProjectManager: ObservableObject {
 
         if let dayIndex = activeProject?.callSheet.firstIndex(where: { Calendar.current.isDate($0.day, inSameDayAs: date) }) {
             var allCallSheets = activeProject!.callSheet
-            allCallSheets[dayIndex].sceneTable.append(newCallSheetLine)
+            allCallSheets[dayIndex].sceneTable.append(newScene)
             updateCallSheetsInFirestore(projectId: projectId, callSheets: allCallSheets)
-
         } else {
+            let formatter = DateFormatter()
+            formatter.dateStyle = .medium
+            formatter.locale = Locale(identifier: "pt_BR")
+            
             let newCallSheet = CallSheetModel(
                 id: UUID(),
-                sheetName: title,
+                sheetName: "Diária - \(formatter.string(from: date))",
                 day: date,
                 schedule: [],
-                callSheetColor: .blue,
-                sceneTable: [newCallSheetLine]
+                callSheetColor: .blue, // Default color for auto-created sheets
+                sceneTable: [newScene]
             )
 
             do {
@@ -328,7 +375,6 @@ class ProjectManager: ObservableObject {
         }
 
         var location: CLLocation?
-
         if let sceneForDay = project.callSheet.first(where: { calendar.isDate($0.day, inSameDayAs: day) })?.sceneTable.first {
             location = CLLocation(latitude: sceneForDay.location.latitude, longitude: sceneForDay.location.longitude)
         } else if let firstSceneInProject = project.callSheet.first?.sceneTable.first {

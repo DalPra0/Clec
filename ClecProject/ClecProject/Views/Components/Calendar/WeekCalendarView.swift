@@ -10,6 +10,7 @@ import SwiftUI
 
 struct WeekCalendarView: View {
     @Binding var selectedDate: Date
+    let hasEventsFor: (Date) -> Bool
     
     private var currentWeekDays: [Date] {
         let calendar = Calendar.current
@@ -33,7 +34,7 @@ struct WeekCalendarView: View {
         ZStack {
             RoundedRectangle(cornerRadius: 16)
                 .fill(Color("CalendarBackground"))
-                .frame(height: 60)
+                .frame(height: 70)
             
             GeometryReader { geometry in
                 RoundedRectangle(cornerRadius: 12)
@@ -47,7 +48,7 @@ struct WeekCalendarView: View {
                             endPoint: .bottomTrailing
                         )
                     )
-                    .frame(width: geometry.size.width / 7, height: 50)
+                    .frame(width: geometry.size.width / 7, height: 60)
                     .shadow(color: Color("PrimaryOrange").opacity(0.4), radius: 8, x: 0, y: 2)
                     .shadow(color: .black.opacity(0.2), radius: 2, x: 0, y: 1)
                     .offset(x: selectedDayOffset(geometry: geometry), y: 5)
@@ -59,6 +60,7 @@ struct WeekCalendarView: View {
                     CalendarDayView(
                         date: date,
                         isSelected: Calendar.current.isDate(date, inSameDayAs: selectedDate),
+                        hasEvents: hasEventsFor(date),
                         onTap: {
                             let impactFeedback = UIImpactFeedbackGenerator(style: .light)
                             impactFeedback.impactOccurred()
@@ -72,6 +74,6 @@ struct WeekCalendarView: View {
                 }
             }
         }
-        .frame(height: 60)
+        .frame(height: 70)
     }
 }

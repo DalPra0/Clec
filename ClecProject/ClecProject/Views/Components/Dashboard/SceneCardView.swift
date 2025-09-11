@@ -29,27 +29,27 @@ struct SceneCardView: View {
                 .font(.system(size: 18, weight: .bold))
                 .foregroundColor(.white)
             
-            HStack(spacing: 8) {
-                Image(systemName: "calendar")
-                    .font(.system(size: 14))
-                    .foregroundColor(Color("TextSecondary"))
-                
-                Text(formattedDate)
-                    .font(.system(size: 16))
-                    .foregroundColor(Color("TextSecondary"))
-                
-                Spacer()
-                
-                Text(timeString)
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(
-                        Capsule()
-                            .fill(Color("TimeBadge"))
-                    )
-            }
+//            HStack(spacing: 8) {
+//                Image(systemName: "calendar")
+//                    .font(.system(size: 14))
+//                    .foregroundColor(Color("TextSecondary"))
+//                
+//                Text(formattedDate)
+//                    .font(.system(size: 16))
+//                    .foregroundColor(Color("TextSecondary"))
+//                
+//                Spacer()
+//                
+//                Text(timeString)
+//                    .font(.system(size: 14, weight: .medium))
+//                    .foregroundColor(.white)
+//                    .padding(.horizontal, 12)
+//                    .padding(.vertical, 6)
+//                    .background(
+//                        Capsule()
+//                            .fill(Color("TimeBadge"))
+//                    )
+//            }
             
             HStack(spacing: 8) {
                 Circle()

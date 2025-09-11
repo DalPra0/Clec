@@ -108,7 +108,7 @@ struct DashboardView: View {
         case .arquivos:
             FilesSection(project: project)
         case .ordens:
-            OrdersSection(project: project)
+            OrdersSection(project: project, onSelectCallSheet: switchToDay)
         case .configuracoes:
             SettingsSection(project: project)
         }
@@ -151,6 +151,15 @@ struct DashboardView: View {
             selectedDate = Date()
             showingAddActivity = true
         }
+    }
+    
+    private func switchToDay(date: Date) {
+        withAnimation {
+            selectedDate = date
+            selectedTab = .geral
+        }
+        let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+        impactFeedback.impactOccurred()
     }
     
     private func handleTabSelection(_ tab: DashboardTab) {

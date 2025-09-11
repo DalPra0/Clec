@@ -10,65 +10,27 @@ import SwiftUI
 
 struct OrdersSection: View {
     let project: ProjectModel?
-    
-    private func formatDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "dd/MM/yyyy"
-        formatter.locale = Locale(identifier: "pt_BR")
-        return formatter.string(from: date)
-    }
+    var onSelectCallSheet: (Date) -> Void = { _ in }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            Text("Ordens do Dia")
-                .font(.system(size: 24, weight: .bold))
-                .foregroundColor(.white)
             
             if let project = project, !project.callSheet.isEmpty {
-                VStack(spacing: 16) {
-                    ForEach(Array(project.callSheet.enumerated()), id: \.offset) { index, callSheet in
-                        let color = callSheet.callSheetColor.swiftUIColor
-                        
-                        VStack(alignment: .leading, spacing: 12) {
-                            HStack {
-                                Rectangle()
-                                    .fill(color)
-                                    .frame(width: 4)
-                                    .cornerRadius(2)
-                                
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text("Diária \(index + 1)")
-                                        .font(.system(size: 18, weight: .bold))
-                                        .foregroundColor(.white)
-                                    
-                                    Text(formatDate(callSheet.day))
-                                        .font(.system(size: 14))
-                                        .foregroundColor(Color("TextSecondary"))
-                                }
-                                
-                                Spacer()
-                                
-                                Text("\(callSheet.sceneTable.count) cenas")
-                                    .font(.system(size: 14, weight: .medium))
-                                    .foregroundColor(Color("TextSecondary"))
-                                
-                                Image(systemName: "chevron.right")
-                                    .font(.system(size: 14))
-                                    .foregroundColor(Color("TextSecondary"))
-                            }
+                VStack(spacing: -8) {
+                    ForEach(project.callSheet) { callSheet in
+                        Button(action: {
+                            onSelectCallSheet(callSheet.day)
+                        }) {
+                            CallSheetCardView(callSheet: callSheet)
                         }
-                        .padding(16)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(Color("CardBackground"))
-                        )
+                        .buttonStyle(PlainButtonStyle())
                     }
                 }
             } else {
                 EmptyStateView(
-                    icon: "doc.text",
-                    title: "Nenhuma ordem do dia criada",
-                    subtitle: "Crie ordens do dia para organizar as filmagens"
+                    icon: "doc.text.magnifyingglass",
+                    title: "Nenhuma ordem do dia",
+                    subtitle: "Crie a primeira ordem do dia para o seu projeto usando o botão '+'"
                 )
             }
         }

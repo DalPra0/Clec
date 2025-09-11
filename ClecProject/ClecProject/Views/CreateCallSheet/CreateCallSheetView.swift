@@ -11,283 +11,159 @@ struct CreateCallSheetView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var projectManager: ProjectManager
     
+    // Call Sheet States
     @State private var title: String = ""
+    @State private var selectedColorIndex: Int = 2 // Default to blue
+    
+    // First Scene States
     @State private var description: String = ""
     @State private var address: String = ""
     @State private var date: Date = Date()
-    @State private var showDatePicker = false
-    @State private var selectedColorIndex: Int = 3
+    
     @State private var isReminderEnabled: Bool = false
     
-    let colorEnums: [CallSheetModel.CallSheetColor] = [.green, .yellow, .blue, .purple]
+    let colorEnums: [CallSheetModel.CallSheetColor] = [.purple, .yellow, .green, .blue]
     
     var isFormValid: Bool {
         !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+        !description.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
         !address.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
     
     var body: some View {
         NavigationView {
             ZStack {
-                // FUNDO ESCURO CONSISTENTE
-                Color(hex: "#141414")
-                    .ignoresSafeArea(.all)
+                Color("BackgroundDark").ignoresSafeArea()
                 
-                ScrollView {
-                    VStack(spacing: 24) {
-                        headerSection
-                        
-                        titleSection
-                        
-                        detailsSection
-                        
-                        colorPickerSection
-                        
-                        reminderSection
-                        
-                        // Botão Pronto
-                        Button(action: {
-                            done()
-                        }) {
-                            Text("Pronto!")
-                                .font(.system(size: 18, weight: .semibold))
-                                .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 50)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 25)
-                                        .fill(
-                                            isFormValid ? Color(hex: "#F85601") : Color.gray.opacity(0.3)
-                                        )
-                                )
+                VStack(spacing: 0) {
+                    header
+                    
+                    ScrollView {
+                        VStack(spacing: 24) {
+                            titleField
+                            detailsCard
+                            colorPickerCard
+                            reminderToggle
+                            Spacer()
                         }
-                        .buttonStyle(PlainButtonStyle())
-                        .disabled(!isFormValid)
-                        .padding(.horizontal, 20)
-                        .padding(.top, 20)
-                        
-                        Spacer(minLength: 40)
+                        .padding(.top, 16)
+                        .padding(.horizontal)
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 20)
-                }
-                .scrollContentBackground(.hidden)
-                .background(Color.clear)
-            }
-            .background(Color(hex: "#141414"))
-            .colorScheme(.dark)
-            .navigationTitle("")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button(action: {
-                        dismiss()
-                    }) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "chevron.left")
-                                .font(.system(size: 16, weight: .semibold))
-                            Text("Voltar")
-                                .font(.system(size: 16, weight: .regular))
-                        }
-                        .foregroundColor(Color(hex: "#F85601"))
-                    }
+                    
+                    footer
                 }
             }
+            .navigationBarHidden(true)
         }
-        .colorScheme(.dark)
     }
     
-    private var headerSection: some View {
-        VStack(spacing: 12) {
+    private var header: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Button(action: { dismiss() }) {
+                HStack(spacing: 4) {
+                    Image(systemName: "chevron.left")
+                    Text("Ordens do Dia")
+                }
+                .foregroundColor(Color("TextPrimary"))
+            }
+            .padding(.horizontal)
+            
             Text("Adicionar Diária")
-                .font(.system(size: 28, weight: .bold))
-                .foregroundColor(.white)
-                .multilineTextAlignment(.center)
-            
-            Text("Crie uma nova ordem do dia\\npara organizar as filmagens")
-                .font(.system(size: 16, weight: .regular))
-                .foregroundColor(Color(hex: "#8E8E93"))
-                .multilineTextAlignment(.center)
+                .font(.largeTitle)
+                .fontWeight(.bold)
+                .foregroundColor(Color("TextPrimary"))
+                .padding(.horizontal)
         }
-        .padding(.top, 20)
     }
     
-    private var titleSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Título da Diária")
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(.white)
+    private var titleField: some View {
+        VStack(alignment: .leading) {
+            TextField("Adicionar título", text: $title)
+                .font(.title2)
+                .fontWeight(.medium)
+                .foregroundColor(Color("TextPrimary"))
+                .padding(.bottom, 8)
             
-            TextField("Ex: Primeira Diária - Centro", text: $title)
-                .font(.system(size: 16, weight: .regular))
+            Rectangle()
+                .frame(height: 1)
+                .foregroundColor(Color("TextSecondary"))
+        }
+    }
+    
+    private var detailsCard: some View {
+        VStack(spacing: 0) {
+            CustomDetailRow(placeholder: "Descrição", text: $description)
+            Divider().background(Color("TextSecondary").opacity(0.5))
+            CustomDetailRow(placeholder: "Endereço", text: $address)
+            Divider().background(Color("TextSecondary").opacity(0.5))
+            
+            DatePicker("Data e hora", selection: $date)
+                .datePickerStyle(CompactDatePickerStyle())
+                .foregroundColor(Color("TextSecondary"))
+                .tint(Color("PrimaryOrange"))
+                .padding(.horizontal)
+                .padding(.vertical, 8)
+        }
+        .background(Color("CardBackground"))
+        .cornerRadius(12)
+    }
+    
+    private var colorPickerCard: some View {
+        HStack {
+            ForEach(colorEnums.indices, id: \.self) { index in
+                let colorValue = colorEnums[index]
+                Circle()
+                    .fill(colorValue.swiftUIColor)
+                    .frame(width: 32, height: 32)
+                    .overlay(
+                        Circle()
+                            .stroke(selectedColorIndex == index ? Color.white : Color.clear, lineWidth: 2)
+                    )
+                    .onTapGesture {
+                        selectedColorIndex = index
+                    }
+            }
+            Spacer()
+        }
+        .padding()
+        .background(Color("CardBackground"))
+        .cornerRadius(12)
+    }
+    
+    private var reminderToggle: some View {
+        Toggle(isOn: $isReminderEnabled) {
+            Text("Adicionar lembrete")
+                .foregroundColor(Color("TextPrimary"))
+        }
+        .toggleStyle(CheckboxToggleStyle())
+    }
+    
+    private var footer: some View {
+        Button(action: done) {
+            Text("Pronto")
+                .font(.system(size: 18, weight: .semibold))
                 .foregroundColor(.white)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 14)
+                .frame(maxWidth: .infinity)
+                .frame(height: 50)
                 .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color(hex: "#1C1C1E"))
+                    Capsule()
+                        .fill(isFormValid ? Color("PrimaryOrange") : Color.gray.opacity(0.3))
                 )
         }
+        .buttonStyle(PlainButtonStyle())
+        .disabled(!isFormValid)
+        .padding()
     }
-    
-    private var detailsSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Detalhes")
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(.white)
-            
-            VStack(spacing: 0) {
-                // Descrição
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Descrição")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(Color(hex: "#8E8E93"))
-                    
-                    TextField("Descreva a diária...", text: $description)
-                        .font(.system(size: 16, weight: .regular))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 14)
-                        .background(Color.clear)
-                }
-                
-                Divider()
-                    .background(Color(hex: "#8E8E93").opacity(0.3))
-                    .padding(.vertical, 8)
-                
-                // Endereço
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Endereço")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(Color(hex: "#8E8E93"))
-                    
-                    TextField("Local da filmagem...", text: $address)
-                        .font(.system(size: 16, weight: .regular))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 14)
-                        .background(Color.clear)
-                }
-                
-                Divider()
-                    .background(Color(hex: "#8E8E93").opacity(0.3))
-                    .padding(.vertical, 8)
-                
-                // Data e hora
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Data e hora")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(Color(hex: "#8E8E93"))
-                    
-                    Button(action: {
-                        withAnimation {
-                            showDatePicker.toggle()
-                        }
-                    }) {
-                        HStack {
-                            Text(date, style: .date)
-                                .font(.system(size: 16, weight: .regular))
-                                .foregroundColor(.white)
-                            
-                            Spacer()
-                            
-                            Image(systemName: "calendar")
-                                .font(.system(size: 16))
-                                .foregroundColor(Color(hex: "#F85601"))
-                        }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 14)
-                        .background(Color.clear)
-                    }
-                }
-                
-                if showDatePicker {
-                    DatePicker(
-                        "Selecione a data e hora",
-                        selection: $date,
-                        displayedComponents: [.date, .hourAndMinute]
-                    )
-                    .datePickerStyle(.wheel)
-                    .labelsHidden()
-                    .colorScheme(.dark)
-                    .padding(.top, 16)
-                }
-            }
-            .padding(16)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color(hex: "#1C1C1E"))
-            )
-        }
-    }
-    
-    private var colorPickerSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Cor da Diária")
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(.white)
-            
-            HStack(spacing: 16) {
-                ForEach(colorEnums.indices, id: \.self) { index in
-                    let color = colorEnums[index].swiftUIColor
-                    Button(action: {
-                        selectedColorIndex = index
-                    }) {
-                        Circle()
-                            .fill(color)
-                            .frame(width: 40, height: 40)
-                            .overlay(
-                                Circle()
-                                    .stroke(
-                                        selectedColorIndex == index ? Color.white : Color.clear,
-                                        lineWidth: 3
-                                    )
-                            )
-                            .overlay(
-                                Circle()
-                                    .stroke(Color(hex: "#1C1C1E"), lineWidth: 1)
-                            )
-                    }
-                }
-                
-                Spacer()
-            }
-        }
-    }
-    
-    private var reminderSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text("Adicionar lembrete")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(.white)
-                
-                Spacer()
-                
-                Toggle("", isOn: $isReminderEnabled)
-                    .labelsHidden()
-                    .toggleStyle(SwitchToggleStyle(tint: Color(hex: "#F85601")))
-            }
-            .padding(16)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color(hex: "#1C1C1E"))
-            )
-        }
-    }
-    
+
     func done() {
-        // Using new activity logic instead of old CallSheet logic
-        DispatchQueue.main.async {
-            projectManager.addActivityToDay(
-                date: date,
-                title: title.isEmpty ? "Nova Diária" : title,
-                description: description.isEmpty ? title : description,
-                address: address.isEmpty ? "Local não definido" : address,
-                time: date,
-                responsible: ""
-            )
-        }
+        projectManager.createCallSheetWithFirstScene(
+            callSheetTitle: title,
+            date: date,
+            color: colorEnums[selectedColorIndex],
+            sceneDescription: description,
+            sceneAddress: address,
+            sceneTime: date
+        )
         
         let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
         impactFeedback.impactOccurred()
@@ -295,6 +171,35 @@ struct CreateCallSheetView: View {
         dismiss()
     }
 }
+
+struct CustomDetailRow: View {
+    let placeholder: String
+    @Binding var text: String
+    
+    var body: some View {
+        TextField(placeholder, text: $text)
+            .foregroundColor(Color("TextPrimary"))
+            .padding(.horizontal)
+            .padding(.vertical, 16)
+    }
+}
+
+struct CheckboxToggleStyle: ToggleStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        Button(action: {
+            configuration.isOn.toggle()
+        }) {
+            HStack {
+                Image(systemName: configuration.isOn ? "checkmark.square.fill" : "square")
+                    .font(.title2)
+                    .foregroundColor(configuration.isOn ? Color("PrimaryOrange") : Color("TextSecondary"))
+                configuration.label
+            }
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+
 
 #Preview {
     CreateCallSheetView()

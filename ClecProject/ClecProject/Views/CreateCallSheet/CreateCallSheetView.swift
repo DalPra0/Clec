@@ -63,13 +63,17 @@ struct CreateCallSheetView: View {
     
     private var header: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Button(action: { dismiss() }) {
-                HStack(spacing: 4) {
-                    Image(systemName: "chevron.left")
-                    Text("Ordens do Dia")
+            HStack {
+                Button(action: { dismiss() }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "chevron.left")
+                        Text("Ordens do Dia")
+                    }
+                    .foregroundColor(Color("TextPrimary"))
                 }
-                .foregroundColor(Color("TextPrimary"))
+                Spacer()
             }
+            .padding(.vertical, 16)
             .padding(.horizontal)
             
             Text("Adicionar Diária")
@@ -114,24 +118,27 @@ struct CreateCallSheetView: View {
     
     private var colorPickerCard: some View {
         HStack {
-            ForEach(colorEnums.indices, id: \.self) { index in
-                let colorValue = colorEnums[index]
-                Circle()
-                    .fill(colorValue.swiftUIColor)
-                    .frame(width: 32, height: 32)
-                    .overlay(
-                        Circle()
-                            .stroke(selectedColorIndex == index ? Color.white : Color.clear, lineWidth: 2)
-                    )
-                    .onTapGesture {
-                        selectedColorIndex = index
-                    }
+            HStack {
+                ForEach(colorEnums.indices, id: \.self) { index in
+                    let colorValue = colorEnums[index]
+                    Circle()
+                        .fill(colorValue.swiftUIColor)
+                        .frame(width: 32, height: 32)
+                        .overlay(
+                            Circle()
+                                .stroke(selectedColorIndex == index ? Color.white : Color.clear, lineWidth: 2)
+                        )
+                        .onTapGesture {
+                            selectedColorIndex = index
+                        }
+                }
             }
+            .padding()
+            .background(Color("CardBackground"))
+            .cornerRadius(12)
+            
             Spacer()
         }
-        .padding()
-        .background(Color("CardBackground"))
-        .cornerRadius(12)
     }
     
     private var reminderToggle: some View {

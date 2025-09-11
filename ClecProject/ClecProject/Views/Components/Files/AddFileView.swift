@@ -2,297 +2,259 @@
 //  AddFileView.swift
 //  ClecProject
 //
+//  Clean design consistent with app design system
 //  Created by Lucas Dal Pra Brascher on 01/09/25.
 //
 
-// 🔥 FIREBASE TODO: Esta view é onde acontece o upload dos arquivos
-// 🔥   - addFile() precisa ser modificada para fazer upload Firebase
-// 🔥   - Adicionar progress indicator durante upload
-// 🔥   - Error handling se upload falhar
-// 🔥   - Talvez adicionar preview do arquivo antes do upload
-
 import SwiftUI
 import UniformTypeIdentifiers
+import PhotosUI
 
 struct AddFileView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var projectManager: ProjectManager
     
     @State private var fileName: String = ""
-    @State private var selectedFileType: FileType = .pdf
-    @State private var showingFilePicker = false
     @State private var showingDocumentPicker = false
+    @State private var showingImagePicker = false
+    @State private var showingCamera = false
     @State private var selectedDocumentURL: URL?
+    @State private var selectedImage: UIImage?
+    @State private var isUploading = false
     
     let projectIndex: Int
-    
-    var isFormValid: Bool {
-        !fileName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-    }
     
     var body: some View {
         NavigationView {
             ZStack {
-                // FUNDO ESCURO CONSISTENTE
-                Color(hex: "#141414")
-                    .ignoresSafeArea(.all)
+                Color("BackgroundDark")
+                    .ignoresSafeArea()
+                    .dismissKeyboardOnTap()
                 
-                ScrollView {
-                    VStack(spacing: 24) {
-                        headerSection
-                        
-                        fileNameSection
-                        
-                        fileTypeSection
-                        
-                        quickActionsSection
-                        
-                        // Botão Adicionar
-                        Button(action: {
-                            addFile()
-                        }) {
-                            HStack {
-                                Image(systemName: "plus")
-                                Text("Adicionar Arquivo")
-                            }
-                            .font(.system(size: 18, weight: .semibold))
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 50)
-                            .background(
-                                RoundedRectangle(cornerRadius: 25)
-                                    .fill(
-                                        isFormValid ? Color(hex: "#F85601") : Color.gray.opacity(0.3)
-                                    )
-                            )
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                        .disabled(!isFormValid)
-                        .padding(.horizontal, 20)
-                        .padding(.top, 20)
-                        
-                        Spacer(minLength: 40)
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 20)
+                VStack(spacing: 40) {
+                    headerSection
+                    
+                    Spacer()
+                    
+                    actionCardsSection
+                    
+                    Spacer()
+                    Spacer()
                 }
-                .scrollContentBackground(.hidden)
-                .background(Color.clear)
-            }
-            .background(Color(hex: "#141414"))
-            .colorScheme(.dark)
-            .navigationTitle("")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button(action: {
-                        dismiss()
-                    }) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "chevron.left")
-                                .font(.system(size: 16, weight: .semibold))
-                            Text("Voltar")
-                                .font(.system(size: 16, weight: .regular))
-                        }
-                        .foregroundColor(Color(hex: "#F85601"))
-                    }
+                .padding(.horizontal, 24)
+                .padding(.top, 20)
+                
+                // Loading overlay
+                if isUploading {
+                    loadingOverlay
                 }
             }
+            .navigationBarHidden(true)
         }
-        .colorScheme(.dark)
         .sheet(isPresented: $showingDocumentPicker) {
             FileDocumentPicker { url in
                 handleDocumentSelection(url: url)
             }
         }
+        .sheet(isPresented: $showingImagePicker) {
+            ImagePicker(sourceType: .photoLibrary) { image in
+                handleImageSelection(image: image)
+            }
+        }
+        .sheet(isPresented: $showingCamera) {
+            ImagePicker(sourceType: .camera) { image in
+                handleImageSelection(image: image)
+            }
+        }
     }
     
+    // MARK: - Header Section
     private var headerSection: some View {
-        VStack(spacing: 12) {
-            Text("Adicionar Arquivo")
-                .font(.system(size: 28, weight: .bold))
-                .foregroundColor(.white)
-                .multilineTextAlignment(.center)
+        VStack(spacing: 16) {
+            HStack {
+                Button(action: {
+                    dismiss()
+                }) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundColor(.white)
+                        .frame(width: 44, height: 44)
+                        .background(
+                            Circle()
+                                .fill(Color("CardBackground"))
+                        )
+                }
+                
+                Spacer()
+                
+                Text("Adicionar Arquivo")
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundColor(.white)
+                
+                Spacer()
+                
+                Color.clear
+                    .frame(width: 44, height: 44)
+            }
             
-            Text("Adicione roteiros, storyboards\ne outros arquivos do projeto")
-                .font(.system(size: 16, weight: .regular))
-                .foregroundColor(Color(hex: "#8E8E93"))
+            Text("Escolha como deseja adicionar o arquivo")
+                .font(.system(size: 16))
+                .foregroundColor(Color("TextSecondary"))
                 .multilineTextAlignment(.center)
         }
-        .padding(.top, 20)
     }
     
-    private var fileNameSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Nome do Arquivo")
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(.white)
-            
-            TextField("Ex: Storyboard Cena 1", text: $fileName)
-                .font(.system(size: 16, weight: .regular))
-                .foregroundColor(.white)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 14)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color(hex: "#1C1C1E"))
+    // MARK: - Action Cards Section
+    private var actionCardsSection: some View {
+        VStack(spacing: 20) {
+            // Upload File Card - with Document Asset
+            Button(action: {
+                let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                impactFeedback.impactOccurred()
+                showingDocumentPicker = true
+            }) {
+                CroppedAssetCard(
+                    assetName: "AssetPersonagemSegurandoOrdemdoDia",
+                    title: "Escolher Arquivo",
+                    subtitle: "PDFs, documentos, vídeos...",
+                    assetOffset: CGSize(width: 20, height: 10),
+                    assetScale: 1.3,
+                    flipHorizontally: false,
+                    shadowColor: Color("PrimaryOrange").opacity(0.2)
                 )
-        }
-    }
-    
-    private var fileTypeSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Tipo de Arquivo")
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(.white)
-            
-            LazyVGrid(columns: [
-                GridItem(.flexible()),
-                GridItem(.flexible()),
-                GridItem(.flexible()),
-                GridItem(.flexible())
-            ], spacing: 12) {
-                ForEach(FileType.allCases.filter { $0 != .other }, id: \.self) { fileType in
-                    FileTypeButton(
-                        fileType: fileType,
-                        isSelected: selectedFileType == fileType
-                    ) {
-                        selectedFileType = fileType
-                    }
-                }
             }
-        }
-    }
-    
-    private var quickActionsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Ações Rápidas")
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(.white)
+            .buttonStyle(PlainButtonStyle())
             
-            VStack(spacing: 12) {
-                QuickActionButton(
-                    title: "Escolher do Dispositivo",
-                    subtitle: "Selecionar arquivo existente",
-                    icon: "folder.fill",
-                    color: Color(hex: "#F85601")
-                ) {
-                    showingDocumentPicker = true
-                }
-                
-                QuickActionButton(
-                    title: "Criar Documento",
-                    subtitle: "Criar novo arquivo de texto",
-                    icon: "doc.text.fill",
-                    color: Color(hex: "#34C759")
-                ) {
-                    createDocument()
-                }
-                
-                QuickActionButton(
-                    title: "Adicionar Referência",
-                    subtitle: "Apenas o nome, sem arquivo",
-                    icon: "link",
-                    color: Color(hex: "#FF9500")
-                ) {
-                    createReference()
-                }
+            // Take Photo Card - with Camera Asset (Orange + Flipped)
+            Button(action: {
+                let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                impactFeedback.impactOccurred()
+                showingCamera = true
+            }) {
+                CroppedAssetCard(
+                    assetName: "AssetPersoagemSegurandoCameraLaranja",
+                    title: "Tirar Foto",
+                    subtitle: "Capturar com a câmera",
+                    assetOffset: CGSize(width: 15, height: 0),
+                    assetScale: 1.2,
+                    flipHorizontally: true,
+                    shadowColor: Color("PrimaryOrange").opacity(0.3)
+                )
             }
+            .buttonStyle(PlainButtonStyle())
+            
+            // Photo Library Card - with Claquete Asset (Orange + Flipped)
+            Button(action: {
+                let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                impactFeedback.impactOccurred()
+                showingImagePicker = true
+            }) {
+                CroppedAssetCard(
+                    assetName: "AssetMaoSegurandoClaqueteLaranja",
+                    title: "Galeria de Fotos",
+                    subtitle: "Escolher da biblioteca",
+                    assetOffset: CGSize(width: 10, height: 5),
+                    assetScale: 1.1,
+                    flipHorizontally: true,
+                    shadowColor: Color("PrimaryOrange").opacity(0.2)
+                )
+            }
+            .buttonStyle(PlainButtonStyle())
         }
     }
     
-    // 🔥 FIREBASE TODO: Esta função é o CORE do sistema de upload! Principais mudanças:
-    // 🔥   1. Adicionar @State var isUploading = false, uploadProgress = 0.0
-    // 🔥   2. Substituir RealFileManager por Firebase Storage upload
-    // 🔥   3. Mostrar loading indicator durante upload
-    // 🔥   4. Aguardar upload completar antes de dismiss()
-    // 🔥   5. Error handling robusto
-    private func addFile() {
-        guard isFormValid else { return }
+    // MARK: - Loading Overlay
+    private var loadingOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.7)
+                .ignoresSafeArea()
+            
+            VStack(spacing: 16) {
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle(tint: Color("PrimaryOrange")))
+                    .scaleEffect(1.5)
+                
+                Text("Adicionando arquivo...")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.white)
+            }
+            .padding(32)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color("CardBackground"))
+            )
+        }
+    }
+    
+    // MARK: - Actions
+    private func handleDocumentSelection(url: URL) {
+        print("📁 Arquivo selecionado: \\(url.lastPathComponent)")
         
-        let trimmedName = fileName.trimmingCharacters(in: .whitespacesAndNewlines)
+        isUploading = true
+        
+        // Detectar tipo automaticamente
+        let fileType = FileType.fromFileName(url.lastPathComponent)
+        let fileName = url.deletingPathExtension().lastPathComponent
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            self.addFileToProject(
+                name: fileName,
+                fileName: url.lastPathComponent,
+                fileType: fileType,
+                sourceURL: url
+            )
+        }
+    }
+    
+    private func handleImageSelection(image: UIImage) {
+        print("📷 Imagem capturada/selecionada")
+        
+        isUploading = true
+        
+        let fileName = "IMG_\\(Date().timeIntervalSince1970)"
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            self.addFileToProject(
+                name: fileName,
+                fileName: "\\(fileName).jpg",
+                fileType: .jpg,
+                image: image
+            )
+        }
+    }
+    
+    private func addFileToProject(
+        name: String,
+        fileName: String,
+        fileType: FileType,
+        sourceURL: URL? = nil,
+        image: UIImage? = nil
+    ) {
+        let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
         let project = projectManager.projects[projectIndex]
         
-        if let documentURL = selectedDocumentURL {
-            print("📁 Criando arquivo real: \(trimmedName)")
-            
-            // 🔥 FIREBASE TODO: Substituir tudo abaixo por:
-            // uploadToFirebaseStorage(documentURL, projectCode: project.code, fileName: trimmedName)
-            
-            if documentURL.startAccessingSecurityScopedResource() {
-                defer {
-                    documentURL.stopAccessingSecurityScopedResource()
-                }
-                
-                if let realFile = ProjectFile.createWithRealFile(
-                    name: trimmedName,
-                    sourceURL: documentURL,
-                    projectCode: project.code,
-                    isScreenplay: false
-                ) {
-                    projectManager.addFileToProject(at: projectIndex, file: realFile)
-                    print("✅ Arquivo real adicionado: \(realFile.displayName)")
-                    
-                    let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-                    impactFeedback.impactOccurred()
-                    
-                    dismiss()
-                    return
-                } else {
-                    print("❌ Erro ao criar arquivo real")
-                }
-            }
-        }
-        
-        print("🎨 Criando arquivo mock: \(trimmedName)")
-        let generatedFileName = "\(trimmedName.lowercased().replacingOccurrences(of: " ", with: "_")).\(selectedFileType.rawValue)"
-        
-        let mockFile = ProjectFile(
+        // Create file object
+        let newFile = ProjectFile(
             name: trimmedName,
-            fileName: generatedFileName,
-            fileType: selectedFileType,
+            fileName: fileName,
+            fileType: fileType,
             dateAdded: Date(),
             fileSize: generateMockFileSize(),
             isScreenplay: false,
-            localURL: nil
+            localURL: nil // Firebase URL will be added later
         )
         
-        projectManager.addFileToProject(at: projectIndex, file: mockFile)
+        // Add to project
+        projectManager.addFileToProject(at: projectIndex, file: newFile)
         
-        let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-        impactFeedback.impactOccurred()
+        print("✅ Arquivo adicionado: \\(newFile.displayName)")
         
+        // Haptic feedback
+        let notificationFeedback = UINotificationFeedbackGenerator()
+        notificationFeedback.notificationOccurred(.success)
+        
+        isUploading = false
         dismiss()
-    }
-    
-    private func handleDocumentSelection(url: URL) {
-        print("📁 Arquivo selecionado: \(url.lastPathComponent)")
-        
-        let fileType = FileType.fromFileName(url.lastPathComponent)
-        fileName = url.deletingPathExtension().lastPathComponent
-        selectedFileType = fileType
-        
-        if url.startAccessingSecurityScopedResource() {
-            defer {
-                url.stopAccessingSecurityScopedResource()
-            }
-            
-            selectedDocumentURL = url
-            
-            print("✅ Arquivo preparado para cópia: \(url.lastPathComponent)")
-        } else {
-            print("❌ Erro: Não foi possível acessar o arquivo selecionado")
-        }
-    }
-    
-    private func createDocument() {
-        fileName = "Novo Documento"
-        selectedFileType = .txt
-    }
-    
-    private func createReference() {
-        fileName = "Nova Referência"
-        selectedFileType = .other
     }
     
     private func generateMockFileSize() -> String {
@@ -301,86 +263,98 @@ struct AddFileView: View {
     }
 }
 
-struct FileTypeButton: View {
-    let fileType: FileType
-    let isSelected: Bool
-    let onTap: () -> Void
-    
-    var body: some View {
-        Button(action: onTap) {
-            VStack(spacing: 8) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(isSelected ? Color(hex: "#F85601") : Color(hex: "#1C1C1E"))
-                        .frame(width: 40, height: 40)
-                    
-                    Image(systemName: fileType.icon)
-                        .font(.system(size: 20, weight: .medium))
-                        .foregroundColor(.white)
-                }
-                
-                Text(fileType.displayName)
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(isSelected ? Color(hex: "#F85601") : Color(hex: "#8E8E93"))
-            }
-            .padding(.vertical, 8)
-            .padding(.horizontal, 4)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(isSelected ? Color(hex: "#F85601").opacity(0.1) : Color.clear)
-                    .stroke(isSelected ? Color(hex: "#F85601") : Color.clear, lineWidth: 1)
-            )
-        }
-        .buttonStyle(PlainButtonStyle())
-    }
-}
-
-struct QuickActionButton: View {
+// MARK: - Clean Cropped Asset Card Component
+struct CroppedAssetCard: View {
+    let assetName: String
     let title: String
     let subtitle: String
-    let icon: String
-    let color: Color
-    let onTap: () -> Void
+    let assetOffset: CGSize
+    let assetScale: Double
+    let flipHorizontally: Bool
+    let shadowColor: Color
     
     var body: some View {
-        Button(action: onTap) {
-            HStack(spacing: 16) {
-                ZStack {
-                    Circle()
-                        .fill(color.opacity(0.15))
-                        .frame(width: 48, height: 48)
+        // Simple card following app design system
+        RoundedRectangle(cornerRadius: 20)
+            .fill(Color("CardBackground"))
+            .frame(height: 120)
+            .shadow(color: shadowColor, radius: 8, x: 0, y: 4)
+            .overlay(
+                // Card content
+                HStack(spacing: 0) {
+                    // Text Content
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(title)
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(.white)
+                        
+                        Text(subtitle)
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(Color("TextSecondary"))
+                            .lineSpacing(2)
+                        
+                        Spacer()
+                    }
+                    .padding(.leading, 24)
+                    .padding(.vertical, 24)
                     
-                    Image(systemName: icon)
-                        .font(.system(size: 20, weight: .medium))
-                        .foregroundColor(color)
-                }
-                
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(title)
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(.white)
+                    Spacer()
                     
-                    Text(subtitle)
-                        .font(.system(size: 14))
-                        .foregroundColor(Color(hex: "#8E8E93"))
+                    // Asset - positioned to peek from right side
+                    Image(assetName)
+                        .resizable()
+                        .scaledToFit()
+                        .scaleEffect(assetScale)
+                        .scaleEffect(x: flipHorizontally ? -1 : 1, y: 1) // Horizontal flip
+                        .offset(assetOffset)
+                        .frame(width: 140, height: 120)
+                        .clipped()
                 }
-                
-                Spacer()
-                
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(Color(hex: "#8E8E93"))
-            }
-            .padding(16)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color(hex: "#1C1C1E"))
             )
-        }
-        .buttonStyle(PlainButtonStyle())
+            .clipShape(RoundedRectangle(cornerRadius: 20))
+            .overlay(
+                // Subtle border for definition
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(Color("TextSecondary").opacity(0.1), lineWidth: 1)
+            )
     }
 }
 
+// MARK: - Image Picker
+struct ImagePicker: UIViewControllerRepresentable {
+    let sourceType: UIImagePickerController.SourceType
+    let onImageSelected: (UIImage) -> Void
+    
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.sourceType = sourceType
+        picker.delegate = context.coordinator
+        return picker
+    }
+    
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+    
+    class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+        let parent: ImagePicker
+        
+        init(_ parent: ImagePicker) {
+            self.parent = parent
+        }
+        
+        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+            if let image = info[.originalImage] as? UIImage {
+                parent.onImageSelected(image)
+            }
+            picker.dismiss(animated: true)
+        }
+    }
+}
+
+// MARK: - File Document Picker
 struct FileDocumentPicker: UIViewControllerRepresentable {
     let onDocumentSelected: (URL) -> Void
     
@@ -412,4 +386,9 @@ struct FileDocumentPicker: UIViewControllerRepresentable {
             }
         }
     }
+}
+
+#Preview {
+    AddFileView(projectIndex: 0)
+        .environmentObject(ProjectManager())
 }

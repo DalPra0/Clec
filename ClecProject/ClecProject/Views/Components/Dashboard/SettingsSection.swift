@@ -2,7 +2,7 @@
 //  SettingsSection.swift
 //  ClecProject
 //
-//  Complete settings section with all functionality
+//  Essential settings section - clean and focused
 //  Created by Lucas Dal Pra Brascher on 01/09/25.
 //
 
@@ -16,11 +16,6 @@ struct SettingsSection: View {
     
     @State private var showingEditProfile = false
     @State private var showingProjectSettings = false
-    @State private var showingShareSheet = false
-    @State private var showingTeamMembers = false
-    @State private var showingAppSettings = false
-    @State private var showingAbout = false
-    @State private var showingHelp = false
     
     @State private var showingLeaveProjectAlert = false
     @State private var showingDeleteProjectAlert = false
@@ -44,8 +39,6 @@ struct SettingsSection: View {
                     projectSection
                 }
                 
-                appSection
-                
                 accountSection
                 
                 Spacer(minLength: 100)
@@ -62,26 +55,6 @@ struct SettingsSection: View {
                 ProjectSettingsView(project: project)
                     .environmentObject(projectManager)
             }
-        }
-        .sheet(isPresented: $showingShareSheet) {
-            if let project = project {
-                ShareProjectView(project: project)
-            }
-        }
-        .sheet(isPresented: $showingTeamMembers) {
-            if let project = project {
-                TeamMembersView(project: project)
-                    .environmentObject(projectManager)
-            }
-        }
-        .sheet(isPresented: $showingAppSettings) {
-            AppSettingsView()
-        }
-        .sheet(isPresented: $showingAbout) {
-            AboutView()
-        }
-        .sheet(isPresented: $showingHelp) {
-            HelpView()
         }
         .alert("Sair do Projeto", isPresented: $showingLeaveProjectAlert) {
             Button("Cancelar", role: .cancel) { }
@@ -105,7 +78,7 @@ struct SettingsSection: View {
                 logout()
             }
         } message: {
-            Text("Tem certeza que deseja sair da sua conta? Você precisará fazer login novamente.")
+            Text("Você será deslogado mas continuará no projeto atual. Para trocar de conta, faça login novamente.")
         }
     }
     
@@ -131,6 +104,14 @@ struct SettingsSection: View {
                 subtitle: userManager.userName,
                 action: { showingEditProfile = true }
             )
+            
+            SettingsRow(
+                icon: "rectangle.portrait.and.arrow.right",
+                title: "Fazer Logout",
+                subtitle: "Sair da conta (mantém projeto)",
+                isDestructive: true,
+                action: { showingLogoutAlert = true }
+            )
         }
     }
     
@@ -147,38 +128,11 @@ struct SettingsSection: View {
                     subtitle: project?.name ?? "",
                     action: { showingProjectSettings = true }
                 )
-            } else {
-                SettingsRow(
-                    icon: "film",
-                    title: "Detalhes do Projeto",
-                    subtitle: project?.name ?? "",
-                    isDisabled: true,
-                    action: { /* Disabled - no action */ }
-                )
-            }
-            
-            // Team Members
-            SettingsRow(
-                icon: "person.2",
-                title: "Membros da Equipe",
-                subtitle: "\\(project?.members.count ?? 0) membro(s)",
-                action: { showingTeamMembers = true }
-            )
-            
-            // Share Project
-            SettingsRow(
-                icon: "square.and.arrow.up",
-                title: "Compartilhar Projeto",
-                subtitle: "Código: \\(project?.code ?? \"----\")",
-                action: { showingShareSheet = true }
-            )
-            
-            // Leave/Delete Project
-            if isProjectOwner {
+                
                 SettingsRow(
                     icon: "trash",
                     title: "Excluir Projeto",
-                    subtitle: "Esta ação não pode ser desfeita",
+                    subtitle: "Remove projeto completamente",
                     isDestructive: true,
                     action: { showingDeleteProjectAlert = true }
                 )
@@ -186,39 +140,11 @@ struct SettingsSection: View {
                 SettingsRow(
                     icon: "arrow.left.square",
                     title: "Sair do Projeto",
-                    subtitle: "Você será removido da equipe",
+                    subtitle: "Remove você da equipe",
                     isDestructive: true,
                     action: { showingLeaveProjectAlert = true }
                 )
             }
-        }
-    }
-    
-    // MARK: - App Section
-    private var appSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            sectionTitle("App")
-            
-            SettingsRow(
-                icon: "gear",
-                title: "Configurações do App",
-                subtitle: "Notificações, aparência, comportamento",
-                action: { showingAppSettings = true }
-            )
-            
-            SettingsRow(
-                icon: "questionmark.circle",
-                title: "Ajuda e Suporte",
-                subtitle: "FAQ, tutoriais, contato",
-                action: { showingHelp = true }
-            )
-            
-            SettingsRow(
-                icon: "info.circle",
-                title: "Sobre o App",
-                subtitle: "Versão 1.0.0, créditos, legal",
-                action: { showingAbout = true }
-            )
         }
     }
     
@@ -228,19 +154,11 @@ struct SettingsSection: View {
             sectionTitle("Conta")
             
             SettingsRow(
-                icon: "person.circle",
-                title: "Informações da Conta",
+                icon: "envelope",
+                title: "E-mail da Conta",
                 subtitle: Auth.auth().currentUser?.email ?? "Não disponível",
                 isDisabled: true,
                 action: { /* Info only */ }
-            )
-            
-            SettingsRow(
-                icon: "rectangle.portrait.and.arrow.right",
-                title: "Fazer Logout",
-                subtitle: "Sair da conta e voltar ao login",
-                isDestructive: true,
-                action: { showingLogoutAlert = true }
             )
         }
     }
@@ -266,7 +184,6 @@ struct SettingsSection: View {
                 notificationFeedback.notificationOccurred(.success)
             } else {
                 print("❌ Failed to leave project")
-                // TODO: Show error alert
             }
         }
     }
@@ -286,25 +203,27 @@ struct SettingsSection: View {
     }
     
     private func logout() {
-        print("👋 Logging out user")
+        print("👋 Logging out user (keeping project active)")
         
         // Get AuthService from environment or create instance
         let authService = AuthService()
         authService.signOut()
         
-        // Clear local data
+        // IMPORTANTE: NÃO limpar o projeto ativo!
+        // projectManager.setActiveProject(nil) ← NÃO FAZER ISSO!
+        
+        // Só resetar dados do usuário
         userManager.resetToDefault()
-        projectManager.setActiveProject(nil)
         
         // Haptic feedback
         let notificationFeedback = UINotificationFeedbackGenerator()
         notificationFeedback.notificationOccurred(.success)
         
-        print("✅ Logout successful")
+        print("✅ Logout successful - project remains active")
     }
 }
 
-// MARK: - Settings Row Component (Updated)
+// MARK: - Settings Row Component
 struct SettingsRow: View {
     let icon: String
     let title: String

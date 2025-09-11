@@ -28,6 +28,7 @@ struct SignInView: View {
                     // Background - Automático: Azul no light, escuro no dark
                     Color("DesignSystem/Background")
                         .ignoresSafeArea()
+                        .dismissKeyboardOnTap() // Dismiss keyboard when tapping background
                     
                     // Elementos cinematográficos decorativos - POSIÇÕES EXATAS DO FIGMA
                     // Personagem central com documento - POSIÇÃO PRINCIPAL DO FIGMA

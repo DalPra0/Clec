@@ -219,6 +219,12 @@ class UserManager: ObservableObject {
         saveUserData()
         print("🧹 Filmes favoritos limpos")
     }
+    
+    func updateActiveProject(_ projectId: String?) {
+        self.activeProjectId = projectId
+        saveUserData()
+    }
+
 }
 
 fileprivate struct UserProfile: Codable, Identifiable {

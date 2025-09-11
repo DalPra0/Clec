@@ -1,10 +1,3 @@
-//
-//  InitialView.swift
-//  ClecProject
-//
-//  Created by Lucas Dal Pra Brascher on 29/08/25.
-//
-
 import SwiftUI
 
 struct InitialView: View {
@@ -15,53 +8,104 @@ struct InitialView: View {
     @State private var showingJoinProject = false
     
     var body: some View {
-        VStack(spacing: 24) {
-            Spacer()
-            
-            Text("Bem-vindo ao ClecProject")
-                .font(.system(size: 24, weight: .bold))
-                .multilineTextAlignment(.center)
-                .foregroundColor(.white)
-                .padding(.horizontal, 20)
-            
-            Text("Crie ou entre em um projeto para começar")
-                .font(.system(size: 16))
-                .multilineTextAlignment(.center)
-                .foregroundColor(.gray)
-                .padding(.horizontal, 20)
-            
-            Spacer()
-            
-            VStack(spacing: 16) {
-                Button(action: { showingCreateProject = true }) {
-                    Text("Criar Projeto")
-                        .font(.system(size: 18, weight: .semibold))
+        NavigationView {
+            ZStack {
+                // Fundo principal
+                Color(hex: "#141414")
+                    .ignoresSafeArea()
+                
+                VStack(spacing: 0) {
+                    Spacer()
+                    
+                    // Título
+                    Text("Bem vindo!")
+                        .font(.system(size: 28, weight: .bold))
                         .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 50)
-                        .background(RoundedRectangle(cornerRadius: 25).fill(Color(hex: "#F85601")))
+                        .multilineTextAlignment(.center)
+                        .padding(.bottom, 8)
+                    
+                    // Subtítulo
+                    Text("Você pode escolher criar um projeto\nou entrar em um com código")
+                        .font(.system(size: 16))
+                        .foregroundColor(.gray)
+                        .multilineTextAlignment(.center)
+                        .padding(.bottom, 40)
+                    
+                    // Cards independentes
+                    VStack(spacing: 20) {
+                        // Card Criar Projeto
+                        Button(action: { showingCreateProject = true }) {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("Criar um Projeto")
+                                        .font(.system(size: 20, weight: .bold))
+                                        .foregroundColor(Color(hex: "#F85601"))
+                                    
+                                    Text("Eu sou assistente de direção")
+                                        .font(.system(size: 16))
+                                        .foregroundColor(.white)
+                                        .lineLimit(nil)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                }
+                                Spacer()
+                                Image("AssetMaoSegurandoClaqueteLaranja")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 160, height: 160)
+                                    .scaleEffect(x: -1, y: 1)
+                                    .offset(x: 20)
+                            }
+                            .padding()
+                            .background(Color(hex: "#1C1C1E"))
+                            .cornerRadius(16)
+                        }
+                        
+                        // Card Entrar em Projeto
+                        Button(action: { showingJoinProject = true }) {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("Você tem um código?")
+                                        .font(.system(size: 20, weight: .bold))
+                                        .foregroundColor(Color(hex: "#F85601"))
+                                    
+                                    Text("Sou membro do set de produção")
+                                        .font(.system(size: 16))
+                                        .foregroundColor(.white)
+                                        .lineLimit(nil)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                }
+                                Spacer()
+                                Image("AssetPersoagemSegurandoCameraLaranja")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 160, height: 160)
+                                    .scaleEffect(x: -1, y: 1)
+                                    .offset(x: 20)
+                            }
+                            .padding()
+                            .background(Color(hex: "#1C1C1E"))
+                            .cornerRadius(16)
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                    
+                    Spacer()
                 }
                 
-                Button(action: { showingJoinProject = true }) {
-                    Text("Entrar em Projeto")
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 50)
-                        .background(RoundedRectangle(cornerRadius: 25).fill(Color(hex: "#34C759")))
+                // 🔥 Fundo arredondado atrás, independente dos cards
+                VStack {
+                    Spacer()
+                    RoundedRectangle(cornerRadius: 32)
+                        .fill(Color(hex: "#1C1C1E"))
+                        .frame(height: 350) // ajusta a altura do bloco de fundo
+                        .ignoresSafeArea(edges: .bottom)
                 }
             }
-            .padding(.horizontal, 20)
-            
-            Spacer()
         }
-        .background(Color(hex: "#141414").ignoresSafeArea())
-        .colorScheme(.dark)
         .sheet(isPresented: $showingCreateProject) {
             CreateProjectView(onProjectCreated: { project in
                 projectManager.setActiveProject(project)
-                userManager.activeProjectId = project.id   // 🔥 salva o projeto ativo
-                saveUserProject()
+                userManager.updateActiveProject(project.id)
                 showingCreateProject = false
             })
             .environmentObject(projectManager)
@@ -70,25 +114,11 @@ struct InitialView: View {
         .sheet(isPresented: $showingJoinProject) {
             JoinProjectView(onProjectJoined: { project in
                 projectManager.setActiveProject(project)
-                userManager.activeProjectId = project.id   // 🔥 salva o projeto ativo
-                saveUserProject()
+                userManager.updateActiveProject(project.id)
                 showingJoinProject = false
             })
             .environmentObject(projectManager)
             .environmentObject(userManager)
-        }
-    }
-    
-    private func saveUserProject() {
-        // 🔥 Garante que o UserManager salva no Firestore
-        DispatchQueue.main.async {
-            let _ = userManager.activeProjectId
-            // já está dentro do userManager, basta chamar save
-            // (função está em UserManager)
-            let mirror = Mirror(reflecting: userManager)
-            if mirror.children.contains(where: { $0.label == "saveUserData" }) {
-                userManager.updateUserName(userManager.userName) // força salvar
-            }
         }
     }
 }

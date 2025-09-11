@@ -9,6 +9,7 @@ import Foundation
 import SwiftUI
 import FirebaseFirestore
 import FirebaseAuth
+import CoreLocation
 
 class ProjectManager: ObservableObject {
     @Published var projects: [ProjectModel] = []
@@ -16,13 +17,15 @@ class ProjectManager: ObservableObject {
 
     private let db = Firestore.firestore()
     private var projectsListener: ListenerRegistration?
+    private let weatherService = WeatherService.shared
+    private var forecastCache: [Date: DailyForecast] = [:]
 
     var hasProjects: Bool {
         return !projects.isEmpty
     }
 
     init() {
-        Auth.auth().addStateDidChangeListener { [weak self] (_, user) in
+        _ = Auth.auth().addStateDidChangeListener { [weak self] (_, user) in
             if let user = user {
                 self?.setupProjectsListener(for: user.uid)
             } else {
@@ -51,7 +54,6 @@ class ProjectManager: ObservableObject {
             }
 
             guard let documents = snapshot?.documents else {
-                print("No project documents found.")
                 self.projects = []
                 return
             }
@@ -88,15 +90,8 @@ class ProjectManager: ObservableObject {
 
         let query = db.collection("projects").whereField("code", isEqualTo: code).limit(to: 1)
 
-        query.getDocuments { snapshot, error in
-            if let error = error {
-                print("Error finding project with code: \(error.localizedDescription)")
-                completion(nil)
-                return
-            }
-
+        query.getDocuments { snapshot, _ in
             guard let document = snapshot?.documents.first else {
-                print("No project found with code: \(code)")
                 completion(nil)
                 return
             }
@@ -105,11 +100,9 @@ class ProjectManager: ObservableObject {
             self.db.collection("projects").document(projectId).updateData([
                 "members": FieldValue.arrayUnion([userId])
             ]) { err in
-                if let err = err {
-                    print("Error joining project: \(err.localizedDescription)")
+                if err != nil {
                     completion(nil)
                 } else {
-                    print("User \(userId) successfully joined project \(projectId)")
                     if var project = try? document.data(as: ProjectModel.self) {
                         project.members.append(userId)
                         completion(project)
@@ -246,5 +239,50 @@ class ProjectManager: ObservableObject {
             .filter { Calendar.current.isDate($0.day, inSameDayAs: date) }
             .flatMap { $0.sceneTable }
             .sorted { $0.scene < $1.scene }
+    }
+    
+    func getForecast(for day: Date, completion: @escaping (DailyForecast?) -> Void) {
+        guard let project = activeProject else {
+            completion(nil)
+            return
+        }
+
+        let calendar = Calendar.current
+        
+        if let cachedForecast = forecastCache.first(where: { calendar.isDate($0.key, inSameDayAs: day) })?.value {
+            completion(cachedForecast)
+            return
+        }
+
+        var location: CLLocation?
+
+        if let sceneForDay = project.callSheet.first(where: { calendar.isDate($0.day, inSameDayAs: day) })?.sceneTable.first {
+            location = CLLocation(latitude: sceneForDay.location.latitude, longitude: sceneForDay.location.longitude)
+        } else if let firstSceneInProject = project.callSheet.first?.sceneTable.first {
+            location = CLLocation(latitude: firstSceneInProject.location.latitude, longitude: firstSceneInProject.location.longitude)
+        }
+
+        guard let finalLocation = location else {
+            completion(nil)
+            return
+        }
+
+        Task {
+            do {
+                let forecastCollection = try await weatherService.fetchForecast(for: finalLocation)
+                let forecastForDay = forecastCollection.first { calendar.isDate($0.date, inSameDayAs: day) }
+                
+                await MainActor.run {
+                    if let forecast = forecastForDay {
+                        forecastCache[day] = forecast
+                    }
+                    completion(forecastForDay)
+                }
+            } catch {
+                await MainActor.run {
+                    completion(nil)
+                }
+            }
+        }
     }
 }

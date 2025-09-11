@@ -29,7 +29,7 @@ class UserManager: ObservableObject {
     }
     
     init() {
-        Auth.auth().addStateDidChangeListener { [weak self] (_, user) in
+        _ = Auth.auth().addStateDidChangeListener { [weak self] (_, user) in
             guard let self = self else { return }
             if let user = user {
                 self.listenForUserData(userId: user.uid)

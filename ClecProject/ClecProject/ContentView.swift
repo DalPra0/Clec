@@ -34,6 +34,5 @@ struct ContentView: View {
             //p/ ver o onboarding de novo eh so descomentar essa parada kk..
 //            UserDefaults.standard.set(false, forKey: "isUserOld")
         }
-        .preferredColorScheme(.light)
     }
 }

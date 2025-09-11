@@ -2,8 +2,7 @@
 //  CreateProjectView.swift
 //  ClecProject
 //
-//  Created by Lucas Dal Pra Brascher on 29/08/25.
-//
+//  ATUALIZADO: Mostra tela de sucesso com código após criar projeto
 
 import SwiftUI
 import FirebaseAuth
@@ -24,6 +23,11 @@ struct CreateProjectView: View {
     @State private var isFormValid = false
     @State private var isLoading = false
     
+    // NOVO: Estados para tela de sucesso
+    @State private var showingSuccessView = false
+    @State private var createdProjectCode = ""
+    @State private var createdProjectName = ""
+    
     init(onProjectCreated: @escaping (ProjectModel) -> Void = { _ in }) {
         self.onProjectCreated = onProjectCreated
     }
@@ -31,70 +35,84 @@ struct CreateProjectView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                Color(hex: "#141414")
+                Color("BackgroundCard")
                     .ignoresSafeArea(.all)
                 
-                ScrollView {
-                    VStack(spacing: 24) {
-                        headerSection
-                        
-                        formSection
-                        
-                        Button(action: {
-                            createProject()
-                        }) {
-                            HStack {
-                                if isLoading {
-                                    ProgressView()
-                                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                                        .scaleEffect(0.8)
-                                } else {
-                                    Text("Pronto")
-                                        .font(.system(size: 18, weight: .semibold))
-                                        .foregroundColor(.white)
-                                }
-                            }
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 50)
-                            .background(
-                                RoundedRectangle(cornerRadius: 25)
-                                    .fill(
-                                        isFormValid ? Color(hex: "#F85601") : Color.gray.opacity(0.3)
-                                    )
-                            )
+                if showingSuccessView {
+                    // TELA DE SUCESSO
+                    ProjectCreatedSuccessView(
+                        projectName: createdProjectName,
+                        projectCode: createdProjectCode,
+                        onContinue: {
+                            showingSuccessView = false
+                            presentationMode.wrappedValue.dismiss()
                         }
-                        .buttonStyle(PlainButtonStyle())
-                        .disabled(!isFormValid || isLoading)
-                        .padding(.horizontal, 20)
-                        .padding(.top, 20)
-                        
-                        Spacer(minLength: 40)
+                    )
+                } else {
+                    // TELA DE FORMULÁRIO ORIGINAL
+                    ScrollView {
+                        VStack(spacing: 24) {
+                            headerSection
+                            
+                            formSection
+                            
+                            Button(action: {
+                                createProject()
+                            }) {
+                                HStack {
+                                    if isLoading {
+                                        ProgressView()
+                                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                            .scaleEffect(0.8)
+                                    } else {
+                                        Text("Pronto")
+                                            .font(.system(size: 18, weight: .semibold))
+                                            .foregroundColor(.white)
+                                    }
+                                }
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 50)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 25)
+                                        .fill(
+                                            isFormValid ? Color("PrimaryOrange") : Color("TextSecondary").opacity(0.3)
+                                        )
+                                )
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            .disabled(!isFormValid || isLoading)
+                            .padding(.horizontal, 20)
+                            .padding(.top, 20)
+                            
+                            Spacer(minLength: 40)
+                        }
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 16)
                     }
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 16)
+                    .scrollContentBackground(.hidden)
+                    .background(Color.clear)
                 }
-                .scrollContentBackground(.hidden)
-                .background(Color.clear)
             }
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button(action: {
-                        presentationMode.wrappedValue.dismiss()
-                    }) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "chevron.left")
-                                .font(.system(size: 16, weight: .semibold))
-                            Text("Voltar")
-                                .font(.system(size: 16, weight: .regular))
+                    if !showingSuccessView {
+                        Button(action: {
+                            presentationMode.wrappedValue.dismiss()
+                        }) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "chevron.left")
+                                    .font(.system(size: 16, weight: .semibold))
+                                Text("Voltar")
+                                    .font(.system(size: 16, weight: .regular))
+                            }
+                            .foregroundColor(Color("PrimaryOrange"))
                         }
-                        .foregroundColor(Color(hex: "#F85601"))
                     }
                 }
             }
         }
-        .colorScheme(.dark)
         .onChange(of: projectName) {
             validateForm()
         }
@@ -110,12 +128,12 @@ struct CreateProjectView: View {
         VStack(spacing: 12) {
             Text("Insira as informações")
                 .font(.system(size: 28, weight: .bold))
-                .foregroundColor(.white)
+                .foregroundColor(Color("TextPrimary"))
                 .multilineTextAlignment(.center)
             
             Text("do seu projeto")
                 .font(.system(size: 28, weight: .bold))
-                .foregroundColor(.white)
+                .foregroundColor(Color("TextPrimary"))
                 .multilineTextAlignment(.center)
         }
         .padding(.top, 20)
@@ -168,10 +186,15 @@ struct CreateProjectView: View {
         
         isLoading = true
         
-        var newProject = ProjectModel(
-            code: generateProjectCode(),
+        let generatedCode = generateProjectCode()
+        let cleanProjectName = projectName.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        print("🔍 Código gerado: \(generatedCode)")
+        
+        let newProject = ProjectModel(
+            code: generatedCode,
             director: director.trimmingCharacters(in: .whitespacesAndNewlines),
-            name: projectName.trimmingCharacters(in: .whitespacesAndNewlines),
+            name: cleanProjectName,
             photo: nil,
             screenPlay: selectedScriptFile,
             deadline: deadline,
@@ -181,13 +204,25 @@ struct CreateProjectView: View {
             members: [userId]
         )
         
+        print("🔍 Projeto criado com código: \(newProject.code)")
+        
         projectManager.addProject(newProject)
+        
+        // NOVO: Mostrar tela de sucesso ao invés de fechar
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             if let createdProject = projectManager.projects.first(where: { $0.code == newProject.code }) {
                 self.onProjectCreated(createdProject)
+                
+                // Preparar dados para tela de sucesso
+                self.createdProjectCode = newProject.code
+                self.createdProjectName = cleanProjectName
+                
+                // Mostrar tela de sucesso
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    self.showingSuccessView = true
+                }
             }
             self.isLoading = false
-            self.presentationMode.wrappedValue.dismiss()
         }
     }
 }

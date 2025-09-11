@@ -11,6 +11,7 @@ import SwiftUI
 struct CalendarDayView: View {
     let date: Date
     let isSelected: Bool
+    let hasEvents: Bool
     let onTap: () -> Void
     
     private var dayName: String {
@@ -36,7 +37,11 @@ struct CalendarDayView: View {
                 
                 Text(dayNumber)
                     .font(.system(size: 16, weight: isSelected ? .heavy : .bold))
-                    .foregroundColor(isSelected ? .white : .white)
+                    .foregroundColor(isSelected ? .white : Color("TextPrimary"))
+                
+                Circle()
+                    .fill(hasEvents ? Color("PrimaryOrange") : Color.clear)
+                    .frame(width: 5, height: 5)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .scaleEffect(isSelected ? 1.0 : 0.98)

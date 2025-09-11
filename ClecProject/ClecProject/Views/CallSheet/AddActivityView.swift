@@ -23,10 +23,19 @@ struct AddActivityView: View {
     @State private var selectedScheduleActivity: CallSheetModel.ScheduleActivity = .Beginning
     @State private var description: String = ""
     @State private var address: String = ""
-    @State private var activityTime = Date()
+    @State private var activityTime: Date
     @State private var responsible: String = ""
     @State private var hasReminder: Bool = false
     @State private var reminderTime: Int = 30
+    
+    init(selectedDate: Date) {
+        self.selectedDate = selectedDate
+        let calendar = Calendar.current
+        var components = calendar.dateComponents([.year, .month, .day], from: selectedDate)
+        components.hour = 8
+        components.minute = 0
+        _activityTime = State(initialValue: calendar.date(from: components) ?? Date())
+    }
     
     enum ActivityTypeOption: String, CaseIterable {
         case scene = "Nova Cena"
@@ -62,8 +71,7 @@ struct AddActivityView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                // FUNDO ESCURO CONSISTENTE
-                Color(hex: "#141414")
+                Color("BackgroundDark")
                     .ignoresSafeArea(.all)
                 
                 ScrollView {
@@ -92,7 +100,8 @@ struct AddActivityView: View {
                                 .background(
                                     RoundedRectangle(cornerRadius: 25)
                                         .fill(
-                                            isFormValid ? Color(hex: "#F85601") : Color.gray.opacity(0.3)
+                                            isFormValid ?
+                                            Color("PrimaryOrange") : Color.gray.opacity(0.3)
                                         )
                                 )
                         }
@@ -109,8 +118,7 @@ struct AddActivityView: View {
                 .scrollContentBackground(.hidden)
                 .background(Color.clear)
             }
-            .background(Color(hex: "#141414"))
-            .colorScheme(.dark)
+            .background(Color("BackgroundDark"))
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -124,12 +132,11 @@ struct AddActivityView: View {
                             Text("Voltar")
                                 .font(.system(size: 16, weight: .regular))
                         }
-                        .foregroundColor(Color(hex: "#F85601"))
+                        .foregroundColor(Color("PrimaryOrange"))
                     }
                 }
             }
         }
-        .colorScheme(.dark)
     }
     
     // MARK: - Sections
@@ -138,12 +145,12 @@ struct AddActivityView: View {
         VStack(spacing: 12) {
             Text("Adicionar atividade")
                 .font(.system(size: 28, weight: .bold))
-                .foregroundColor(.white)
+                .foregroundColor(Color("TextPrimary"))
                 .multilineTextAlignment(.center)
             
             Text("Para o dia \(formatSelectedDate())")
                 .font(.system(size: 16, weight: .regular))
-                .foregroundColor(Color(hex: "#8E8E93"))
+                .foregroundColor(Color("TextSecondary"))
                 .multilineTextAlignment(.center)
         }
         .padding(.top, 20)
@@ -153,7 +160,7 @@ struct AddActivityView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Tipo de Atividade")
                 .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(.white)
+                .foregroundColor(Color("TextPrimary"))
             
             HStack(spacing: 12) {
                 ForEach(ActivityTypeOption.allCases, id: \.self) { option in
@@ -173,16 +180,16 @@ struct AddActivityView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Nome da Cena")
                     .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(.white)
+                    .foregroundColor(Color("TextPrimary"))
                 
                 TextField("Ex: Cena 01 - Pastelaria", text: $customSceneTitle)
                     .font(.system(size: 16, weight: .regular))
-                    .foregroundColor(.white)
+                    .foregroundColor(Color("TextPrimary"))
                     .padding(.horizontal, 16)
                     .padding(.vertical, 14)
                     .background(
                         RoundedRectangle(cornerRadius: 12)
-                            .fill(Color(hex: "#1C1C1E"))
+                            .fill(Color("CardBackground"))
                     )
             }
         }
@@ -192,7 +199,7 @@ struct AddActivityView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Atividade")
                 .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(.white)
+                .foregroundColor(Color("TextPrimary"))
             
             Menu {
                 ForEach(getAllScheduleActivities(), id: \.self) { activity in
@@ -210,19 +217,19 @@ struct AddActivityView: View {
                     Text(selectedScheduleActivity.icon)
                     Text(selectedScheduleActivity.rawValue)
                         .font(.system(size: 16, weight: .regular))
-                        .foregroundColor(.white)
+                        .foregroundColor(Color("TextPrimary"))
                     
                     Spacer()
                     
                     Image(systemName: "chevron.down")
                         .font(.system(size: 14))
-                        .foregroundColor(Color(hex: "#8E8E93"))
+                        .foregroundColor(Color("TextSecondary"))
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 14)
                 .background(
                     RoundedRectangle(cornerRadius: 12)
-                        .fill(Color(hex: "#1C1C1E"))
+                        .fill(Color("CardBackground"))
                 )
             }
         }
@@ -234,16 +241,16 @@ struct AddActivityView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Descrição (opcional)")
                     .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(.white)
+                    .foregroundColor(Color("TextPrimary"))
                 
                 TextField("Detalhes adicionais...", text: $description, axis: .vertical)
                     .font(.system(size: 16, weight: .regular))
-                    .foregroundColor(.white)
+                    .foregroundColor(Color("TextPrimary"))
                     .padding(.horizontal, 16)
                     .padding(.vertical, 14)
                     .background(
                         RoundedRectangle(cornerRadius: 12)
-                            .fill(Color(hex: "#1C1C1E"))
+                            .fill(Color("CardBackground"))
                     )
                     .lineLimit(3...6)
             }
@@ -252,16 +259,16 @@ struct AddActivityView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Local")
                     .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(.white)
+                    .foregroundColor(Color("TextPrimary"))
                 
                 TextField("Ex: Rua Margarida - 2207", text: $address)
                     .font(.system(size: 16, weight: .regular))
-                    .foregroundColor(.white)
+                    .foregroundColor(Color("TextPrimary"))
                     .padding(.horizontal, 16)
                     .padding(.vertical, 14)
                     .background(
                         RoundedRectangle(cornerRadius: 12)
-                            .fill(Color(hex: "#1C1C1E"))
+                            .fill(Color("CardBackground"))
                     )
             }
             
@@ -269,17 +276,16 @@ struct AddActivityView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Horário")
                     .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(.white)
+                    .foregroundColor(Color("TextPrimary"))
                 
                 DatePicker("", selection: $activityTime, displayedComponents: .hourAndMinute)
                     .datePickerStyle(.compact)
                     .labelsHidden()
-                    .colorScheme(.dark)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 14)
                     .background(
                         RoundedRectangle(cornerRadius: 12)
-                            .fill(Color(hex: "#1C1C1E"))
+                            .fill(Color("CardBackground"))
                     )
             }
             
@@ -287,16 +293,16 @@ struct AddActivityView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Responsável (opcional)")
                     .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(.white)
+                    .foregroundColor(Color("TextPrimary"))
                 
                 TextField("Nome do responsável", text: $responsible)
                     .font(.system(size: 16, weight: .regular))
-                    .foregroundColor(.white)
+                    .foregroundColor(Color("TextPrimary"))
                     .padding(.horizontal, 16)
                     .padding(.vertical, 14)
                     .background(
                         RoundedRectangle(cornerRadius: 12)
-                            .fill(Color(hex: "#1C1C1E"))
+                            .fill(Color("CardBackground"))
                     )
             }
             
@@ -305,20 +311,20 @@ struct AddActivityView: View {
                 HStack {
                     Text("Lembrete")
                         .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.white)
+                        .foregroundColor(Color("TextPrimary"))
                     
                     Spacer()
                     
                     Toggle("", isOn: $hasReminder)
                         .labelsHidden()
-                        .toggleStyle(SwitchToggleStyle(tint: Color(hex: "#F85601")))
+                        .toggleStyle(SwitchToggleStyle(tint: Color("PrimaryOrange")))
                 }
                 
                 if hasReminder {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Avisar com antecedência")
                             .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(Color(hex: "#8E8E93"))
+                            .foregroundColor(Color("TextSecondary"))
                         
                         Picker("Tempo do lembrete", selection: $reminderTime) {
                             Text("15 minutos").tag(15)
@@ -327,7 +333,6 @@ struct AddActivityView: View {
                             Text("2 horas").tag(120)
                         }
                         .pickerStyle(.segmented)
-                        .colorScheme(.dark)
                     }
                 }
             }
@@ -366,8 +371,7 @@ struct AddActivityView: View {
             minute: timeComponents.minute
         )) ?? selectedDate
         
-        // Adicionar atividade ao dia (o ProjectManager vai gerenciar diárias automaticamente)
-        projectManager.addActivityToDay(
+        projectManager.addSceneToDay(
             date: selectedDate,
             title: activityTitle,
             description: trimmedDescription.isEmpty ? activityTitle : trimmedDescription,
@@ -396,21 +400,21 @@ struct ActivityTypeCard: View {
             VStack(spacing: 8) {
                 Image(systemName: option.icon)
                     .font(.system(size: 24))
-                    .foregroundColor(isSelected ? .white : Color(hex: "#F85601"))
+                    .foregroundColor(isSelected ? .white : Color("PrimaryOrange"))
                 
                 Text(option.rawValue)
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(isSelected ? .white : .white)
+                    .foregroundColor(isSelected ? .white : Color("TextPrimary"))
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 16)
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(isSelected ? Color(hex: "#F85601") : Color(hex: "#1C1C1E"))
+                    .fill(isSelected ? Color("PrimaryOrange") : Color("CardBackground"))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(isSelected ? Color(hex: "#F85601") : Color.clear, lineWidth: 2)
+                    .stroke(isSelected ? Color("PrimaryOrange") : Color.clear, lineWidth: 2)
             )
         }
         .buttonStyle(PlainButtonStyle())

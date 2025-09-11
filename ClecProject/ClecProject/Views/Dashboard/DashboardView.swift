@@ -36,8 +36,12 @@ struct DashboardView: View {
     // MARK: - Body
     var body: some View {
         ZStack {
-            Color("BackgroundDark")
-                .ignoresSafeArea()
+            LinearGradient(
+                colors: [Color("BackgroundDark"), .black],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
             
             if let project = project {
                 mainContent(project: project)
@@ -73,7 +77,7 @@ struct DashboardView: View {
             }
         }
         .sheet(isPresented: $showingAddOrdemDoDia) {
-            CreateCallSheetView()
+            CreateCallSheetView(selectedDate: self.selectedDate)
                 .environmentObject(projectManager)
         }
     }
@@ -108,9 +112,9 @@ struct DashboardView: View {
         case .arquivos:
             FilesSection(project: project)
         case .ordens:
-            OrdersSection(project: project)
+            OrdersSection(project: project, onSelectCallSheet: switchToDay)
         case .configuracoes:
-            SettingsSection(project: project, userManager: userManager)
+            SettingsSection(project: project)
         }
     }
     
@@ -142,7 +146,11 @@ struct DashboardView: View {
     private func handleFABAction() {
         switch selectedTab {
         case .geral:
-            showingAddActivity = true
+            if projectManager.dayHasActivities(selectedDate) {
+                showingAddActivity = true
+            } else {
+                showingAddOrdemDoDia = true
+            }
         case .arquivos:
             showingAddFile = true
         case .ordens:
@@ -151,6 +159,15 @@ struct DashboardView: View {
             selectedDate = Date()
             showingAddActivity = true
         }
+    }
+    
+    private func switchToDay(date: Date) {
+        withAnimation {
+            selectedDate = date
+            selectedTab = .geral
+        }
+        let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+        impactFeedback.impactOccurred()
     }
     
     private func handleTabSelection(_ tab: DashboardTab) {

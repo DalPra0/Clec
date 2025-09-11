@@ -2,6 +2,7 @@
 //  CreateProjectView.swift
 //  ClecProject
 //
+//  Updated with better contrast and keyboard dismiss
 //  ATUALIZADO: Mostra tela de sucesso com código após criar projeto
 
 import SwiftUI
@@ -35,8 +36,9 @@ struct CreateProjectView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                Color("BackgroundCard")
+                Color("BackgroundDark")
                     .ignoresSafeArea(.all)
+                    .dismissKeyboardOnTap() // Dismiss keyboard when tapping background
                 
                 if showingSuccessView {
                     // TELA DE SUCESSO
@@ -51,43 +53,17 @@ struct CreateProjectView: View {
                 } else {
                     // TELA DE FORMULÁRIO ORIGINAL
                     ScrollView {
-                        VStack(spacing: 24) {
+                        VStack(spacing: 32) {
                             headerSection
                             
                             formSection
                             
-                            Button(action: {
-                                createProject()
-                            }) {
-                                HStack {
-                                    if isLoading {
-                                        ProgressView()
-                                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                                            .scaleEffect(0.8)
-                                    } else {
-                                        Text("Pronto")
-                                            .font(.system(size: 18, weight: .semibold))
-                                            .foregroundColor(.white)
-                                    }
-                                }
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 50)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 25)
-                                        .fill(
-                                            isFormValid ? Color("PrimaryOrange") : Color("TextSecondary").opacity(0.3)
-                                        )
-                                )
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                            .disabled(!isFormValid || isLoading)
-                            .padding(.horizontal, 20)
-                            .padding(.top, 20)
+                            createButton
                             
                             Spacer(minLength: 40)
                         }
                         .padding(.horizontal, 24)
-                        .padding(.vertical, 16)
+                        .padding(.vertical, 20)
                     }
                     .scrollContentBackground(.hidden)
                     .background(Color.clear)
@@ -99,6 +75,7 @@ struct CreateProjectView: View {
                 ToolbarItem(placement: .navigationBarLeading) {
                     if !showingSuccessView {
                         Button(action: {
+                            hideKeyboard() // Hide keyboard before dismissing
                             presentationMode.wrappedValue.dismiss()
                         }) {
                             HStack(spacing: 4) {
@@ -113,10 +90,10 @@ struct CreateProjectView: View {
                 }
             }
         }
-        .onChange(of: projectName) {
+        .onChange(of: projectName) { _, _ in
             validateForm()
         }
-        .onChange(of: director) {
+        .onChange(of: director) { _, _ in
             validateForm()
         }
         .onAppear {
@@ -125,50 +102,102 @@ struct CreateProjectView: View {
     }
     
     private var headerSection: some View {
-        VStack(spacing: 12) {
-            Text("Insira as informações")
-                .font(.system(size: 28, weight: .bold))
-                .foregroundColor(Color("TextPrimary"))
+        VStack(spacing: 16) {
+            Text("Criar Projeto")
+                .font(.system(size: 32, weight: .bold))
+                .foregroundColor(.white)
                 .multilineTextAlignment(.center)
             
-            Text("do seu projeto")
-                .font(.system(size: 28, weight: .bold))
-                .foregroundColor(Color("TextPrimary"))
+            Text("Preencha as informações básicas\\ndo seu novo projeto")
+                .font(.system(size: 16, weight: .medium))
+                .foregroundColor(Color("TextSecondary"))
                 .multilineTextAlignment(.center)
+                .lineSpacing(4)
         }
         .padding(.top, 20)
     }
     
     private var formSection: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 24) {
             CustomTextField(
                 title: "Nome do Projeto",
-                placeholder: "Ex: Curta Metragem",
+                placeholder: "Ex: Curta Metragem 'Sonhos'",
                 text: $projectName
             )
             
             CustomTextField(
                 title: "Diretor",
-                placeholder: "Nome do diretor",
+                placeholder: "Nome completo do diretor",
                 text: $director
             )
             
             CustomTextEditor(
-                title: "Descrição",
-                placeholder: "Descrição breve do projeto...",
+                title: "Descrição do Projeto",
+                placeholder: "Uma breve descrição sobre o projeto, gênero, duração esperada...",
                 text: $description
             )
             
             CustomDatePicker(
-                title: "Data Final",
+                title: "Data Final (Opcional)",
                 date: $deadline
             )
             
             CustomFilePicker(
-                title: "Roteiro",
+                title: "Roteiro (Opcional)",
                 selectedFileName: $selectedScriptFile
             )
         }
+    }
+    
+    private var createButton: some View {
+        Button(action: {
+            hideKeyboard() // Hide keyboard before creating
+            createProject()
+        }) {
+            HStack(spacing: 12) {
+                if isLoading {
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        .scaleEffect(0.9)
+                } else {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 20))
+                    
+                    Text("Criar Projeto")
+                        .font(.system(size: 18, weight: .semibold))
+                }
+            }
+            .foregroundColor(.white)
+            .frame(maxWidth: .infinity)
+            .frame(height: 56)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(
+                        isFormValid && !isLoading ? 
+                            LinearGradient(
+                                colors: [Color("PrimaryOrange"), Color("PrimaryOrange").opacity(0.8)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            ) :
+                            LinearGradient(
+                                colors: [Color("TextSecondary").opacity(0.3), Color("TextSecondary").opacity(0.2)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                    )
+                    .shadow(
+                        color: isFormValid && !isLoading ? Color("PrimaryOrange").opacity(0.4) : Color.clear,
+                        radius: isFormValid && !isLoading ? 12 : 0,
+                        x: 0,
+                        y: 6
+                    )
+            )
+        }
+        .buttonStyle(PlainButtonStyle())
+        .disabled(!isFormValid || isLoading)
+        .scaleEffect(isFormValid && !isLoading ? 1.0 : 0.95)
+        .animation(.easeInOut(duration: 0.2), value: isFormValid)
+        .padding(.top, 8)
     }
     
     private func validateForm() {
@@ -189,7 +218,7 @@ struct CreateProjectView: View {
         let generatedCode = generateProjectCode()
         let cleanProjectName = projectName.trimmingCharacters(in: .whitespacesAndNewlines)
         
-        print("🔍 Código gerado: \(generatedCode)")
+        print("🔍 Código gerado: \\(generatedCode)")
         
         let newProject = ProjectModel(
             code: generatedCode,
@@ -204,7 +233,7 @@ struct CreateProjectView: View {
             members: [userId]
         )
         
-        print("🔍 Projeto criado com código: \(newProject.code)")
+        print("🔍 Projeto criado com código: \\(newProject.code)")
         
         projectManager.addProject(newProject)
         
@@ -221,8 +250,18 @@ struct CreateProjectView: View {
                 withAnimation(.easeInOut(duration: 0.3)) {
                     self.showingSuccessView = true
                 }
+                
+                // Haptic feedback
+                let notificationFeedback = UINotificationFeedbackGenerator()
+                notificationFeedback.notificationOccurred(.success)
             }
             self.isLoading = false
         }
     }
+}
+
+#Preview {
+    CreateProjectView()
+        .environmentObject(ProjectManager())
+        .environmentObject(UserManager())
 }

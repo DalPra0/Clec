@@ -16,7 +16,8 @@ class UserManager: ObservableObject {
     @Published var userPassword: String = ""
     @Published var favoriteMovies: [FavoriteMovie] = []
     @Published var profileImageData: Data?
-    
+    @Published var activeProjectId: String?   // 🔥 Novo campo
+
     private var db = Firestore.firestore()
     private var userListener: ListenerRegistration?
     
@@ -38,10 +39,27 @@ class UserManager: ObservableObject {
                 self.resetToDefaultLocal()
             }
         }
+        
+        // Listen for profile creation notifications
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleCreateUserProfile(_:)),
+            name: Notification.Name("CreateUserProfile"),
+            object: nil
+        )
     }
     
     deinit {
         userListener?.remove()
+        NotificationCenter.default.removeObserver(self)
+    }
+    
+    @objc private func handleCreateUserProfile(_ notification: Notification) {
+        guard let userInfo = notification.userInfo,
+              let name = userInfo["name"] as? String else { return }
+        
+        print("🎆 Creating user profile for: \(name)")
+        setupInitialProfile(name: name)
     }
     
     func listenForUserData(userId: String) {
@@ -59,10 +77,20 @@ class UserManager: ObservableObject {
                 self.userName = userProfile.userName
                 self.userEmail = userProfile.userEmail
                 self.favoriteMovies = userProfile.favoriteMovies
+                self.activeProjectId = userProfile.activeProjectId   // 🔥 carrega do Firestore
             } else if !document.exists {
-                self.userName = "Mia"
+                self.userName = "Usuário"
                 self.userEmail = Auth.auth().currentUser?.email ?? ""
-                self.saveUserData()
+                self.activeProjectId = nil
+                
+                print("⚠️ User profile not found in Firestore. Waiting for profile setup...")
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                    if self.userName == "Usuário" {
+                        print("🔄 Fallback: Creating profile with default name")
+                        self.saveUserData()
+                    }
+                }
             }
         }
     }
@@ -76,7 +104,8 @@ class UserManager: ObservableObject {
             id: userId,
             userName: self.userName,
             userEmail: self.userEmail,
-            favoriteMovies: self.favoriteMovies
+            favoriteMovies: self.favoriteMovies,
+            activeProjectId: self.activeProjectId   // 🔥 salva também
         )
         
         do {
@@ -90,6 +119,15 @@ class UserManager: ObservableObject {
         userName = name.trimmingCharacters(in: .whitespacesAndNewlines)
         saveUserData()
         print("👤 Nome do usuário atualizado para: \(userName)")
+    }
+    
+    func setupInitialProfile(name: String) {
+        userName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        userEmail = Auth.auth().currentUser?.email ?? ""
+        favoriteMovies = []
+        activeProjectId = nil   // 🔥 nenhum projeto ativo ao criar
+        saveUserData()
+        print("🎆 Perfil inicial criado para: \(userName)")
     }
     
     var greeting: String {
@@ -157,11 +195,12 @@ class UserManager: ObservableObject {
     }
     
     func resetToDefault() {
-        userName = "Mia"
+        userName = "Usuário"
         userEmail = ""
         userPassword = ""
         favoriteMovies = []
         profileImageData = nil
+        activeProjectId = nil   // 🔥 reseta também
         saveUserData()
         print("🔄 Dados do usuário resetados para padrão")
     }
@@ -172,6 +211,7 @@ class UserManager: ObservableObject {
         self.userPassword = ""
         self.favoriteMovies = []
         self.profileImageData = nil
+        self.activeProjectId = nil
     }
     
     func clearFavoriteMovies() {
@@ -179,6 +219,12 @@ class UserManager: ObservableObject {
         saveUserData()
         print("🧹 Filmes favoritos limpos")
     }
+    
+    func updateActiveProject(_ projectId: String?) {
+        self.activeProjectId = projectId
+        saveUserData()
+    }
+
 }
 
 fileprivate struct UserProfile: Codable, Identifiable {
@@ -186,4 +232,5 @@ fileprivate struct UserProfile: Codable, Identifiable {
     var userName: String
     var userEmail: String
     var favoriteMovies: [FavoriteMovie]
+    var activeProjectId: String?   // 🔥 novo campo persistido
 }

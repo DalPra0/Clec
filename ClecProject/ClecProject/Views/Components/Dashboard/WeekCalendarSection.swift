@@ -17,7 +17,7 @@ struct WeekCalendarSection: View {
         VStack(alignment: .leading, spacing: 20) {
             Text("Minha Semana")
                 .font(.system(size: 24, weight: .bold))
-                .foregroundColor(.white)
+                .foregroundColor(Color("TextPrimary"))
             
             VStack(spacing: 16) {
                 CalendarNavigationHeader(
@@ -32,7 +32,8 @@ struct WeekCalendarSection: View {
                     )
                 } else {
                     WeekCalendarView(
-                        selectedDate: $selectedDate
+                        selectedDate: $selectedDate,
+                        hasEventsFor: hasEventsFor
                     )
                 }
             }

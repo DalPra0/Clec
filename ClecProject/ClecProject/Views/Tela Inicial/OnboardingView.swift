@@ -53,6 +53,10 @@ struct OnboardingView: View {
                         .tag(page.rawValue)
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .ignoresSafeArea()
+            .foregroundStyle(Color.backgroundDark)
+            .background(Color.backgroundDark)
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
             .animation(.spring(), value: currentPage)
             
@@ -60,14 +64,15 @@ struct OnboardingView: View {
             HStack(spacing:12) {
                 ForEach(0..<OnboardingPage.allCases.count, id: \.self) { index in
                     Circle()
-                        .fill(currentPage == index ? Color.laranjaPastel :
-                            Color.gray.opacity(0.5))
+                        .fill(currentPage == index ? Color.primaryOrange :
+                            Color.laranjaPastel)
                         .frame(width: currentPage == index ? 12 : 8, height:
                             currentPage == index ? 12: 8)
                         .animation(.spring(), value: currentPage)
                 }
             }
         }
+        .background(Color.backgroundDark)
         .onAppear() {
             isAnimating = true
         }
@@ -85,45 +90,34 @@ struct OnboardingView: View {
                 .resizable()
                 .frame(height: 200)
                 .offset(x: -20, y: isAnimating ? 40 : 20)
+            
+            Image("claqueteFechadaOnboarding")
+                .resizable()
+                .frame(height: 200)
+                .offset(x: -20, y: isAnimating ? 49.8 : 20)
         }
     }
     
     private var secondPageGroup: some View {
         ZStack {
-            Image("logoOnboarding")
+            Image("botoesOnboarding")
                 .padding()
                 .scaledToFit()
                 .offset(y: isAnimating ? 0 : 20)
             
-//            Image("claqueteOnboarding")
-//                .padding()
-//                .scaledToFit()
-//                .frame(height: 100)
-//                .offset(y: isAnimating ? 0 : 20)
+            Image("personagemOnboarding")
+                .scaledToFit()
+                .frame(height: 200)
+                .offset(x: 25, y: isAnimating ? 85 : 20)
         }
     }
     
     private var thirdPageGroup: some View {
         ZStack {
-            Image("logoOnboarding")
+            Image("duasTelasOnboarding")
                 .padding()
                 .scaledToFit()
                 .offset(y: isAnimating ? 0 : 20)
-            
-            VStack{
-                Spacer()
-                Button("ai ta bom sai"){
-                    isUserOldLocal = true
-                    print("sai aaaa de mim kkk")
-                    UserDefaults.standard.set(true, forKey: "isUserOld")
-                }
-            }
-            
-//            Image("claqueteOnboarding")
-//                .padding()
-//                .scaledToFit()
-//                .frame(height: 100)
-//                .offset(y: isAnimating ? 0 : 20)
         }
     }
     
@@ -148,18 +142,19 @@ struct OnboardingView: View {
                 Text(page.title)
                     .font(.system(.title, design: .rounded))
                     .fontWeight(.bold)
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(.textPrimary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal)
                     .opacity(isAnimating ? 1 : 0)
                     .offset(y: isAnimating ? 0 : 20)
                     .animation(.spring(dampingFraction: 0.8).delay(0.3), value:
                         isAnimating)
-                    .rotationEffect(Angle(degrees: 20))
+//                    .rotationEffect(Angle(degrees: 20))
                 
                 Text(page.description)
                     .font(.system(.title3, design: .rounded))
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(.textPrimary)
+                    .fontWeight(.regular)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 32)
                     .opacity(isAnimating ? 1 : 0)

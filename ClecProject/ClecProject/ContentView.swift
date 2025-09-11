@@ -31,7 +31,7 @@ struct ContentView: View {
         }
         .onAppear{
             print(isUserOld)
-            //Pra ver o onboarding de novo descomente essa parada kkkk
+            //p/ ver o onboarding de novo eh so descomentar essa parada kk..
 //            UserDefaults.standard.set(false, forKey: "isUserOld")
         }
         .preferredColorScheme(.light)

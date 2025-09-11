@@ -18,7 +18,7 @@ struct CreateCallSheetView: View {
     // First Scene States
     @State private var description: String = ""
     @State private var address: String = ""
-    @State private var date: Date = Date()
+    @State private var date: Date
     
     @State private var isReminderEnabled: Bool = false
     
@@ -28,6 +28,10 @@ struct CreateCallSheetView: View {
         !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
         !description.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
         !address.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+    
+    init(selectedDate: Date = Date()) {
+        self._date = State(initialValue: selectedDate)
     }
     
     var body: some View {
@@ -202,6 +206,6 @@ struct CheckboxToggleStyle: ToggleStyle {
 
 
 #Preview {
-    CreateCallSheetView()
+    CreateCallSheetView(selectedDate: Date())
         .environmentObject(ProjectManager())
 }

@@ -77,7 +77,7 @@ struct DashboardView: View {
             }
         }
         .sheet(isPresented: $showingAddOrdemDoDia) {
-            CreateCallSheetView()
+            CreateCallSheetView(selectedDate: self.selectedDate)
                 .environmentObject(projectManager)
         }
     }

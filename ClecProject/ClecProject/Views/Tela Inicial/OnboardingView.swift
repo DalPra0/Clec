@@ -95,15 +95,7 @@ struct OnboardingView: View {
                 .scaledToFit()
                 .offset(y: isAnimating ? -120 : 20)
             
-            Image("claqueteOnboarding")
-                .resizable()
-                .frame(height: 200)
-                .offset(x: -20, y: isAnimating ? 40 : 20)
-            
-            Image("claqueteFechadaOnboarding")
-                .resizable()
-                .frame(height: 200)
-                .offset(x: -20, y: isAnimating ? 49.8 : 20)
+            ClaqueteView(isAnimating: $isAnimating)
         }
     }
     

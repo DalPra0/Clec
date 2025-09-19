@@ -11,6 +11,10 @@ import SwiftUI
 struct OrdersSection: View {
     let project: ProjectModel?
     var onSelectCallSheet: (Date) -> Void = { _ in }
+    @EnvironmentObject var projectManager: ProjectManager
+    
+    @State private var showingEditOrder = false
+    @State private var selectedCallSheet: CallSheetModel?
     
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -24,6 +28,22 @@ struct OrdersSection: View {
                             CallSheetCardView(callSheet: callSheet)
                         }
                         .buttonStyle(PlainButtonStyle())
+                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                            // Botão Excluir
+                            Button(role: .destructive) {
+                                deleteCallSheet(callSheet)
+                            } label: {
+                                Label("Excluir", systemImage: "trash")
+                            }
+                            
+                            // Botão Editar
+                            Button {
+                                editCallSheet(callSheet)
+                            } label: {
+                                Label("Editar", systemImage: "pencil")
+                            }
+                            .tint(Color("PrimaryOrange"))
+                        }
                     }
                 }
             } else {
@@ -34,5 +54,26 @@ struct OrdersSection: View {
                 )
             }
         }
+        .sheet(isPresented: $showingEditOrder) {
+            if let callSheet = selectedCallSheet {
+                // TODO: Implementar EditCallSheetView
+                Text("Editar Ordem do Dia: \(callSheet.sheetName)")
+            }
+        }
+    }
+    
+    private func deleteCallSheet(_ callSheet: CallSheetModel) {
+        // TODO: Implementar lógica de exclusão de CallSheet no ProjectManager
+        let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+        impactFeedback.impactOccurred()
+        print("🗑️ Ordem do dia deletada: \(callSheet.sheetName)")
+    }
+    
+    private func editCallSheet(_ callSheet: CallSheetModel) {
+        selectedCallSheet = callSheet
+        showingEditOrder = true
+        let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+        impactFeedback.impactOccurred()
+        print("✏️ Editar ordem do dia: \(callSheet.sheetName)")
     }
 }

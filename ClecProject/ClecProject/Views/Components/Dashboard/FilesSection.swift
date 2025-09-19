@@ -10,6 +10,10 @@ import SwiftUI
 
 struct FilesSection: View {
     let project: ProjectModel?
+    @EnvironmentObject var projectManager: ProjectManager
+    
+    @State private var showingEditFile = false
+    @State private var selectedFile: ProjectFile?
     
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -51,6 +55,24 @@ struct FilesSection: View {
                             RoundedRectangle(cornerRadius: 12)
                                 .fill(Color("CardBackground"))
                         )
+                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                            // Botão Excluir - Só arquivos adicionais, não roteiro
+                            if !file.isScreenplay {
+                                Button(role: .destructive) {
+                                    deleteFile(file)
+                                } label: {
+                                    Label("Excluir", systemImage: "trash")
+                                }
+                            }
+                            
+                            // Botão Editar
+                            Button {
+                                editFile(file)
+                            } label: {
+                                Label("Editar", systemImage: "pencil")
+                            }
+                            .tint(Color("PrimaryOrange"))
+                        }
                     }
                 }
             } else {
@@ -61,5 +83,32 @@ struct FilesSection: View {
                 )
             }
         }
+        .sheet(isPresented: $showingEditFile) {
+            if let file = selectedFile {
+                // TODO: Implementar EditFileView
+                Text("Editar Arquivo: \(file.name)")
+            }
+        }
+    }
+    
+    private func deleteFile(_ file: ProjectFile) {
+        guard let project = project,
+              let projectIndex = projectManager.projects.firstIndex(where: { $0.id == project.id }) else {
+            return
+        }
+        
+        projectManager.removeFileFromProject(at: projectIndex, fileId: file.id)
+        
+        let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+        impactFeedback.impactOccurred()
+        print("🗑️ Arquivo deletado: \(file.name)")
+    }
+    
+    private func editFile(_ file: ProjectFile) {
+        selectedFile = file
+        showingEditFile = true
+        let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+        impactFeedback.impactOccurred()
+        print("✏️ Editar arquivo: \(file.name)")
     }
 }

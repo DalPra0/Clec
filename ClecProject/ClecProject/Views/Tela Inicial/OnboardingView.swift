@@ -12,8 +12,8 @@ enum OnboardingPage: Int, CaseIterable {
     case secondPage
     case thirdPage
     
-    //titulos
-    var title: String{
+    // títulos
+    var title: String {
         switch self {
         case .firstPage:
             return "Bem-vinde ao Cleck!"
@@ -24,8 +24,8 @@ enum OnboardingPage: Int, CaseIterable {
         }
     }
     
-    //descriçoes
-    var description: String{
+    // descrições
+    var description: String {
         switch self {
         case .firstPage:
             return "O app que ajuda você a organizar a ordem do dia e manter toda a equipe alinhada nas gravações"
@@ -36,8 +36,8 @@ enum OnboardingPage: Int, CaseIterable {
         }
     }
     
-    //botao
-    var hasButton : Bool {
+    // exibir botão somente na última página
+    var hasButton: Bool {
         switch self {
         case .thirdPage:
             return true
@@ -50,12 +50,10 @@ enum OnboardingPage: Int, CaseIterable {
 struct OnboardingView: View {
     @State private var currentPage = 0
     @State private var isAnimating = false
-//    @State private var firstPage = false
-//    @State private var secondPage: CGFloat = 0.0
     @Binding var isUserOldLocal: Bool
     
     var body: some View {
-        VStack{
+        VStack {
             TabView(selection: $currentPage) {
                 ForEach(OnboardingPage.allCases, id: \.rawValue) { page in
                     getPageView(for: page)
@@ -69,25 +67,24 @@ struct OnboardingView: View {
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
             .animation(.spring(), value: currentPage)
             
-            //indicador d pagina
-            HStack(spacing:12) {
+            // indicador de página
+            HStack(spacing: 12) {
                 ForEach(0..<OnboardingPage.allCases.count, id: \.self) { index in
                     Circle()
-                        .fill(currentPage == index ? Color.primaryOrange :
-                            Color.laranjaPastel)
-                        .frame(width: currentPage == index ? 12 : 8, height:
-                            currentPage == index ? 12: 8)
+                        .fill(currentPage == index ? Color.primaryOrange : Color.laranjaPastel)
+                        .frame(width: currentPage == index ? 12 : 8,
+                               height: currentPage == index ? 12 : 8)
                         .animation(.spring(), value: currentPage)
                 }
             }
         }
         .background(Color.backgroundDark)
-        .onAppear() {
+        .onAppear {
             isAnimating = true
         }
     }
     
-    //imagens
+    // imagens
     private var firstPageGroup: some View {
         ZStack {
             Image("logoOnboarding")
@@ -124,22 +121,18 @@ struct OnboardingView: View {
     
     @ViewBuilder
     private func getPageView(for page: OnboardingPage) -> some View {
-        VStack(spacing:30) {
-            
-            //config imagens
+        VStack(spacing: 30) {
+            // imagens
             ZStack {
                 switch page {
-                case .firstPage:
-                    firstPageGroup
-                case .secondPage:
-                    secondPageGroup
-                case .thirdPage:
-                    thirdPageGroup
+                case .firstPage: firstPageGroup
+                case .secondPage: secondPageGroup
+                case .thirdPage: thirdPageGroup
                 }
             }
             
-            //config textos
-            VStack(spacing:20) {
+            // textos
+            VStack(spacing: 20) {
                 Text(page.title)
                     .font(.system(.title, design: .rounded))
                     .fontWeight(.bold)
@@ -148,10 +141,8 @@ struct OnboardingView: View {
                     .padding(.horizontal)
                     .opacity(isAnimating ? 1 : 0)
                     .offset(y: isAnimating ? 0 : 20)
-                    .animation(.spring(dampingFraction: 0.8).delay(0.3), value:
-                        isAnimating)
-//                    .rotationEffect(Angle(degrees: 20))
-
+                    .animation(.spring(dampingFraction: 0.8).delay(0.3), value: isAnimating)
+                
                 Text(page.description)
                     .font(.system(.title3, design: .rounded))
                     .foregroundStyle(Color("DesignSystem/OnPrimary"))
@@ -160,34 +151,28 @@ struct OnboardingView: View {
                     .padding(.horizontal, 32)
                     .opacity(isAnimating ? 1 : 0)
                     .offset(y: isAnimating ? 0 : 20)
-                    .animation(.spring(dampingFraction: 0.8).delay(0.3), value:
-                        isAnimating)
-            
-
+                    .animation(.spring(dampingFraction: 0.8).delay(0.3), value: isAnimating)
             }
             
-            
-            if(page.hasButton) {
+            // botão final
+            if page.hasButton {
                 Button {
                     isUserOldLocal = true
                     UserDefaults.standard.set(true, forKey: "isUserOld")
-                    //mandar p/ content view :P
                 } label: {
                     Text("Começar")
                         .font(.system(size: 17, weight: .semibold))
                         .foregroundColor(Color("DesignSystem/OnPrimary"))
                         .tracking(-0.43)
                 }
-                .padding(.all)
-//                    .frame(height: 56)
+                .padding()
                 .background(Color("DesignSystem/Primary"))
                 .cornerRadius(12)
                 .buttonStyle(PlainButtonStyle())
             }
         }
-        .padding(.top,50)
+        .padding(.top, 50)
     }
-    
 }
 
 #Preview {

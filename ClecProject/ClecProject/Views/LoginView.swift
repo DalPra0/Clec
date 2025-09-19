@@ -32,7 +32,6 @@ struct LoginView: View {
                             x: geometry.size.width * 0.18,  // 18% da largura
                             y: geometry.size.height * 0.15  // 15% da altura
                         )
-                    
                     // Rolo superior direita - GRANDE como no Figma
                     Image("AssetRoloFIlme")
                         .resizable()

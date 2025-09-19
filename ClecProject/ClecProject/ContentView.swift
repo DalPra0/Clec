@@ -6,23 +6,33 @@ struct ContentView: View {
     
     @EnvironmentObject var authService: AuthService
     
+    @State var isUserOld = UserDefaults.standard.bool(forKey: "isUserOld")
+    
     var body: some View {
         Group {
-            if authService.userSession != nil {
-                // Main authenticated view
-                if projectManager.activeProject != nil {
-                    DashboardView()
-                        .environmentObject(projectManager)
-                        .environmentObject(userManager)
+            if isUserOld {
+                if authService.userSession != nil {
+                    // Main authenticated view
+                    if projectManager.activeProject != nil {
+                        DashboardView()
+                            .environmentObject(projectManager)
+                            .environmentObject(userManager)
+                    } else {
+                        InitialView()
+                            .environmentObject(projectManager)
+                            .environmentObject(userManager)
+                    }
                 } else {
-                    InitialView()
-                        .environmentObject(projectManager)
-                        .environmentObject(userManager)
+                    LoginView()
                 }
             } else {
-                LoginView()
+                OnboardingView(isUserOldLocal: $isUserOld)
             }
         }
-        // REMOVIDO: .preferredColorScheme(.light) - AGORA É AUTOMÁTICO!
+        .onAppear{
+            print(isUserOld)
+            //p/ ver o onboarding de novo eh so descomentar essa parada kk..
+//            UserDefaults.standard.set(false, forKey: "isUserOld")
+        }
     }
 }
